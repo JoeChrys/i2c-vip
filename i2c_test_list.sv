@@ -1,0 +1,5 @@
+
+`include "i2c_base_test.sv"
+`include "i2c_extended_test.sv"
+`include "i2c_random_test.sv"            
+`include "i2c_rst_test.sv"
