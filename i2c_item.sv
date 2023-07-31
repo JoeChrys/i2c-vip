@@ -14,7 +14,8 @@ constraint ack_bit_1 {ack == 1;}
 
 // * * * Register variables in factory * * * 
     `uvm_object_utils_begin(i2c_item) 
-
+        `uvm_field_int(data, UVM_DEFAULT|UVM_HEX)
+        `uvm_field_int(ack, UVM_DEFAULT|UVM_BIN)
     `uvm_object_utils_end
     extern function new(string name = "i2c_item");
 endclass // i2c_item
