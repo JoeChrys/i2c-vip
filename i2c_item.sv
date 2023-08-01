@@ -1,12 +1,18 @@
 
-class i2c_item#(int ADDR = 32, int DATA = 32) extends uvm_sequence_item; 
+class i2c_item extends uvm_sequence_item; 
     
 // * * * Add fields bellow * * *
 rand bit[8] data;
 rand bit ack;
 
+rand integer delay;
+rand integer clock_stretch;
+
 // * * * Add constraints * * *
-constraint ack_bit_1 {ack == 1;}
+constraint c_ack {ack == 1;}
+
+constraint c_delay {delay >= 0; soft delay == 0;}
+constraint c_clock_stretch {clock_stretch >= 0; soft clock_stretch == 0;}
 
 //-------------------------------------------------------------------
 // Shorthand macros
