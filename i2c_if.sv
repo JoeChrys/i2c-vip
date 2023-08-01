@@ -1,13 +1,12 @@
 
-interface i2c_if #(parameter ADDR = 32, parameter DATA = 32)(input bit system_clock, input bit reset_n);
+interface i2c_if (inout sda, scl);
     
     // * * * Add you specific interface logics below * * *
+    logic vdd = 'b1;
 
-    task wait_n_clocks(int N);
-        // * * * This task is just a blocking function that waits N clock cycles. * * *
-        repeat(N) @(posedge system_clock);
-        #10;
-    endtask
+    buf(pull1, strong0) (sda, vdd);
+    buf(pull1, strong0) (scl, vdd);
+    
 	
     // * * * You can add assertion checkers bellow * * * 
     
