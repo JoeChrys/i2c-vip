@@ -2,8 +2,14 @@
 interface i2c_if ();
     
     // * * * Add you specific interface logics below * * *
-    logic sda;
-    logic scl;
+    tri1 sda;
+    tri1 scl;
+
+    logic uvc_sda;
+    logic uvc_scl;
+
+    assign sda = uvc_sda;
+    assign scl = uvc_scl;
 
     /* OLD LOGIC
     //logic vdd = 'b1; // TODO maybe use supply1 instead of logic
