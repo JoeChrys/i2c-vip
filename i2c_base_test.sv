@@ -7,7 +7,7 @@ class i2c_base_test extends uvm_test;
     i2c_env_cfg cfg_env;
     i2c_env env;
   	i2c_cfg cfg;
-    virtual i2c_if#(32, 32)   i2c_vif;
+    virtual i2c_if i2c_vif;
 
     extern function new(string name = "i2c_base_test", uvm_component parent=null);
     extern virtual function void build_phase(uvm_phase phase);
@@ -25,7 +25,7 @@ endfunction : new
 //-------------------------------------------------------------------------------------------------------------
 function void  i2c_base_test::build_phase(uvm_phase phase);
     super.build_phase(phase);
-    if(!uvm_config_db#(virtual i2c_if#(32, 32))::get(this, "", "i2c_vif", i2c_vif)) 
+    if(!uvm_config_db#(virtual i2c_if)::get(this, "", "i2c_vif", i2c_vif)) 
         `uvm_fatal("build_phase",{"virtual interface must be set for: ", get_full_name(),".i2c_vif"});
 
     cfg_env = i2c_env_cfg::type_id::create("cfg_env", this);
@@ -34,8 +34,8 @@ function void  i2c_base_test::build_phase(uvm_phase phase);
     cfg = i2c_cfg::type_id::create("cfg", this);
     cfg_randomize();
     set_default_configuration();
-    cfg_env.has_master_agent_1 = 1;
-    cfg_env.has_slave_agent_1 = 1;
+    // cfg_env.has_master_agent_1 = 1;
+    // cfg_env.has_slave_agent_1 = 1;
     cfg_env.master_config.agent_type = MASTER;
     cfg_env.slave_config.agent_type = SLAVE;
     uvm_config_db#(i2c_env_cfg)::set(this,"env","cfg_env", cfg_env);

@@ -1,9 +1,9 @@
 
-class i2c_monitor#(int ADDR = 32, int DATA = 32) extends uvm_monitor; 
+class i2c_monitor extends uvm_monitor; 
    
-   `uvm_component_utils(i2c_monitor#(ADDR,DATA))
+   `uvm_component_utils(i2c_monitor)
 
-    virtual i2c_if#(ADDR, DATA) i2c_vif;
+    virtual i2c_if i2c_vif;
    
     //i2c_coverage    cov;
     i2c_item   i2c_trans;
@@ -36,7 +36,7 @@ endfunction
 function void i2c_monitor::build_phase(uvm_phase phase);
     super.build_phase(phase);
     `uvm_info("build_phase","BUILD i2c_MONITOR",UVM_MEDIUM);
-    if(!uvm_config_db#(virtual i2c_if#(ADDR, DATA))::get(this, "", "i2c_vif", i2c_vif)) 
+    if(!uvm_config_db#(virtual i2c_if)::get(this, "", "i2c_vif", i2c_vif)) 
         `uvm_fatal("build_phase",{"virtual interface must be set for: ",get_full_name(),".i2c_vif"});
 
     if (!uvm_config_db#(i2c_cfg)::get(this, "", "cfg",cfg)) begin

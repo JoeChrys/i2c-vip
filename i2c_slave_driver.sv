@@ -1,8 +1,8 @@
 
-class i2c_slave_driver#(int ADDR = 32, int DATA = 32) extends uvm_driver #(i2c_item);
+class i2c_slave_driver extends uvm_driver #(i2c_item);
     
-    `uvm_component_utils(i2c_slave_driver#(ADDR,DATA))
-    virtual i2c_if#(ADDR, DATA)   i2c_vif;
+    `uvm_component_utils(i2c_slave_driver)
+    virtual i2c_if   i2c_vif;
     
     i2c_cfg    cfg;
     bit reset_flag = 0;
@@ -24,7 +24,7 @@ endfunction // i2c_slave_driver::new
 function void i2c_slave_driver::build_phase(uvm_phase phase);
     super.build_phase(phase); 
     `uvm_info("build_phase","BUILD i2c_slave_DRIVER",UVM_HIGH);
-    if(!uvm_config_db#(virtual i2c_if#(ADDR, DATA))::get(this, "", "i2c_vif", i2c_vif)) 
+    if(!uvm_config_db#(virtual i2c_if)::get(this, "", "i2c_vif", i2c_vif)) 
         `uvm_fatal("build_phase",{"virtual interface must be set for: ", get_full_name(),".i2c_vif"});
     if (!uvm_config_db#(i2c_cfg)::get(this, "", "cfg", cfg)) begin
         `uvm_fatal("build_phase", "cfg wasn't set through config db");

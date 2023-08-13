@@ -10,10 +10,10 @@ class i2c_env extends uvm_env;
 
     `uvm_component_param_utils(i2c_env)
 
-    i2c_env_cfg cfg_env;
-    i2c_agent#(32,32) master_agent;
-    i2c_agent#(32,32) slave_agent;
-    i2c_sb sb; 
+    i2c_env_cfg     cfg_env;
+    i2c_agent       master_agent;
+    i2c_agent       slave_agent;
+    i2c_sb          sb; 
 
     extern function new (string name, uvm_component parent);
     extern virtual function void build_phase (uvm_phase phase);
@@ -32,8 +32,8 @@ function void i2c_env:: build_phase (uvm_phase phase);
         `uvm_fatal (get_type_name(), "Failed to get the configuration file from the config DB!")
     end 
     
-    master_agent = i2c_agent#(32,32) :: type_id :: create ("master_agent", this);
-    slave_agent = i2c_agent#(32,32) :: type_id :: create ("slave_agent", this);
+    master_agent = i2c_agent :: type_id :: create ("master_agent", this);
+    slave_agent = i2c_agent :: type_id :: create ("slave_agent", this);
 
     master_agent.cfg = cfg_env.master_config;
     slave_agent.cfg = cfg_env.slave_config;

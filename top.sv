@@ -28,11 +28,11 @@ module top;
         reset_n = 1;
     end
     
-    i2c_if#(32,32)i2c_vif (system_clock,reset_n);
+    i2c_if i2c_vif (system_clock,reset_n);
 
     //interface
     initial begin
-        uvm_config_db#(virtual i2c_if#(32,32))::set(null,"*", "i2c_vif", i2c_vif);
+        uvm_config_db#(virtual i2c_if)::set(null,"*", "i2c_vif", i2c_vif);
     end
     
     // invoking simulation phases of all components

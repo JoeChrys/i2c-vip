@@ -1,5 +1,5 @@
 
-interface i2c_if ();
+interface i2c_if (input bit system_clock, input bit reset_n);
     
   // * * * Add you specific interface logics below * * *
   logic sda;
@@ -12,6 +12,12 @@ interface i2c_if ();
   always @(scl === 1'bz) begin
     scl = 1;
   end
+
+  task wait_n_clocks(int N);
+    // * * * This task is just a blocking function that waits N clock cycles. * * *
+    repeat(N) @(posedge system_clock);
+    #10;
+  endtask
 
   // * * * You can add assertion checkers bellow * * * 
   always @(sda or scl) begin
