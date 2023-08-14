@@ -22,6 +22,9 @@ class i2c_monitor extends uvm_monitor;
     extern virtual task  run_phase(uvm_phase phase);  
     extern virtual task  do_monitor();
     extern virtual task  reset_on_the_fly();
+
+    extern virtual task  check_start_cond();
+    extern virtual task  check_stop_cond();
     
 endclass // i2c_monitor_class
 
@@ -63,15 +66,17 @@ task  i2c_monitor::run_phase(uvm_phase phase);
 	repeat(3) @(posedge i2c_vif.system_clock);
     forever begin
       // delete if bellow if UVC dosen't have reset on fly feature
-      if (reset_flag) begin
-            @(posedge i2c_vif.reset_n); // wait for reset to end
-	        repeat(3) @(posedge i2c_vif.system_clock); // wait 3 more clock cycles, just to be sure we're stable
-            reset_flag = 0;
-        end
+    //   if (reset_flag) begin
+    //         @(posedge i2c_vif.reset_n); // wait for reset to end
+	//         repeat(3) @(posedge i2c_vif.system_clock); // wait 3 more clock cycles, just to be sure we're stable
+    //         reset_flag = 0;
+    //     end
 
         fork 
-            reset_on_the_fly(); // delete this and fork if UVC dosen't have reset on fly feature
+            // reset_on_the_fly(); // delete this and fork if UVC dosen't have reset on fly feature
             do_monitor();
+            check_start_cond();
+            check_stop_cond();
         join_any
         disable fork;
     end // of forever       
@@ -96,4 +101,13 @@ task i2c_monitor::do_monitor();
     //i2c_mon_analysis_port.write(i2c_trans); // sending sampled data to scoreboard
     //cov.i2c_cg.sample(i2c_trans); // sampling for coverage
 
+endtask
+
+task i2c_monitor::check_start_cond();
+  // @(negedge sda) if (scl == 1'b1) -> start;
+  // ! Suggestion make start/stop events, not items 
+endtask
+
+task i2c_monitor::check_stop_cond();
+  // @(posedge sda) if (scl == 1'b1) -> stop;
 endtask

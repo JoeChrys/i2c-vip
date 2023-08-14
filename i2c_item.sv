@@ -8,11 +8,15 @@ rand bit ack;
 rand integer delay;
 rand integer clock_stretch;
 
+//rand enum com_type {DATA, START, STOP}
+
 // * * * Add constraints * * *
 constraint c_ack {ack == 1;}
 
 constraint c_delay {delay >= 0; soft delay == 0;}
 constraint c_clock_stretch {clock_stretch >= 0; soft clock_stretch == 0;}
+
+// constraint c_com_type {soft com_type == DATA;}
 
 //-------------------------------------------------------------------
 // Shorthand macros
