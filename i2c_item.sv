@@ -2,7 +2,7 @@
 class i2c_item extends uvm_sequence_item; 
     
 // * * * Add fields bellow * * *
-rand bit[8] data;
+rand bit[7:0] data;
 rand bit ack;
 
 rand integer delay;

@@ -1,4 +1,11 @@
-*.txt
+# Simulator files
 xcelium.d/
+waves.shm/
+
+# Output Files
 *.history
 *.log
+*.vcd
+
+# Other files
+*.txt
