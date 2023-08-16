@@ -30,10 +30,14 @@
 
 ## TODO:
 
+- [x] Interface
+    - [x] Pullup behavior when `1'bZ`
+    - [x] Basic assertions for `1'bX`
+    - [ ] Assertion for pullup behavior
 - [ ] Data item
-    - [x] Member variables
+    - [ ] Member variables
     - [x] Constraints
-    - [ ] Register variables
+    - [ ] Register variables to factory
 - [ ] Driver
     - [ ] Bit driving (setting SDA and SCL in the correct order prefferably without using delays)
     - [ ] Bit check after sending (for  [UVM 2.](#uvm))
