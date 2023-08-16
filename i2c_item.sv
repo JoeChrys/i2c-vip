@@ -13,8 +13,8 @@ rand integer clock_stretch;
 // * * * Add constraints * * *
 constraint c_ack {ack == 1;}
 
-constraint c_delay {delay >= 0; soft delay == 0;}
-constraint c_clock_stretch {clock_stretch >= 0; soft clock_stretch == 0;}
+constraint c_delay {delay inside {[0:10]}; soft delay == 0;}
+constraint c_clock_stretch {clock_stretch inside {[0:10]}; soft clock_stretch == 0;}
 
 // constraint c_com_type {soft com_type == DATA;}
 
@@ -26,7 +26,10 @@ constraint c_clock_stretch {clock_stretch >= 0; soft clock_stretch == 0;}
     `uvm_object_utils_begin(i2c_item) 
         `uvm_field_int(data, UVM_DEFAULT|UVM_HEX)
         `uvm_field_int(ack, UVM_DEFAULT|UVM_BIN)
+        // TODO Add the rest of the variables
     `uvm_object_utils_end
+
+
     extern function new(string name = "i2c_item");
 endclass // i2c_item
 
