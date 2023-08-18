@@ -104,10 +104,16 @@ task i2c_monitor::do_monitor();
 endtask
 
 task i2c_monitor::check_start_cond();
-  // @(negedge sda) if (scl == 1'b1) -> start;
-  // ! Suggestion make start/stop events, not items 
+  `uvm_info("Monitor", "checking for start condition", UVM_DEBUG)
+  @(negedge i2c_vif.sda) if (i2c_vif.scl == 1'b1);
+  // ! Suggestion make start/stop events, not items
+
+  `uvm_info("Monitor", "detected for start condition", UVM_DEBUG) 
 endtask
 
 task i2c_monitor::check_stop_cond();
-  // @(posedge sda) if (scl == 1'b1) -> stop;
+  `uvm_info("Monitor", "checking for stop condition", UVM_DEBUG)
+  @(posedge i2c_vif.sda) if (i2c_vif.scl == 1'b1);
+
+  `uvm_info("Monitor", "detected for stop condition", UVM_DEBUG) 
 endtask

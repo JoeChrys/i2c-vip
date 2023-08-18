@@ -1,11 +1,14 @@
 # Simulator files
 xcelium.d/
 waves.shm/
+.simvision/
 
 # Output Files
 *.history
 *.log
 *.vcd
+simvision*
+xrun.key
 
 # Other files
 *.txt
