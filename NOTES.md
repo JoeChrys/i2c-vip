@@ -43,3 +43,12 @@
     - `get_clock_percentile()` (maybe 20 percentiles)
     - `get_clock_period()`
     - `get_clock_duty()`
+
+#### Clocking
+
+- At `ACK` stage
+    1. Drive `SCL = 'b0` during the last part of final bit as expected
+    2. Drive `SCL = 'bZ` (at this point Slave may hold `SCL = 'b0`)
+    3. `wait (SCL == 'b1)`
+    4. check `ACK`
+    5. ...

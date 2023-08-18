@@ -4,6 +4,8 @@
 
 - [ ] 1. Should I make a modifiable clock for different speed modes?
 
+- [ ] To test `Start Byte` may need a different slave since this slave does NOT listen for `Start Condition` but for `SDA = 'b0`
+
 ##### Data Item
 
 - [ ] 1. How to create a new global type (enum) for item type?
