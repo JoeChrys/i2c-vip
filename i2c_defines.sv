@@ -10,4 +10,4 @@ const int MAX_SLAVE_DELAY = 50;
 `define DATA_W 32 //data width in ITEM
 
 typedef enum {MASTER, SLAVE} agent_type_enum;
-
+typedef enum {DATA, START, STOP} item_type_enum;

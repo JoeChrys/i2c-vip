@@ -36,13 +36,10 @@
     3. `join_any`
     4. `disable join`
 
-#### Speed Modes
+#### Monitor
 
-- Make a class for clock timing (__will be used for `delays` and `SCL` in different speed modes__)
-    - `m_enum {STD, FM, FMP, HS}`
-    - `get_clock_percentile()` (maybe 20 percentiles)
-    - `get_clock_period()`
-    - `get_clock_duty()`
+- Sample at `SCL low`, this makes it indepentent of speed mode
+    - `fork` checks for `START`, `STOP`
 
 #### Clocking
 
@@ -52,3 +49,11 @@
     3. `wait (SCL == 'b1)`
     4. check `ACK`
     5. ...
+
+#### Speed Modes
+
+- Make a class for clock timing (__will be used for `delays` and `SCL` in different speed modes__)
+    - `m_enum {STD, FM, FMP, HS}`
+    - `get_clock_percentile()` (maybe 20 percentiles)
+    - `get_clock_period()`
+    - `get_clock_duty()`
