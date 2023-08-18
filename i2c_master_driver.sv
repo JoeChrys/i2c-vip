@@ -6,7 +6,7 @@ class i2c_master_driver extends uvm_driver #(i2c_item);
     
     i2c_cfg    cfg;
     bit reset_flag = 0;
-    bit bus_busy = 0;
+    bit bus_busy_flag = 0;
 
     extern function new (string name, uvm_component parent);
     extern virtual function void build_phase (uvm_phase phase);
@@ -17,7 +17,7 @@ class i2c_master_driver extends uvm_driver #(i2c_item);
 
     extern virtual task  do_start_cond();
     extern virtual task  do_stop_cond();
-    extern virtual task  transfer_data();
+    extern virtual task  transfer_data(i2c_item req);
     extern virtual function void send_bit(bit data_bit);
     
 endclass // i2c_master_driver
@@ -58,7 +58,8 @@ task i2c_master_driver::run_phase(uvm_phase phase);
         fork 
             // reset_on_the_fly(); // delete this and fork if UVC dosen't have reset on fly feature
             do_drive(req);
-            // ! Should it do START/STOP checks?
+            // ! Should it do START/STOP checks? maybe should check for outside start cond during data? ANS: impossible, also it creates issues for repeted START cond
+            // ! Conclusion: fork is not needed unless I want to use reset_on_the_fly()
         join_any
         disable fork;
 			
@@ -98,25 +99,34 @@ task i2c_master_driver::reset_on_the_fly();
     reset_flag = 1;
 endtask
 
-task i2c_master_driver:do_start_cond();
-    sda = 1'b0;
-    slc <= 1'b0;
+task i2c_master_driver::do_start_cond();
+    `uvm_info("Driver", "doing START condition", UVM_HIGH)
+    i2c_vif.sda = 1'b0;
+    i2c_vif.scl <= 1'b0;
 endtask
 
 task i2c_master_driver::do_stop_cond();
-  scl = 1'bz;
-  sda <= 1'bz;
+    `uvm_info("Driver", "doing STOP condition", UVM_HIGH)
+  i2c_vif.scl = 1'bz;
+  i2c_vif.sda <= 1'bz;
 endtask
 
 task i2c_master_driver::transfer_data(i2c_item req);
+    `uvm_info("Driver", "Starting data transfer", UVM_HIGH)
   for (int i=7; i>=0; i--) begin
+    i2c_vif.scl = 0;
     send_bit(req.data[i]);
+    #5;
+    i2c_vif.scl = 1'bz;
+    #5;
+    `uvm_info("Driver", $sformatf("Sent bit %1d", 7-i), UVM_HIGH)
   end
+    `uvm_info("Driver", "Done sending data", UVM_HIGH)
 endtask
 
-function i2c_master_driver::send_bit(bit data_bit);
-  if (data_bit == 1) i2c_vif.data = 1'bz;
-  else               i2c_vif.data = data_bit;
+function void i2c_master_driver::send_bit(bit data_bit);
+  if (data_bit == 1) i2c_vif.sda = 1'bz;
+  else               i2c_vif.sda = data_bit;
 endfunction
 
 // TODO Add checks for each bit driven and remember to drive 1 with Z

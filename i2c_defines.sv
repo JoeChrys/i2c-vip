@@ -11,3 +11,4 @@ const int MAX_SLAVE_DELAY = 50;
 
 typedef enum {MASTER, SLAVE} agent_type_enum;
 typedef enum {DATA, START, STOP} item_type_enum;
+typedef enum {ACK, NACK} ack_nack_enum;
