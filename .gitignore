@@ -9,6 +9,7 @@ waves.shm/
 *.vcd
 simvision*
 xrun.key
+*.nfs*
 
 # Other files
 *.txt
