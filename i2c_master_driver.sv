@@ -119,10 +119,17 @@ task i2c_master_driver::do_stop_cond();
 endtask
 
 task i2c_master_driver::transfer_data(i2c_item req);
+    `uvm_info("Driver", "Starting data transfer", UVM_HIGH)
   for (int i=7; i>=0; i--) begin
     `uvm_info("Driver", $sformatf("Sending bit %1b with value %1b", i, req.data[i]), UVM_DEBUG)
+    i2c_vif.scl = 0;
     send_bit(req.data[i]);
+    #5;
+    i2c_vif.scl = 1'bz;
+    #5;
+    `uvm_info("Driver", $sformatf("Sent bit %1d", 7-i), UVM_HIGH)
   end
+    `uvm_info("Driver", "Done sending data", UVM_HIGH)
 endtask
 
 task i2c_master_driver::send_bit(bit data_bit);

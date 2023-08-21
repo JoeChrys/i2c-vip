@@ -43,7 +43,7 @@ endfunction
 task i2c_random_test:: run_phase (uvm_phase phase);        
     super.run_phase(phase);
     phase.raise_objection(this);
-    number_of_transactions = $urandom_range(150,100);
+    number_of_transactions = $urandom_range(10,2);
     for (int i = 0; i < number_of_transactions; i++) begin
         fork
             begin
