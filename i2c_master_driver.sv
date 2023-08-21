@@ -6,7 +6,6 @@ class i2c_master_driver extends uvm_driver #(i2c_item);
     
     i2c_cfg    cfg;
     bit reset_flag = 0;
-    bit bus_busy = 0;
 
     extern function new (string name, uvm_component parent);
     extern virtual function void build_phase (uvm_phase phase);
@@ -18,7 +17,10 @@ class i2c_master_driver extends uvm_driver #(i2c_item);
     extern virtual task  do_start_cond();
     extern virtual task  do_stop_cond();
     extern virtual task  transfer_data();
-    extern virtual function void send_bit(bit data_bit);
+    extern virtual task  send_bit(bit data_bit);
+
+    extern virtual task  do_delay();
+    extern virtual task  check_bus_busy();
     
 endclass // i2c_master_driver
 
@@ -58,7 +60,6 @@ task i2c_master_driver::run_phase(uvm_phase phase);
         fork 
             // reset_on_the_fly(); // delete this and fork if UVC dosen't have reset on fly feature
             do_drive(req);
-            // ! Should it do START/STOP checks?
         join_any
         disable fork;
 			
@@ -76,18 +77,25 @@ endtask
 
 task i2c_master_driver::do_drive(i2c_item req);
 // * * * Write driving logic here * * *
-    //// Check if channel is avaiable
-    ////wait (i2c_vif.sda == 1'b1 && i2c_vif.scl == 1'b1 && !bus_busy);
-    // ! May need to add semaphore for multiple masters (and avoid checking own start condition)
-    // ! no need, there would be only one master driver, need 2 masters to test this
+    // ! May need to add semaphore for multiple masters
+
+	bit bus_busy = 0;
+
+    fork
+        do_delay();
+        check_bus_busy();
+    join_any
+
+    wait (!bus_busy);
+    disable fork;
 
     case (req.com_type)
-    START: do_start_cond();
-    STOP:  do_stop_cond();
-    DATA:  transfer_data(req);
+        START: do_start_cond();
+        STOP:  do_stop_cond();
+        DATA:  transfer_data(req);
     endcase
 
-    @(posedge i2c_vif.system_clock);   
+    // @(posedge i2c_vif.system_clock);   
      `uvm_info("Driver", "do_drive task executed", UVM_HIGH)
 endtask
 
@@ -99,25 +107,56 @@ task i2c_master_driver::reset_on_the_fly();
 endtask
 
 task i2c_master_driver:do_start_cond();
+    `uvm_info("Driver", "Sending START", UVM_HIGH)
     sda = 1'b0;
     slc <= 1'b0;
 endtask
 
 task i2c_master_driver::do_stop_cond();
-  scl = 1'bz;
-  sda <= 1'bz;
+    `uvm_info("Driver", "Sending STOP", UVM_HIGH)
+    scl = 1'bz;
+    sda <= 1'bz;
 endtask
 
 task i2c_master_driver::transfer_data(i2c_item req);
   for (int i=7; i>=0; i--) begin
+    `uvm_info("Driver", $sformatf("Sending bit %1b with value %1b", i, req.data[i]), UVM_DEBUG)
     send_bit(req.data[i]);
   end
 endtask
 
-function i2c_master_driver::send_bit(bit data_bit);
+task i2c_master_driver::send_bit(bit data_bit);
   if (data_bit == 1) i2c_vif.data = 1'bz;
-  else               i2c_vif.data = data_bit;
-endfunction
+  else            #0 i2c_vif.data = data_bit;
+  //zero delay is added to avoid unexpected behaviour between 
+  if (data_bit == 1) `uvm_info("Driver", "SDA was driven with Z", UVM_DEBUG)
+  else               `uvm_info("Driver", "SDA was driven with 0", UVM_DEBUG)
+endtask
+
+task i2c_master_driver::do_delay();
+    `uvm_info("Driver", $sformatf("Waiting for %3d tu before sending", req.delay), UVM_HIGH)
+    #(req.delay);
+    `uvm_info("Driver", "Done waiting (for item delay)", UVM_DEBUG)
+endtask
+
+task i2c_master_driver::check_bus_busy();
+    forever begin
+        `uvm_info("Driver", "Checking if bus is busy...", UVM_DEBUG)
+        //START CONDITION
+        begin
+            @(negedge i2c_vif.sda) if (i2c_vif.scl == 1'b1);
+            bus_busy = 1;
+            `uvm_info("Driver", "START condition detected, bus is busy, waiting...", UVM_LOW)
+        end
+
+        //STOP CONDITION
+        begin
+            @(posedge i2c_vif.sda) if (i2c_vif.scl == 1'b1);
+            bus_busy = 0;
+            `uvm_info("Driver", "STOP condition detected, bus is now free", UVM_LOW)
+        end
+    end
+endtask
 
 // TODO Add checks for each bit driven and remember to drive 1 with Z
 // TODO eg if data[i] == i2c_vif.sda continue, else another driver is also sending

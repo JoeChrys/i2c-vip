@@ -2,14 +2,7 @@
 
 #### Master Driver
 
-- Com Task
-    1. Check if bus is free
-    2. `fork` 
-        - `Start COM` 
-        - Check `Start Condition`
-    - No other driver can `Stop Condition`
-    3. `join_any`
-    4.  `disable fork`
+- RSP just read from `SDA`, sequence will compare if it is correct
 <br>
 
 - Start Condition Task

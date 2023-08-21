@@ -4,13 +4,15 @@
 
 - [ ] 1. Should I make a modifiable clock for different speed modes?
 
-- [ ] To test `Start Byte` may need a different slave since this slave does NOT listen for `Start Condition` but for `SDA = 'b0`
+- [ ] 2. To test `Start Byte` may need a different slave since this slave does NOT listen for `Start Condition` but for `SDA = 'b0`
+
+- [ ] 3. If 2 masters are trying to send at the same time (clock sync) then the one that drives `SDA = 0` should win. Both drive it at the same time with `Z` &rarr; `1` and `0` which may lead to `X` in simulation. Should `X` be turned to `0` just like `Z` &rarr; `1` ?
 
 ##### Data Item
 
-- [ ] 1. How to create a new global type (enum) for item type?
+- [x] 1. How to create a new global type (enum) for item type?
 
-##### Driver
+##### Master Driver
 
 - [ ] 1. How will the driver generate clock?
     - Should I base it on system_clock signal?
@@ -22,7 +24,9 @@
         | HIGH | $duty \cdot period$ |
         | LOW | ${(1-duty) \over 2} \cdot period$ |
 
-- [ ] 2. How to drive SDA and SCL in correct order?
+##### Slave Driver
+
+- [ ] 1. How to drive SDA and SCL in correct order?
     - Should I use<br> ``wait(scl == 0); sda = data;`` ?
 
 ##### UVM
@@ -42,5 +46,5 @@
     - [ ] Register variables to factory
 - [ ] Driver
     - [ ] Bit driving (setting SDA and SCL in the correct order prefferably without using delays)
-    - [ ] Bit check after sending (for  [UVM 2.](#uvm))
+    - [ ] Bit sample after sending
 
