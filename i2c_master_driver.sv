@@ -108,25 +108,31 @@ endtask
 
 task i2c_master_driver:do_start_cond();
     `uvm_info("Driver", "Sending START", UVM_HIGH)
-    sda = 1'b0;
-    slc <= 1'b0;
+    i2c_vif.uvc_sda = 1'b0;
+    i2c_vif.uvc_slc <= 1'b0;
+    #5;
 endtask
 
 task i2c_master_driver::do_stop_cond();
     `uvm_info("Driver", "Sending STOP", UVM_HIGH)
-    scl = 1'bz;
-    sda <= 1'bz;
+    i2c_vif.uvc_slc = 1'bz;
+    i2c_vif.uvc_sda <= 1'bz;
+    #5;
 endtask
 
 task i2c_master_driver::transfer_data(i2c_item req);
     `uvm_info("Driver", "Starting data transfer", UVM_HIGH)
   for (int i=7; i>=0; i--) begin
     `uvm_info("Driver", $sformatf("Sending bit %1b with value %1b", i, req.data[i]), UVM_DEBUG)
-    i2c_vif.scl = 0;
+    i2c_vif.uvc_scl = 0;
     send_bit(req.data[i]);
+    //pseudo clk with 0.5 duty cycle
     #5;
-    i2c_vif.scl = 1'bz;
+    i2c_vif.uvc_scl = 1'bz;
+    #10;
+    i2c_vif.uvc_scl = 0;
     #5;
+    // end clock
     `uvm_info("Driver", $sformatf("Sent bit %1d", 7-i), UVM_HIGH)
   end
     `uvm_info("Driver", "Done sending data", UVM_HIGH)
@@ -134,8 +140,7 @@ endtask
 
 task i2c_master_driver::send_bit(bit data_bit);
   if (data_bit == 1) i2c_vif.data = 1'bz;
-  else            #0 i2c_vif.data = data_bit;
-  //zero delay is added to avoid unexpected behaviour between 
+  else               i2c_vif.data = data_bit;
   if (data_bit == 1) `uvm_info("Driver", "SDA was driven with Z", UVM_DEBUG)
   else               `uvm_info("Driver", "SDA was driven with 0", UVM_DEBUG)
 endtask

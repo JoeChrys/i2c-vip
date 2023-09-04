@@ -75,8 +75,8 @@ task  i2c_monitor::run_phase(uvm_phase phase);
         fork 
             // reset_on_the_fly(); // delete this and fork if UVC dosen't have reset on fly feature
             do_monitor();
-            check_start_cond();
-            check_stop_cond();
+            // check_start_cond(); // TODO add these inside do_monitor()
+            // check_stop_cond();
         join_any
         disable fork;
     end // of forever       
@@ -98,6 +98,13 @@ task i2c_monitor::do_monitor();
     @(posedge i2c_vif.system_clock);  
     `uvm_info("Monitor", "do_monitor task executed", UVM_LOW)
 
+    fork
+        check_start_cond();
+        check_stop_cond();
+        check_data_transfer();
+    join_any
+    disable fork
+
     //i2c_mon_analysis_port.write(i2c_trans); // sending sampled data to scoreboard
     //cov.i2c_cg.sample(i2c_trans); // sampling for coverage
 
@@ -106,14 +113,33 @@ endtask
 task i2c_monitor::check_start_cond();
   `uvm_info("Monitor", "checking for start condition", UVM_DEBUG)
   @(negedge i2c_vif.sda) if (i2c_vif.scl == 1'b1);
-  // ! Suggestion make start/stop events, not items
-
-  `uvm_info("Monitor", "detected for start condition", UVM_DEBUG) 
+  i2c_item i2c_trans = type_id::create("trans", this);
+  i2c_trans.com_type = START;
+  i2c_mon_analysis_port.write(i2c_trans);
+  `uvm_info("Monitor", "detected for start condition", UVM_HIGH) 
 endtask
 
 task i2c_monitor::check_stop_cond();
   `uvm_info("Monitor", "checking for stop condition", UVM_DEBUG)
   @(posedge i2c_vif.sda) if (i2c_vif.scl == 1'b1);
+  i2c_item i2c_trans = type_id::create("trans", this);
+  i2c_trans.com_type = STOP;
+  i2c_mon_analysis_port.write(i2c_trans);
+  `uvm_info("Monitor", "detected for stop condition", UVM_HIGH) 
+endtask
 
-  `uvm_info("Monitor", "detected for stop condition", UVM_DEBUG) 
+task i2c_monitor::check_data_transfer();
+  `uvm_info("Monitor", "checking for data transfer", UVM_DEBUG)
+
+  i2c_item i2c_trans = type_id::create("trans", this);
+  trans.com_type = DATA;
+  for (int i = 7; i <= 0; i = i - 1) begin
+    @(posedge i2c_vif.scl);
+    i2c_trans.data[i] = i2c_vif.sda;
+  end
+  @(posedge i2c_vif.scl);
+  i2c_trans.response = i2c_vif.sda;
+
+  i2c_mon_analysis_port.write(i2c_trans);
+  `uvm_info("Monitor", "detected for data transfer", UVM_HIGH) 
 endtask
