@@ -25,6 +25,7 @@ class i2c_monitor extends uvm_monitor;
 
     extern virtual task  check_start_cond();
     extern virtual task  check_stop_cond();
+    extern virtual task  check_data_transfer();
     
 endclass // i2c_monitor_class
 
@@ -72,13 +73,11 @@ task  i2c_monitor::run_phase(uvm_phase phase);
     //         reset_flag = 0;
     //     end
 
-        fork 
+        // fork 
             // reset_on_the_fly(); // delete this and fork if UVC dosen't have reset on fly feature
             do_monitor();
-            // check_start_cond(); // TODO add these inside do_monitor()
-            // check_stop_cond();
-        join_any
-        disable fork;
+        // join_any
+        // disable fork;
     end // of forever       
 endtask
 
@@ -95,51 +94,62 @@ endtask //reset_on_the_fly*/
 task i2c_monitor::do_monitor();
     // * * * ADD SAMPLING LOGIC HERE * * *
 
-    @(posedge i2c_vif.system_clock);  
-    `uvm_info("Monitor", "do_monitor task executed", UVM_LOW)
+    @(posedge i2c_vif.scl);  
+    
 
     fork
         check_start_cond();
         check_stop_cond();
         check_data_transfer();
     join_any
-    disable fork
+    disable fork;
 
+    `uvm_info("Monitor", "do_monitor task executed", UVM_LOW)
     //i2c_mon_analysis_port.write(i2c_trans); // sending sampled data to scoreboard
     //cov.i2c_cg.sample(i2c_trans); // sampling for coverage
 
 endtask
 
 task i2c_monitor::check_start_cond();
-  `uvm_info("Monitor", "checking for start condition", UVM_DEBUG)
-  @(negedge i2c_vif.sda) if (i2c_vif.scl == 1'b1);
-  i2c_item i2c_trans = type_id::create("trans", this);
-  i2c_trans.com_type = START;
-  i2c_mon_analysis_port.write(i2c_trans);
-  `uvm_info("Monitor", "detected for start condition", UVM_HIGH) 
+  i2c_item i2c_trans = i2c_item::type_id::create("i2c_trans", this);
+  forever begin
+    `uvm_info("Monitor", "checking for start condition", UVM_DEBUG)
+    @(negedge i2c_vif.sda)
+    if (i2c_vif.scl == 1'b0) continue;
+
+    i2c_trans.com_type = START;
+    i2c_mon_analysis_port.write(i2c_trans);
+    `uvm_info("Monitor", "detected start condition", UVM_HIGH)
+  end
 endtask
 
 task i2c_monitor::check_stop_cond();
-  `uvm_info("Monitor", "checking for stop condition", UVM_DEBUG)
-  @(posedge i2c_vif.sda) if (i2c_vif.scl == 1'b1);
-  i2c_item i2c_trans = type_id::create("trans", this);
-  i2c_trans.com_type = STOP;
-  i2c_mon_analysis_port.write(i2c_trans);
-  `uvm_info("Monitor", "detected for stop condition", UVM_HIGH) 
+  i2c_item i2c_trans = i2c_item::type_id::create("i2c_trans", this);
+
+  forever begin
+    `uvm_info("Monitor", "checking for stop condition", UVM_DEBUG)
+    @(posedge i2c_vif.sda)
+    if (i2c_vif.scl == 1'b0) continue;
+
+    i2c_trans.com_type = STOP;
+    i2c_mon_analysis_port.write(i2c_trans);
+    `uvm_info("Monitor", "detected stop condition", UVM_HIGH) 
+  end
 endtask
 
 task i2c_monitor::check_data_transfer();
+  i2c_item i2c_trans = i2c_item::type_id::create("i2c_trans", this);
   `uvm_info("Monitor", "checking for data transfer", UVM_DEBUG)
 
-  i2c_item i2c_trans = type_id::create("trans", this);
-  trans.com_type = DATA;
-  for (int i = 7; i <= 0; i = i - 1) begin
+  i2c_trans.com_type = DATA;
+  for (int i = 7; i >= 0; i--) begin
     @(posedge i2c_vif.scl);
     i2c_trans.data[i] = i2c_vif.sda;
+    `uvm_info("Monitor", $sformatf("Got bit %1d with value %1b", i, i2c_trans.data[i]), UVM_DEBUG)
   end
   @(posedge i2c_vif.scl);
   i2c_trans.response = i2c_vif.sda;
 
   i2c_mon_analysis_port.write(i2c_trans);
-  `uvm_info("Monitor", "detected for data transfer", UVM_HIGH) 
+  `uvm_info("Monitor", "detected data transfer", UVM_HIGH) 
 endtask

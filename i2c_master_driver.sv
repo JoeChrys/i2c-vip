@@ -7,6 +7,8 @@ class i2c_master_driver extends uvm_driver #(i2c_item);
     i2c_cfg    cfg;
     bit reset_flag = 0;
 
+    bit bus_busy = 0;
+
     extern function new (string name, uvm_component parent);
     extern virtual function void build_phase (uvm_phase phase);
     extern virtual task  run_phase (uvm_phase phase);
@@ -79,7 +81,7 @@ task i2c_master_driver::do_drive(i2c_item req);
 // * * * Write driving logic here * * *
     // ! May need to add semaphore for multiple masters
 
-	bit bus_busy = 0;
+    bus_busy = 0;
 
     fork
         do_delay();
@@ -92,7 +94,7 @@ task i2c_master_driver::do_drive(i2c_item req);
     case (req.com_type)
         START: do_start_cond();
         STOP:  do_stop_cond();
-        DATA:  transfer_data(req);
+        DATA:  transfer_data();
     endcase
 
     // @(posedge i2c_vif.system_clock);   
@@ -106,24 +108,24 @@ task i2c_master_driver::reset_on_the_fly();
     reset_flag = 1;
 endtask
 
-task i2c_master_driver:do_start_cond();
+task i2c_master_driver::do_start_cond();
     `uvm_info("Driver", "Sending START", UVM_HIGH)
     i2c_vif.uvc_sda = 1'b0;
-    i2c_vif.uvc_slc <= 1'b0;
+    i2c_vif.uvc_scl <= 1'b0;
     #5;
 endtask
 
 task i2c_master_driver::do_stop_cond();
     `uvm_info("Driver", "Sending STOP", UVM_HIGH)
-    i2c_vif.uvc_slc = 1'bz;
+    i2c_vif.uvc_scl = 1'bz;
     i2c_vif.uvc_sda <= 1'bz;
     #5;
 endtask
 
-task i2c_master_driver::transfer_data(i2c_item req);
-    `uvm_info("Driver", "Starting data transfer", UVM_HIGH)
+task i2c_master_driver::transfer_data();
+  `uvm_info("Driver", "Starting data transfer", UVM_HIGH)
   for (int i=7; i>=0; i--) begin
-    `uvm_info("Driver", $sformatf("Sending bit %1b with value %1b", i, req.data[i]), UVM_DEBUG)
+    `uvm_info("Driver", $sformatf("Sending bit %1d with value %1b", i, req.data[i]), UVM_DEBUG)
     i2c_vif.uvc_scl = 0;
     send_bit(req.data[i]);
     //pseudo clk with 0.5 duty cycle
@@ -133,20 +135,20 @@ task i2c_master_driver::transfer_data(i2c_item req);
     i2c_vif.uvc_scl = 0;
     #5;
     // end clock
-    `uvm_info("Driver", $sformatf("Sent bit %1d", 7-i), UVM_HIGH)
+    `uvm_info("Driver", $sformatf("Sent bit %1d", i), UVM_HIGH)
   end
     `uvm_info("Driver", "Done sending data", UVM_HIGH)
 endtask
 
 task i2c_master_driver::send_bit(bit data_bit);
-  if (data_bit == 1) i2c_vif.data = 1'bz;
-  else               i2c_vif.data = data_bit;
+  if (data_bit == 1) i2c_vif.uvc_sda = 1'bz;
+  else               i2c_vif.uvc_sda = data_bit;
   if (data_bit == 1) `uvm_info("Driver", "SDA was driven with Z", UVM_DEBUG)
   else               `uvm_info("Driver", "SDA was driven with 0", UVM_DEBUG)
 endtask
 
 task i2c_master_driver::do_delay();
-    `uvm_info("Driver", $sformatf("Waiting for %3d tu before sending", req.delay), UVM_HIGH)
+    `uvm_info("Driver", $sformatf("Waiting for %03d tu before sending", req.delay), UVM_HIGH)
     #(req.delay);
     `uvm_info("Driver", "Done waiting (for item delay)", UVM_DEBUG)
 endtask
