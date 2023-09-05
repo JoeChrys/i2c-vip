@@ -2,7 +2,7 @@
 
 ##### General
 
-- [ ] 1. Should I make a modifiable clock for different speed modes?
+- [x] 1. Should I make a modifiable clock for different speed modes?
 
 - [ ] 2. To test `Start Byte` may need a different slave since this slave does NOT listen for `Start Condition` but for `SDA = 'b0`
 
@@ -32,7 +32,7 @@ __A: use seperate interface for each driver, each interface has 2 logic and 2 tr
     - Should I use<br> ``wait(scl == 0); sda = data;`` ?
 
 ##### UVM
-- [ ] 1. When trying to test multiple contollers (masters), I should use a different env with 2 master agents?
+- [x] 1. When trying to test multiple contollers (masters), I should use a different env with 2 master agents?
 
 ### Features
 
@@ -49,16 +49,16 @@ __A: use seperate interface for each driver, each interface has 2 logic and 2 tr
         - [ ] Start - Address1|Read  - Data 1.. - Start - Address2|Read  - Data 1.. - Stop
         - [ ] Start - Address1|Write - Data 1.. - Start - Address1|Read  - Data 1.. - Stop
 - [ ] Interface
-    - [ ] Pullup behavior when `1'bZ`
-    - [ ] Basic assertions for `1'bX`
+    - [x] Pullup behavior when `1'bZ`
+    - [x] Basic assertions for `1'bX`
     - [ ] Assertion for pullup behavior
-    - [ ] Assert uvc logic never `1'b1`
+    - [x] Assert uvc logic never `1'b1`
 - [ ] Data item
-    - [ ] Member variables
+    - [x] Member variables
     - [x] Constraints
     - [ ] Register variables to factory
 - [ ] Driver
-    - [ ] Bit driving (setting SDA and SCL in the correct order prefferably without using delays)
+    - [x] Bit driving (setting SDA and SCL in the correct order prefferably without using delays)
     - [ ] Bit sample after sending
 - [ ] Testbench
     - [ ] Create 2 IF for masters and 1 IF for slave
