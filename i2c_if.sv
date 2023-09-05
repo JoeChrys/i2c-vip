@@ -35,9 +35,17 @@ interface i2c_if (input bit system_clock, input bit reset_n);
   endtask
 
   // * * * You can add assertion checkers bellow * * * 
-  always @(sda or scl) begin
-    assert (sda !== 1'bx);
-    assert (scl !== 1'bx);
+  always @(sda) assert (sda !== 1'bx);
+  always @(scl) assert (scl !== 1'bx);
+
+  always @(uvc_sda) begin
+    assert (uvc_sda !== 1'bx);
+    assert (uvc_sda !== 1'b1);
+  end
+
+  always @(uvc_scl) begin
+    assert (uvc_scl !== 1'bx);
+    assert (uvc_sda !== 1'b1);
   end
 
 endinterface   

@@ -19,7 +19,9 @@ class i2c_master_driver extends uvm_driver #(i2c_item);
     extern virtual task  do_start_cond();
     extern virtual task  do_stop_cond();
     extern virtual task  transfer_data();
+    extern virtual task  listen_ack_data();
     extern virtual task  send_bit(bit data_bit);
+    extern virtual task  pulse_clock();
 
     extern virtual task  do_delay();
     extern virtual task  check_bus_busy();
@@ -68,14 +70,14 @@ task i2c_master_driver::run_phase(uvm_phase phase);
         seq_item_port.item_done();  
 
     end   // of forever
-endtask// i2c_master_driver::run_phase
+endtask // i2c_master_driver::run_phase
 
 //-------------------------------------------------------------------------------------------------------------
 task i2c_master_driver::do_init();
 // * * * Write initial values for your signals here * * *
     @(posedge i2c_vif.system_clock);
     `uvm_info("Driver", "do_init task executed", UVM_LOW)
-endtask
+endtask // i2c_master_driver::do_init
 
 task i2c_master_driver::do_drive(i2c_item req);
 // * * * Write driving logic here * * *
@@ -94,12 +96,19 @@ task i2c_master_driver::do_drive(i2c_item req);
     case (req.com_type)
         START: do_start_cond();
         STOP:  do_stop_cond();
-        DATA:  transfer_data();
+        DATA:  
+        begin
+          fork
+            transfer_data();
+            listen_ack_data();
+          join_any
+          disable fork;
+        end // DATA
     endcase
 
     // @(posedge i2c_vif.system_clock);   
      `uvm_info("Driver", "do_drive task executed", UVM_HIGH)
-endtask
+endtask // i2c_master_driver::do_drive
 
 
 task i2c_master_driver::reset_on_the_fly();
@@ -108,48 +117,73 @@ task i2c_master_driver::reset_on_the_fly();
     reset_flag = 1;
 endtask
 
+// ! refine timings
 task i2c_master_driver::do_start_cond();
     `uvm_info("Driver", "Sending START", UVM_HIGH)
     i2c_vif.uvc_sda = 1'b0;
-    i2c_vif.uvc_scl <= 1'b0;
     #5;
+    i2c_vif.uvc_scl = 1'b0;
 endtask
 
 task i2c_master_driver::do_stop_cond();
     `uvm_info("Driver", "Sending STOP", UVM_HIGH)
     i2c_vif.uvc_scl = 1'bz;
-    i2c_vif.uvc_sda <= 1'bz;
     #5;
+    i2c_vif.uvc_sda = 1'bz;
 endtask
 
 task i2c_master_driver::transfer_data();
   `uvm_info("Driver", "Starting data transfer", UVM_HIGH)
   for (int i=7; i>=0; i--) begin
     `uvm_info("Driver", $sformatf("Sending bit %1d with value %1b", i, req.data[i]), UVM_DEBUG)
-    i2c_vif.uvc_scl = 0;
-    send_bit(req.data[i]);
-    //pseudo clk with 0.5 duty cycle
-    #5;
-    i2c_vif.uvc_scl = 1'bz;
-    #10;
-    i2c_vif.uvc_scl = 0;
-    #5;
-    // end clock
+    fork
+      send_bit(req.data[i]);
+      pulse_clock();
+    join
     `uvm_info("Driver", $sformatf("Sent bit %1d", i), UVM_HIGH)
   end
-    `uvm_info("Driver", "Done sending data", UVM_HIGH)
+  `uvm_info("Driver", "Done sending data", UVM_HIGH)
+  fork
+    pulse_clock();
+    @(negedge i2c_vif.scl);
+  join
+endtask
+
+task i2c_master_driver::listen_ack_data();
+  for (int i=7; i>=0; i--) begin
+    @(posedge i2c_vif.scl);
+    if (i2c_vif.sda != req.data[i]) begin
+      `uvm_info("Driver", "Bit sent does NOT match SDA, aborting sequence...", UVM_LOW)
+      // ! Send RSP for sequence to start over, disable do_drive/transfer_data
+    end
+  end
+  @(posedge i2c_vif.scl);
+  // rsp.ack_nack = i2c_vif.sda;
+  // send RSP for next seq
+  return;
 endtask
 
 task i2c_master_driver::send_bit(bit data_bit);
-  if (data_bit == 1) i2c_vif.uvc_sda = 1'bz;
+  wait(i2c_vif.scl == 'b0);
+  if (data_bit == 1) i2c_vif.uvc_sda = 'bz;
   else               i2c_vif.uvc_sda = data_bit;
   if (data_bit == 1) `uvm_info("Driver", "SDA was driven with Z", UVM_DEBUG)
   else               `uvm_info("Driver", "SDA was driven with 0", UVM_DEBUG)
 endtask
 
+task i2c_master_driver::pulse_clock();
+  i2c_vif.uvc_scl = 'b0;
+  // ! Multiply delays by clock percentiles
+  #5;
+  i2c_vif.uvc_scl = 1'bz;
+  #10;
+  i2c_vif.uvc_scl = 0;
+  #5;
+endtask
+
 task i2c_master_driver::do_delay();
     `uvm_info("Driver", $sformatf("Waiting for %03d tu before sending", req.delay), UVM_HIGH)
-    #(req.delay);
+    #(req.delay); // ! Multiply by clock percentiles
     `uvm_info("Driver", "Done waiting (for item delay)", UVM_DEBUG)
 endtask
 

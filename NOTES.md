@@ -50,3 +50,10 @@
     - `get_clock_percentile()` (maybe 20 percentiles)
     - `get_clock_period()`
     - `get_clock_duty()`
+
+#### Start Condition
+- Resets address
+- __Doesn't__ reset speed mode
+
+#### Stop Condition
+- Resets everything

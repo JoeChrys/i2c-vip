@@ -148,7 +148,10 @@ task i2c_monitor::check_data_transfer();
     `uvm_info("Monitor", $sformatf("Got bit %1d with value %1b", i, i2c_trans.data[i]), UVM_DEBUG)
   end
   @(posedge i2c_vif.scl);
-  i2c_trans.response = i2c_vif.sda;
+  case (i2c_vif.sda)
+  0: i2c_trans.ack_nack = ACK;
+  1: i2c_trans.ack_nack = NACK;
+  endcase
 
   i2c_mon_analysis_port.write(i2c_trans);
   `uvm_info("Monitor", "detected data transfer", UVM_HIGH) 

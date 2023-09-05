@@ -43,11 +43,16 @@ __A: use seperate interface for each driver, each interface has 2 logic and 2 tr
 ---
 
 ## TODO:
-
+- [ ] Verification Plan
+    - [ ] Normal behavior
+        - [ ] Start - Address1|Write - Data 1.. - Start - Address2|Write - Data 1.. - Stop
+        - [ ] Start - Address1|Read  - Data 1.. - Start - Address2|Read  - Data 1.. - Stop
+        - [ ] Start - Address1|Write - Data 1.. - Start - Address1|Read  - Data 1.. - Stop
 - [ ] Interface
     - [ ] Pullup behavior when `1'bZ`
     - [ ] Basic assertions for `1'bX`
     - [ ] Assertion for pullup behavior
+    - [ ] Assert uvc logic never `1'b1`
 - [ ] Data item
     - [ ] Member variables
     - [x] Constraints

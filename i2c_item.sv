@@ -3,7 +3,7 @@ class i2c_item extends uvm_sequence_item;
     
 // * * * Add fields bellow * * *
 rand bit[7:0] data;
-rand ack_nack_enum response;
+rand ack_nack_enum ack_nack;
 
 rand item_type_enum com_type;
 
@@ -11,7 +11,7 @@ rand integer delay;
 rand integer clock_stretch;
 
 // * * * Add constraints * * *
-constraint c_ack {soft response == NACK;}
+constraint c_ack {soft ack_nack == NACK;}
 
 constraint c_delay {delay inside {[0:10]}; soft delay == 0;}
 constraint c_clock_stretch {clock_stretch inside {[0:10]}; soft clock_stretch == 0;}
