@@ -31,6 +31,10 @@ __A: use seperate interface for each driver, each interface has 2 logic and 2 tr
 - [ ] 1. How to drive SDA and SCL in correct order?
     - Should I use<br> ``wait(scl == 0); sda = data;`` ?
 
+- [ ] 2. How should it work in general?
+    - Wait for START - Send RSP to seqr - Drive REQ? (Normal Behavior)
+    - Do random slave behavior (Write....) ..oh.. I see, just respect the protocol, listen and RSP, it depends on the sequence whether the answer will be correct
+
 ##### UVM
 - [x] 1. When trying to test multiple contollers (masters), I should use a different env with 2 master agents?
 
