@@ -6,6 +6,10 @@ class i2c_slave_driver extends uvm_driver #(i2c_item);
     
     i2c_cfg    cfg;
     bit reset_flag = 0;
+
+    bit bus_busy;
+    driver_mode_enum driver_mode;
+
     extern function new (string name, uvm_component parent);
     extern virtual function void build_phase (uvm_phase phase);
     extern virtual task  run_phase (uvm_phase phase);
@@ -79,3 +83,23 @@ task i2c_slave_driver::reset_on_the_fly();
     reset_flag = 1;
 endtask
 
+task i2c_slave_driver::check_start_cond();
+  forever begin
+    `uvm_info("Driver", "checking for start condition", UVM_DEBUG)
+    @(negedge i2c_vif.sda)
+    if (i2c_vif.scl == 1'b0) continue; // not START condition
+
+    `uvm_info("Driver", "detected start condition", UVM_HIGH)
+  end
+endtask
+
+task i2c_slave_driver::check_stop_cond();
+
+  forever begin
+    `uvm_info("Driver", "checking for stop condition", UVM_DEBUG)
+    @(posedge i2c_vif.sda)
+    if (i2c_vif.scl == 1'b0) continue; // not STOP condition
+
+    `uvm_info("Driver", "detected stop condition", UVM_HIGH) 
+  end
+endtask

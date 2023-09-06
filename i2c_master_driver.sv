@@ -2,12 +2,12 @@
 class i2c_master_driver extends uvm_driver #(i2c_item);
     
     `uvm_component_utils(i2c_master_driver)
-    virtual i2c_if   i2c_vif;
+    virtual i2c_if    i2c_vif;
     
-    i2c_cfg    cfg;
-    bit reset_flag = 0;
+    i2c_cfg           cfg;
+    bit               reset_flag = 0;
 
-    bit bus_busy = 0;
+    bit               bus_busy;
 
     extern function new (string name, uvm_component parent);
     extern virtual function void build_phase (uvm_phase phase);
@@ -18,13 +18,14 @@ class i2c_master_driver extends uvm_driver #(i2c_item);
 
     extern virtual task  do_start_cond();
     extern virtual task  do_stop_cond();
-    extern virtual task  transfer_data();
-    extern virtual task  listen_ack_data();
+    extern virtual task  write_data();
+    extern virtual task  listen_data();
     extern virtual task  send_bit(bit data_bit);
     extern virtual task  pulse_clock();
 
     extern virtual task  do_delay();
     extern virtual task  check_bus_busy();
+    // could also add timeout_bus_busy
     
 endclass // i2c_master_driver
 
@@ -50,7 +51,8 @@ task i2c_master_driver::run_phase(uvm_phase phase);
 	@(posedge i2c_vif.reset_n);
 	repeat(3) @(posedge i2c_vif.system_clock);
 
-	
+    bus_busy = 0;
+
     forever begin 
         seq_item_port.get_next_item(req);
         
@@ -60,6 +62,8 @@ task i2c_master_driver::run_phase(uvm_phase phase);
 	        repeat(3) @(posedge i2c_vif.system_clock); // wait 3 more clock cycles, just to be sure we're stable
             reset_flag = 0;
         end
+
+        //bus_busy timeout ~100clocks
 
         fork 
             // reset_on_the_fly(); // delete this and fork if UVC dosen't have reset on fly feature
@@ -93,17 +97,12 @@ task i2c_master_driver::do_drive(i2c_item req);
     wait (!bus_busy);
     disable fork;
 
-    case (req.com_type)
-        START: do_start_cond();
-        STOP:  do_stop_cond();
-        DATA:  
-        begin
-          fork
-            transfer_data();
-            listen_ack_data();
-          join_any
-          disable fork;
-        end // DATA
+    fork
+      write_data();
+      listen_data(); // ! maybe listen from monitor
+    join_any
+    disable fork;
+      
     endcase
 
     // @(posedge i2c_vif.system_clock);   
@@ -123,6 +122,8 @@ task i2c_master_driver::do_start_cond();
     i2c_vif.uvc_sda = 1'b0;
     #5;
     i2c_vif.uvc_scl = 1'b0;
+
+    driver_mode = WRITE;
 endtask
 
 task i2c_master_driver::do_stop_cond();
@@ -130,9 +131,11 @@ task i2c_master_driver::do_stop_cond();
     i2c_vif.uvc_scl = 1'bz;
     #5;
     i2c_vif.uvc_sda = 1'bz;
+
+    driver_mode = WRITE;
 endtask
 
-task i2c_master_driver::transfer_data();
+task i2c_master_driver::write_data();
   `uvm_info("Driver", "Starting data transfer", UVM_HIGH)
   for (int i=7; i>=0; i--) begin
     `uvm_info("Driver", $sformatf("Sending bit %1d with value %1b", i, req.data[i]), UVM_DEBUG)
@@ -149,7 +152,7 @@ task i2c_master_driver::transfer_data();
   join
 endtask
 
-task i2c_master_driver::listen_ack_data();
+task i2c_master_driver::listen_data();
   for (int i=7; i>=0; i--) begin
     @(posedge i2c_vif.scl);
     if (i2c_vif.sda != req.data[i]) begin
