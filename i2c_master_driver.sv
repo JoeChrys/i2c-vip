@@ -8,6 +8,7 @@ class i2c_master_driver extends uvm_driver #(i2c_item);
     bit               reset_flag = 0;
 
     bit               bus_busy;
+    bit               data_done;
 
     extern function new (string name, uvm_component parent);
     extern virtual function void build_phase (uvm_phase phase);
@@ -25,7 +26,7 @@ class i2c_master_driver extends uvm_driver #(i2c_item);
 
     extern virtual task  do_delay();
     extern virtual task  check_bus_busy();
-    // could also add timeout_bus_busy
+    extern virtual task  bus_busy_timeout();
     
 endclass // i2c_master_driver
 
@@ -37,7 +38,7 @@ endfunction // i2c_master_driver::new
 //-------------------------------------------------------------------------------------------------------------
 function void i2c_master_driver::build_phase(uvm_phase phase);
     super.build_phase(phase); 
-    `uvm_info("build_phase","BUILD i2c_MASTER_DRIVER",UVM_HIGH);
+    `uvm_info("build_phase","BUILD I2C_MASTER_DRIVER",UVM_HIGH);
     if(!uvm_config_db#(virtual i2c_if)::get(this, "", "i2c_vif", i2c_vif)) 
         `uvm_fatal("build_phase",{"virtual interface must be set for: ", get_full_name(),".i2c_vif"});
     if (!uvm_config_db#(i2c_cfg)::get(this, "", "cfg", cfg)) begin
@@ -50,8 +51,6 @@ task i2c_master_driver::run_phase(uvm_phase phase);
     do_init();
 	@(posedge i2c_vif.reset_n);
 	repeat(3) @(posedge i2c_vif.system_clock);
-
-    bus_busy = 0;
 
     forever begin 
         seq_item_port.get_next_item(req);
@@ -92,18 +91,25 @@ task i2c_master_driver::do_drive(i2c_item req);
     fork
         do_delay();
         check_bus_busy();
+        //bus_busy_timeout();
     join_any
 
     wait (!bus_busy);
     disable fork;
 
+    if (req.start_condition) begin
+      do_start_cond();
+    end
+
     fork
       write_data();
-      listen_data(); // ! maybe listen from monitor
+      listen_data();
     join_any
     disable fork;
       
-    endcase
+    if (req.stop_condition && data_done) begin
+      do_stop_cond();
+    end
 
     // @(posedge i2c_vif.system_clock);   
      `uvm_info("Driver", "do_drive task executed", UVM_HIGH)
@@ -122,8 +128,6 @@ task i2c_master_driver::do_start_cond();
     i2c_vif.uvc_sda = 1'b0;
     #5;
     i2c_vif.uvc_scl = 1'b0;
-
-    driver_mode = WRITE;
 endtask
 
 task i2c_master_driver::do_stop_cond();
@@ -131,38 +135,53 @@ task i2c_master_driver::do_stop_cond();
     i2c_vif.uvc_scl = 1'bz;
     #5;
     i2c_vif.uvc_sda = 1'bz;
-
-    driver_mode = WRITE;
 endtask
 
 task i2c_master_driver::write_data();
   `uvm_info("Driver", "Starting data transfer", UVM_HIGH)
-  for (int i=7; i>=0; i--) begin
-    `uvm_info("Driver", $sformatf("Sending bit %1d with value %1b", i, req.data[i]), UVM_DEBUG)
+  foreach (req.data[i]) begin
+    for (int j=7; j>=0; j--) begin
+      `uvm_info("Driver", $sformatf("Sending bit %1d with value %1b", j, req.data[i][j]), UVM_DEBUG)
+      fork
+        send_bit(req.data[i][j]);
+        pulse_clock();
+      join
+      `uvm_info("Driver", $sformatf("Sent bit %1d", j), UVM_HIGH)
+    end
+    `uvm_info("Driver", "Sent byte", UVM_HIGH)
+
+    // pulse for ack/nack
     fork
-      send_bit(req.data[i]);
       pulse_clock();
+      @(posedge i2c_vif.scl); // in case of slave clock stretching
     join
-    `uvm_info("Driver", $sformatf("Sent bit %1d", i), UVM_HIGH)
+
+    case(i2c_vif.sda)
+    ACK:  `uvm_info("Driver", "Got ACK from slave", UVM_HIGH)
+    NACK: `uvm_warning("Driver", "Got NACK")
+    endcase
   end
+  data_done = 'b1;
+    
   `uvm_info("Driver", "Done sending data", UVM_HIGH)
-  fork
-    pulse_clock();
-    @(negedge i2c_vif.scl);
-  join
+
+  
 endtask
 
 task i2c_master_driver::listen_data();
-  for (int i=7; i>=0; i--) begin
-    @(posedge i2c_vif.scl);
-    if (i2c_vif.sda != req.data[i]) begin
-      `uvm_info("Driver", "Bit sent does NOT match SDA, aborting sequence...", UVM_LOW)
-      // ! Send RSP for sequence to start over, disable do_drive/transfer_data
+  foreach (req.data[i]) begin
+    for (int j=7; j>=0; j--) begin
+      @(posedge i2c_vif.scl);
+      if (i2c_vif.sda != req.data[i][j]) begin
+        `uvm_warning("Driver", "Bit sent does NOT match SDA, aborting sequence...")
+        // ! Send RSP for sequence to start over, disable do_drive/transfer_data
+        bus_busy = 'b1; // ! FOLLOW THROUGH HERE
+      end
     end
+    @(posedge i2c_vif.scl);
+    // rsp.ack_nack = i2c_vif.sda;
+    // send RSP for next seq
   end
-  @(posedge i2c_vif.scl);
-  // rsp.ack_nack = i2c_vif.sda;
-  // send RSP for next seq
   return;
 endtask
 
@@ -191,23 +210,33 @@ task i2c_master_driver::do_delay();
 endtask
 
 task i2c_master_driver::check_bus_busy();
-    forever begin
-        `uvm_info("Driver", "Checking if bus is busy...", UVM_DEBUG)
-        //START CONDITION
-        begin
-            @(negedge i2c_vif.sda) if (i2c_vif.scl == 1'b1);
-            bus_busy = 1;
-            `uvm_info("Driver", "START condition detected, bus is busy, waiting...", UVM_LOW)
-        end
+  forever begin
+      `uvm_info("Driver", "Checking if bus is busy...", UVM_DEBUG)
+      //START CONDITION
+      begin
+          @(negedge i2c_vif.sda) if (i2c_vif.scl == 1'b1);
+          bus_busy = 1;
+          `uvm_info("Driver", "START condition detected, bus is busy, waiting...", UVM_LOW)
+      end
 
-        //STOP CONDITION
-        begin
-            @(posedge i2c_vif.sda) if (i2c_vif.scl == 1'b1);
-            bus_busy = 0;
-            `uvm_info("Driver", "STOP condition detected, bus is now free", UVM_LOW)
-        end
-    end
+      //STOP CONDITION
+      begin
+          @(posedge i2c_vif.sda) if (i2c_vif.scl == 1'b1);
+          bus_busy = 0;
+          `uvm_info("Driver", "STOP condition detected, bus is now free", UVM_LOW)
+      end
+  end
 endtask
 
-// TODO Add checks for each bit driven and remember to drive 1 with Z
-// TODO eg if data[i] == i2c_vif.sda continue, else another driver is also sending
+task i2c_master_driver::bus_busy_timeout();
+  integer i;
+  wait (bus_busy);
+  while(bus_busy) begin
+    @(posedge i2c_vif.system_clock);  // ! change it to multiples of timing period
+    i++;
+    if (i > 20) begin
+      bus_busy = 'b0;
+      bus_busy_timeout();
+    end
+  end
+endtask

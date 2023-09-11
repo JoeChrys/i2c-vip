@@ -2,15 +2,18 @@
 * * * * *   AGENT TIMINGS     * * * * * 
 */
 
+// ! Can be turned into a subscriber component, it would listen for specific addresses (require start)
+// ! Should remove constraint at use config_db to set default speed
+
 class i2c_timings extends uvm_object;  
 
 //  Timing variables
     speed_mode_enum default_speed_mode;
 
-    int period_SM = 10000; //ns
+    int period_SM = 10000;  // ns
     int period_FM = 2500;
     int period_FMP = 1000;
-    int period_HSM = 300;
+    int period_HSM = 300;   // not exact value, a bit higher for simulation purposes 
 
 //  Default constraints 
     constraint c_default_speed_mode {        

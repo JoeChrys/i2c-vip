@@ -57,3 +57,14 @@
 
 #### Stop Condition
 - Resets everything
+
+### Presentation / Thesis
+- Explain all communication types
+    - Start Condition (S)
+        - Repeated Start (Sr)
+    - Stop Condition
+    - Byte
+        - Reserved address
+        - Address WRITE
+        - Address Read
+        - Data
