@@ -69,3 +69,14 @@ __A: use seperate interface for each driver, each interface has 2 logic and 2 tr
     - [ ] Create 2 IF for masters and 1 IF for slave
     - [ ] connect `sda` and `scl` of all interfaces
 
+```ditaa {kroki=true}
++--------+   +-------+    +-------+
+|        | --+ ditaa +--> |       |
+|  Text  |   +-------+    |diagram|
+|Document|   |!magic!|    |       |
+|     {d}|   |       |    |       |
++---+----+   +-------+    +-------+
+    :                         ^
+    |       Lots of work      |
+    +-------------------------+
+```

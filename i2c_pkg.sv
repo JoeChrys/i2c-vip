@@ -1,5 +1,5 @@
-//`ifndef i2c_PKG_SV
-//`define i2c_PKG_SV
+//`ifndef I2C_PKG_SV
+//`define I2C_PKG_SV
 
 //------------------------------------------------------------------------------------------------------------
 `include "uvm_macros.svh"
@@ -20,5 +20,5 @@ import uvm_pkg::*;
     `include "i2c_agent.sv"
 endpackage 
 
-//`endif //i2c_PKG_SV
+//`endif //I2C_PKG_SV
 

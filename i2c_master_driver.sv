@@ -8,7 +8,9 @@ class i2c_master_driver extends uvm_driver #(i2c_item);
     bit               reset_flag = 0;
 
     bit               bus_busy;
-    bit               data_done;
+    bit               previous_transfer_aborted;
+
+    i2c_item          rsp;
 
     extern function new (string name, uvm_component parent);
     extern virtual function void build_phase (uvm_phase phase);
@@ -54,6 +56,7 @@ task i2c_master_driver::run_phase(uvm_phase phase);
 
     forever begin 
         seq_item_port.get_next_item(req);
+        rsp = i2c_item::type_id::create("rsp");
         
         // delete if bellow if UVC dosen't have reset on fly feature 
         if (reset_flag) begin 
@@ -70,7 +73,7 @@ task i2c_master_driver::run_phase(uvm_phase phase);
         join_any
         disable fork;
 			
-        seq_item_port.item_done();  
+        seq_item_port.item_done(rsp);
 
     end   // of forever
 endtask // i2c_master_driver::run_phase
@@ -84,9 +87,9 @@ endtask // i2c_master_driver::do_init
 
 task i2c_master_driver::do_drive(i2c_item req);
 // * * * Write driving logic here * * *
-    // ! May need to add semaphore for multiple masters
 
-    bus_busy = 0;
+    bus_busy = (previous_transfer_aborted) ? 1 : 0;
+    previous_transfer_aborted = 'b0;
 
     fork
         do_delay();
@@ -107,7 +110,7 @@ task i2c_master_driver::do_drive(i2c_item req);
     join_any
     disable fork;
       
-    if (req.stop_condition && data_done) begin
+    if (req.stop_condition && !previous_transfer_aborted) begin
       do_stop_cond();
     end
 
@@ -139,6 +142,7 @@ endtask
 
 task i2c_master_driver::write_data();
   `uvm_info("Driver", "Starting data transfer", UVM_HIGH)
+  
   foreach (req.data[i]) begin
     for (int j=7; j>=0; j--) begin
       `uvm_info("Driver", $sformatf("Sending bit %1d with value %1b", j, req.data[i][j]), UVM_DEBUG)
@@ -155,32 +159,30 @@ task i2c_master_driver::write_data();
       pulse_clock();
       @(posedge i2c_vif.scl); // in case of slave clock stretching
     join
-
-    case(i2c_vif.sda)
-    ACK:  `uvm_info("Driver", "Got ACK from slave", UVM_HIGH)
-    NACK: `uvm_warning("Driver", "Got NACK")
-    endcase
   end
-  data_done = 'b1;
     
   `uvm_info("Driver", "Done sending data", UVM_HIGH)
-
-  
 endtask
 
 task i2c_master_driver::listen_data();
   foreach (req.data[i]) begin
     for (int j=7; j>=0; j--) begin
       @(posedge i2c_vif.scl);
-      if (i2c_vif.sda != req.data[i][j]) begin
+      rsp.data[i][j] = i2c_vif.sda;
+      if (rsp.data[i][j] != req.data[i][j]) begin
         `uvm_warning("Driver", "Bit sent does NOT match SDA, aborting sequence...")
-        // ! Send RSP for sequence to start over, disable do_drive/transfer_data
-        bus_busy = 'b1; // ! FOLLOW THROUGH HERE
+        rsp.ack_nack = NACK;
+        previous_transfer_aborted = 'b1;
+        return;
       end
     end
     @(posedge i2c_vif.scl);
-    // rsp.ack_nack = i2c_vif.sda;
-    // send RSP for next seq
+    rsp.ack_nack = i2c_vif.sda;
+
+    case(rsp.ack_nack)
+        ACK:  `uvm_info("Driver", "Got ACK from slave", UVM_HIGH)
+        NACK: `uvm_warning("Driver", "Got NACK")
+    endcase
   end
   return;
 endtask
@@ -209,25 +211,39 @@ task i2c_master_driver::do_delay();
     `uvm_info("Driver", "Done waiting (for item delay)", UVM_DEBUG)
 endtask
 
+/*
+ * This task runs continuously until do_delay() is executed and flag bus_busy
+ * is not set, then it is killed by disable_fork.
+ * It checks for START/STOP conditions and alters the bus_busy flag accordingly
+ */
 task i2c_master_driver::check_bus_busy();
   forever begin
       `uvm_info("Driver", "Checking if bus is busy...", UVM_DEBUG)
-      //START CONDITION
-      begin
-          @(negedge i2c_vif.sda) if (i2c_vif.scl == 1'b1);
-          bus_busy = 1;
-          `uvm_info("Driver", "START condition detected, bus is busy, waiting...", UVM_LOW)
-      end
+      fork
+        //START CONDITION
+        begin
+            @(negedge i2c_vif.sda) if (i2c_vif.scl == 1'b1);
+            bus_busy = 1;
+            `uvm_info("Driver", "START condition detected, bus is busy, waiting...", UVM_LOW)
+        end
 
-      //STOP CONDITION
-      begin
-          @(posedge i2c_vif.sda) if (i2c_vif.scl == 1'b1);
-          bus_busy = 0;
-          `uvm_info("Driver", "STOP condition detected, bus is now free", UVM_LOW)
-      end
+        //STOP CONDITION
+        begin
+            @(posedge i2c_vif.sda) if (i2c_vif.scl == 1'b1);
+            bus_busy = 0;
+            `uvm_info("Driver", "STOP condition detected, bus is now free", UVM_LOW)
+        end
+      join_any;
+      disable fork;
   end
 endtask
 
+/*
+ * This task runs continuously until do_delay() is executed and flag bus_busy
+ * is not set, then it is killed by disable_fork, or this task itself is executed.
+ * It checks whether bus_busy flag has not been reset in a while and manually
+ * resets it.
+ */
 task i2c_master_driver::bus_busy_timeout();
   integer i;
   wait (bus_busy);
