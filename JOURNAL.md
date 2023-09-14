@@ -8,3 +8,5 @@
 ##### 13/09
 - Changed master driver to adapt to new item structure
 
+##### 14/09
+- Added assertions to interface

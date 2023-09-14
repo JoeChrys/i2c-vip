@@ -48,6 +48,15 @@ interface i2c_if (input bit system_clock, input bit reset_n);
     assert (uvc_sda !== 1'b1);
   end
 
+
+// ! May need to move the following assertions into each agent/driver
+// ! depending if it's a master or slave
+  // expect following assertion to fail when multiple masters are driving
+  always @(uvc_sda === 'bz) assert (sda == 'b1);
+
+  // expect following assertion to fail when slave is clock stretching
+  always @(uvc_scl === 'bz) assert (scl == 'b1);
+
 endinterface   
     
 
