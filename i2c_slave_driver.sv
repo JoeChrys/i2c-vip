@@ -8,7 +8,6 @@ class i2c_slave_driver extends uvm_driver #(i2c_item);
     bit reset_flag = 0;
 
     bit bus_busy;
-    driver_mode_enum driver_mode;
 
     extern function new (string name, uvm_component parent);
     extern virtual function void build_phase (uvm_phase phase);
@@ -16,6 +15,9 @@ class i2c_slave_driver extends uvm_driver #(i2c_item);
     extern virtual task  do_init ();
     extern virtual task  reset_on_the_fly();
     extern virtual task  do_drive(i2c_item req);
+
+    extern virtual task  check_start_cond();
+    extern virtual task  check_stop_cond();
     
 endclass // i2c_slave_driver
 

@@ -127,7 +127,7 @@ task i2c_monitor::check_start_cond();
     end
 
     first_start_condition = 'b0;  // already detected START, next one would be a repeated.
-    i2c_trans.start = 'b1;
+    i2c_trans.start_condition = 'b1;
     `uvm_info("Monitor", "detected start condition", UVM_HIGH)
   end
 endtask

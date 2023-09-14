@@ -171,7 +171,7 @@ task i2c_master_driver::listen_data();
       rsp.data[i][j] = i2c_vif.sda;
       if (rsp.data[i][j] != req.data[i][j]) begin
         `uvm_warning("Driver", "Bit sent does NOT match SDA, aborting sequence...")
-        rsp.ack_nack = NACK;
+        rsp.ack_nack = `NACK;
         previous_transfer_aborted = 'b1;
         return;
       end
@@ -180,8 +180,8 @@ task i2c_master_driver::listen_data();
     rsp.ack_nack = i2c_vif.sda;
 
     case(rsp.ack_nack)
-        ACK:  `uvm_info("Driver", "Got ACK from slave", UVM_HIGH)
-        NACK: `uvm_warning("Driver", "Got NACK")
+        `ACK:  `uvm_info("Driver", "Got ACK from slave", UVM_HIGH)
+        `NACK: `uvm_warning("Driver", "Got NACK")
     endcase
   end
   return;
