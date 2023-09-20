@@ -9,17 +9,26 @@
     - [x] Basic assertions for `1'bX`
     - [x] Assertion for pullup behavior
     - [x] Assert uvc logic never `1'b1`
-- [ ] Data item
+- [x] Data item
     - [x] Member variables
     - [x] Constraints
     - [x] Register variables to factory
+  - [ ] Sequence
+    - [ ] Start - Finish - Get response item
+    - [ ] check data byte or ACK
+    - [ ] change ack_nack
 - [ ] Master Driver
     - [x] Bit driving (setting SDA and SCL in the correct order prefferably without using delays)
-    - [x] Bit sample after sending
+    - [ ] Bit sample after sending
+    - [x] (optional) assign Z for uvc_* in do_init()
+    - [ ] write
+    - [ ] check
+    - [ ] read
 - [ ] Slave Driver
     - [ ] Sample and send RSP to seq
     - [ ] Add Start Byte functionality (should get from config_db at build phase)
     - [ ] 
+    - [x] (optional) assign Z for uvc_* in do_init()
 - [ ] Testbench
     - [ ] Create 2 IF for masters and 1 IF for slave
     - [ ] connect `sda` and `scl` of all interfaces

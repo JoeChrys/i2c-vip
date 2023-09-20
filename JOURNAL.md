@@ -10,3 +10,14 @@
 
 ##### 14/09
 - Added assertions to interface
+
+##### 18/09
+- Decided with Nick to change the item structure a bit, now the item.data is 
+a single byte instead of a dynamic byte array
+- Minor changes to adapt, e.g. added item.transfer_failed flag
+
+##### 19/09
+- Adapted Master driver to new structure, cleaned up code
+
+##### 20/09
+- Rewritten Monitor to adapt to new structure

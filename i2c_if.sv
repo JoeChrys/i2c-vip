@@ -15,10 +15,10 @@ interface i2c_if (input bit system_clock, input bit reset_n);
   inout sda, scl
   );
 
-  modport uvc (
-  input sda, scl,
-  output uvc_sda, uvc_scl
-  );
+//   modport uvc (
+//   input sda, scl,
+//   output uvc_sda, uvc_scl
+//   );
   
 //   always @(sda === 1'bz) begin
 //     sda = 1;
