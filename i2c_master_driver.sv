@@ -150,7 +150,7 @@ task i2c_master_driver::write_data();
       send_bit(req.data[i]);
       pulse_clock();
     join
-    `uvm_info("Driver", $sformatf("Sent bit %1d", j), UVM_HIGH)
+    `uvm_info("Driver", $sformatf("Sent bit %1d", i), UVM_HIGH)
   end
   `uvm_info("Driver", "Sent byte", UVM_HIGH)
 

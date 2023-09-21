@@ -173,7 +173,7 @@ task i2c_monitor::check_data_transfer();
 
     i2c_trans.data[bit_counter] = i2c_vif.sda;
     bit_counter++;
-    `uvm_info("Monitor", $sformatf("Got bit %1d with value %1b", i, i2c_trans.data[counter][i]), UVM_DEBUG)
+    `uvm_info("Monitor", $sformatf("Got bit %1d with value %1b", bit_counter, i2c_trans.data[bit_counter]), UVM_DEBUG)
   end
 
   @(posedge i2c_vif.scl);   // not negedge at ack as slave driver can just release scl and not pulse it

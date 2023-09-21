@@ -22,6 +22,10 @@ task i2c_slave_sequence::body();
 
 	// * * * uvm_do or uvm_do_with can be used * * * 
     `uvm_do(req)
+    get_response(rsp);
+    if (req.transaction_type == READ) begin
+      req.ack_nack = read_rsp;
+    end
 
 endtask 
 

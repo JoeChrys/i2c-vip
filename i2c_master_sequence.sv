@@ -29,10 +29,7 @@ task i2c_master_sequence::body();
         `uvm_fatal("Master Sequence", "cfg wasn't set through config db");
 
 	// * * * `uvm_do or `uvm_do_with can be used here * * * 
-    start_item(req);
-    if ( !req.randomize() )
-      `uvm_fatal("Master Sequence", "req randomization failed");
-    finish_item(req);
+    `uvm_do(req)
     get_response(rsp);
     if (req.transaction_type == READ) begin
       req.ack_nack = read_rsp;
