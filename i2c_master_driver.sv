@@ -224,7 +224,8 @@ endtask
 task i2c_master_driver::pulse_clock();
   i2c_vif.uvc_scl = 'b0;                                                        // TODO Multiply delays by clock percentiles
   #5;
-  i2c_vif.uvc_scl = 1'bz;
+  i2c_vif.uvc_scl = 'bz;
+  wait (i2c_vif.scl == 'b1);
   #10;
   i2c_vif.uvc_scl = 0;
   #5;
