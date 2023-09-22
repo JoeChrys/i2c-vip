@@ -25,6 +25,7 @@ class i2c_master_driver extends uvm_driver #(i2c_item);
   extern virtual task  check_data();
   extern virtual task  read_data();
   extern virtual task  send_bit(bit data_bit);
+  extern virtual task  capture_bit(bit[2:0] index)
   extern virtual task  pulse_clock();
 
   extern virtual task  do_delay();
@@ -58,19 +59,8 @@ task i2c_master_driver::run_phase(uvm_phase phase);
   forever begin 
     seq_item_port.get_next_item(req);
     rsp = i2c_item::type_id::create("rsp");
-    
-    // delete if bellow if UVC dosen't have reset on fly feature 
-    if (reset_flag) begin 
-        @(posedge i2c_vif.reset_n); // wait for reset to end
-      repeat(3) @(posedge i2c_vif.system_clock); // wait 3 more clock cycles, just to be sure we're stable
-        reset_flag = 0;
-    end
 
-    fork 
-      // reset_on_the_fly(); // delete this and fork if UVC dosen't have reset on fly feature
-      do_drive(req);
-    join_any
-    disable fork;
+    do_drive(req);
   
     seq_item_port.item_done();
   end   // of forever
@@ -159,13 +149,14 @@ task i2c_master_driver::write_data();
     pulse_clock();
     @(posedge i2c_vif.scl); // in case of slave clock stretching
   join
-    
+
   `uvm_info("Driver", "Done sending data", UVM_HIGH)
 endtask
 
 task i2c_master_driver::check_data();
   for (int i=7; i>=0; i--) begin
-    @(posedge i2c_vif.scl);  // could include the following it in a begin-end block
+    // @(posedge i2c_vif.scl) bit_correct = 'b0;  // in case of data clock stretching feature
+    @(negedge i2c_vif.scl);  // could include the following it in a begin-end block
     rsp.data[i] = i2c_vif.sda;
     if (rsp.data[i] != req.data[i]) begin
       `uvm_warning("Driver", "Bit sent does NOT match SDA, aborting sequence...")
@@ -176,6 +167,7 @@ task i2c_master_driver::check_data();
       seq_item_port.put(rsp);
       return;
     end
+    // else... (bit is correct)
   end
   @(posedge i2c_vif.scl);
   rsp.ack_nack = i2c_vif.sda;
@@ -191,20 +183,10 @@ endtask
 task i2c_master_driver::read_data();
   `uvm_info("Driver", "Master: Reading data", UVM_HIGH)
 
-  for (int i=7; i>=0; i--) begin
+  for (int bit_index=7; bit_index>=0; bit_index--) begin
     fork
-
       pulse_clock();
-
-      @(posedge i2c_vif.scl) begin  // use begin-end block to control the order and sent rsp before the next pulse
-        rsp.data[i] = i2c_vif.sda;
-
-        // after reading the last bit, sent rsp to sequence
-        if (i == 0) begin
-          rsp.set_id_info(req);
-          seq_item_port.put(rsp);
-        end
-      end
+      capture_bit(bit_index);
     join
     `uvm_info("Driver", $sformatf("Got bit %1d with value %1b", i, rsp.data[i]), UVM_DEBUG)
   end
@@ -225,6 +207,18 @@ task i2c_master_driver::send_bit(bit data_bit);
   else               i2c_vif.uvc_sda = data_bit;
   if (data_bit == 1) `uvm_info("Driver", "SDA was driven with Z", UVM_DEBUG)
   else               `uvm_info("Driver", "SDA was driven with 0", UVM_DEBUG)
+endtask
+
+task i2c_master_driver::capture_bit(bit[2:0] index);
+  @(posedge i2c_vif.scl) begin  // use begin-end block to control the order and sent rsp before the next pulse
+    rsp.data[index] = i2c_vif.sda;
+
+    // after reading the last bit, sent rsp to sequence
+    if (index == 0) begin
+      rsp.set_id_info(req);
+      seq_item_port.put(rsp);
+    end
+  end
 endtask
 
 task i2c_master_driver::pulse_clock();

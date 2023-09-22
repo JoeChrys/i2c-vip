@@ -11,15 +11,21 @@ rand bit start_condition;
 rand bit stop_condition;
 
 rand integer delay;
-rand integer clock_stretch;
+rand integer clock_stretch_data[8];
+rand integer clock_stretch_ack;
 rand bit transfer_failed;
 
 // * * * Add constraints * * *
 constraint c_ack                { soft ack_nack == `NACK; } // can remove "soft"
 
 constraint c_delay              { delay inside {[0:10]}; soft delay == 0; }
-constraint c_clock_stretch      { clock_stretch inside {[0:10]}; 
-                                  soft clock_stretch == 0; }
+
+constraint c_clock_stretch_ack  { clock_stretch_ack inside {[0:100]};
+                                  soft clock_stretch_ack == 0; }
+
+constraint c_clock_stretch_data { foreach clock_stretch_data[i] {
+                                    clock_stretch_data[i] inside {[0:20]};
+                                    soft clock_stretch_data[i] == 0; } }
 
 constraint c_start_stop         { soft start_condition == 0;
                                   soft stop_condition == 0; }
@@ -43,7 +49,8 @@ constraint c_transfer_failed    { soft transfer_failed == 'b0;
         `uvm_field_int(start_condition, UVM_DEFAULT|UVM_BIN)
         `uvm_field_int(stop_condition, UVM_DEFAULT|UVM_BIN)
         `uvm_field_int(delay, UVM_DEFAULT)
-        `uvm_field_int(clock_stretch, UVM_DEFAULT)
+        `uvm_field_sarray_int(clock_stretch_data, UVM_DEFAULT)
+        `uvm_field_int(clock_stretch_ack, UVM_DEFAULT)
         `uvm_field_int(transfer_failed, UVM_DEFAULT|UVM_BIN)
     `uvm_object_utils_end
 

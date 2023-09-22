@@ -15,6 +15,7 @@ class i2c_monitor extends uvm_monitor;
 
     bit                             reset_flag = 0;
 
+    bit                             bus_busy;
     bit                             data_done;
     bit                             cancel_first_bit;
     bit                             start_cond_from_prev_trans;
@@ -66,22 +67,13 @@ task  i2c_monitor::run_phase(uvm_phase phase);
 	//wait for reset
 	@(posedge i2c_vif.reset_n);
 	repeat(3) @(posedge i2c_vif.system_clock);
+  
+  bus_busy = 'b0;
 
   forever begin
     i2c_trans = new();
-
-    // delete if bellow if UVC dosen't have reset on fly feature
-    if (reset_flag) begin
-      @(posedge i2c_vif.reset_n); // wait for reset to end
-      repeat(3) @(posedge i2c_vif.system_clock); // wait 3 more clock cycles, just to be sure we're stable
-      reset_flag = 0;
-    end
-
-    fork 
-        // reset_on_the_fly(); // delete this and fork if UVC dosen't have reset on fly feature
-        do_monitor();
-    join_any
-    disable fork;
+    
+    do_monitor();
   end // of forever       
 endtask
 
@@ -96,7 +88,6 @@ task i2c_monitor::reset_on_the_fly();
 endtask //reset_on_the_fly*/
 
 task i2c_monitor::do_monitor();
-  @(posedge i2c_vif.scl);  
   
   i2c_trans.start_condition = (start_cond_from_prev_trans) ? 'b1 : 'b0;
 
@@ -124,14 +115,15 @@ task i2c_monitor::check_start_cond();
     if (i2c_vif.scl == 'b0) continue;
 
     // else if... (invalid/early start condition)
-    if (!data_done) begin
+    if (!data_done && bus_busy) begin
       i2c_trans.transfer_failed = 'b1;
       start_cond_from_prev_trans = 'b1;  // already detected START, next one would be a repeated.
-      `uvm_warning("Monitor", "Early START condition failed")
+      `uvm_warning("Monitor", "Early START condition")
       break;  // break to exit and listen for next address
     end
 
     // else... (valid start condition)
+    bus_busy = 'b1;
     cancel_first_bit = 'b1;
     i2c_trans.start_condition = 'b1;
 
@@ -149,9 +141,10 @@ task i2c_monitor::check_stop_cond();
       // if... (early/invalid stop condition)
     if (!data_done) begin
       i2c_trans.transfer_failed = 'b1;
-      `uvm_warning("Monitor", "Early STOP condition failed")
+      `uvm_warning("Monitor", "Early STOP condition")
     end
 
+    bus_busy = 'b0;
     i2c_trans.stop_condition = 'b1;
 
     `uvm_info("Monitor", "detected stop condition", UVM_HIGH)
