@@ -150,7 +150,7 @@ endtask
 
 task i2c_slave_driver::read_data();
   wait (enable);
-  for (bit_index = 7; bit_index >= 0; i--) begin
+  for (int bit_index = 7; bit_index >= 0; bit_index--) begin
     @(negedge i2c_vif.scl);
     rsp.data[bit_index] = i2c_vif.sda;
   end
@@ -169,7 +169,7 @@ endtask
 task i2c_slave_driver::write_data();
   wait(enable);
 
-  for (bit_index = 7; bit_index >= 0; bit_index--) begin
+  for (int bit_index = 7; bit_index >= 0; bit_index--) begin
     send_bit(req.data[bit_index]);
     @(negedge i2c_vif.scl);
     #5;

@@ -153,7 +153,7 @@ task i2c_monitor::check_stop_cond();
 endtask
 
 task i2c_monitor::check_data_transfer();
-  integer bit_counter = 0;
+  int bit_counter = 0;
   `uvm_info("Monitor", "checking for data transfer", UVM_DEBUG)
 
   while (bit_counter < 8) begin

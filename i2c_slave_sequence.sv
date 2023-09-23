@@ -3,7 +3,11 @@ class i2c_slave_sequence extends uvm_sequence #(i2c_item);
  
     `uvm_object_utils(i2c_slave_sequence)
     `uvm_declare_p_sequencer(i2c_slave_sequencer)
+
     i2c_cfg cfg;
+
+    rand bit     read_rsp;
+
     extern function new(string name = "i2c_slave_sequence");
     extern virtual task body();  
 endclass // i2c_slave_sequence

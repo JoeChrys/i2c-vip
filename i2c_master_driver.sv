@@ -25,7 +25,7 @@ class i2c_master_driver extends uvm_driver #(i2c_item);
   extern virtual task  check_data();
   extern virtual task  read_data();
   extern virtual task  send_bit(bit data_bit);
-  extern virtual task  capture_bit(bit[2:0] index)
+  extern virtual task  capture_bit(bit[2:0] index);
   extern virtual task  pulse_clock();
 
   extern virtual task  do_delay();
@@ -188,7 +188,7 @@ task i2c_master_driver::read_data();
       pulse_clock();
       capture_bit(bit_index);
     join
-    `uvm_info("Driver", $sformatf("Got bit %1d with value %1b", i, rsp.data[i]), UVM_DEBUG)
+    `uvm_info("Driver", $sformatf("Got bit %1d with value %1b", bit_index, rsp.data[bit_index]), UVM_DEBUG)
   end
   //at this point seq should have set ack_nack
   fork
@@ -276,7 +276,7 @@ endtask
  * resets it.
  */
 task i2c_master_driver::bus_busy_timeout();                                     // TODO define bus_busy timeout according to default period (~100*clock_time)
-  integer i;
+  int i;
   wait (bus_busy);
   while(bus_busy) begin
     @(posedge i2c_vif.system_clock);  // ! change it to multiples of timing period

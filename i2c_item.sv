@@ -10,9 +10,9 @@ rand transaction_type_enum transaction_type;
 rand bit start_condition;
 rand bit stop_condition;
 
-rand integer delay;
-rand integer clock_stretch_data[8];
-rand integer clock_stretch_ack;
+rand int delay;
+rand int clock_stretch_data[8];
+rand int clock_stretch_ack;
 rand bit transfer_failed;
 
 // * * * Add constraints * * *
@@ -23,7 +23,7 @@ constraint c_delay              { delay inside {[0:10]}; soft delay == 0; }
 constraint c_clock_stretch_ack  { clock_stretch_ack inside {[0:100]};
                                   soft clock_stretch_ack == 0; }
 
-constraint c_clock_stretch_data { foreach clock_stretch_data[i] {
+constraint c_clock_stretch_data { foreach (clock_stretch_data[i]) {
                                     clock_stretch_data[i] inside {[0:20]};
                                     soft clock_stretch_data[i] == 0; } }
 
