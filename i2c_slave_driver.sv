@@ -6,10 +6,9 @@ class i2c_slave_driver extends uvm_driver #(i2c_item);
     virtual i2c_if          i2c_vif;
 
     i2c_cfg                 cfg;
-    bit                     reset_flag = 0;
+    i2c_item                rsp;
 
     bit                     start_detected;
-    i2c_item                rsp;
 
     bit                     enable;
     bit                     data_done;
@@ -22,7 +21,6 @@ class i2c_slave_driver extends uvm_driver #(i2c_item);
     extern virtual function void build_phase (uvm_phase phase);
     extern virtual task  run_phase (uvm_phase phase);
     extern virtual task  do_init ();
-    extern virtual task  reset_on_the_fly();
     extern virtual task  do_drive(i2c_item req);
 
     extern virtual task  detect_start_cond();
@@ -101,13 +99,6 @@ task i2c_slave_driver::do_drive(i2c_item req);
   
   // @(posedge i2c_vif.system_clock);  
    `uvm_info("Driver", "do_drive task executed", UVM_LOW)
-endtask
-
-
-task i2c_slave_driver::reset_on_the_fly();
-  // * * * Leave this untoched if planning to implement Reset on the fly feature. If not delete it. * * *
-  @(negedge i2c_vif.reset_n);
-  reset_flag = 1;
 endtask
 
 task i2c_slave_driver::detect_start_cond();

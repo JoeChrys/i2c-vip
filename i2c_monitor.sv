@@ -5,15 +5,13 @@ class i2c_monitor extends uvm_monitor;
 
     virtual i2c_if                   i2c_vif;
    
-    // i2c_coverage                    cov;
-    i2c_item                        i2c_trans;
-
     i2c_cfg                         cfg;
+    i2c_item                        i2c_trans;
+    // i2c_coverage                    cov;
+
    
     uvm_analysis_port #(i2c_item)   i2c_mon_analysis_port;
     // uvm_analysis_port #(i2c_item)   i2c_s_analysis_port;
-
-    bit                             reset_flag = 0;
 
     bit                             bus_busy;
     bit                             data_done;
@@ -24,7 +22,6 @@ class i2c_monitor extends uvm_monitor;
     extern virtual function void build_phase (uvm_phase phase);
     extern virtual task  run_phase(uvm_phase phase);  
     extern virtual task  do_monitor();
-    extern virtual task  reset_on_the_fly();
 
     extern virtual task  check_start_cond();
     extern virtual task  check_stop_cond();
@@ -76,16 +73,6 @@ task  i2c_monitor::run_phase(uvm_phase phase);
     do_monitor();
   end // of forever       
 endtask
-
-
-//-------------------------------------------------------------------------------------------------------------
-task i2c_monitor::reset_on_the_fly();  
-  // * * * Leave this untoched if planning to implement Reset on the fly feature. If not delete it. * * *   
-  @(negedge i2c_vif.reset_n);
-  reset_flag = 1;
-  `uvm_info("MONITOR","ASYNCHRONOUS RESET HAPPENED", UVM_LOW)
-    
-endtask //reset_on_the_fly*/
 
 task i2c_monitor::do_monitor();
   

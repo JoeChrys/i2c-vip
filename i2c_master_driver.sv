@@ -2,15 +2,14 @@
 class i2c_master_driver extends uvm_driver #(i2c_item);
   
   `uvm_component_utils(i2c_master_driver)
+
   virtual i2c_if    i2c_vif;
   
   i2c_cfg           cfg;
-  bit               reset_flag = 0;
+  i2c_item          rsp;
 
   bit               bus_busy;
   bit               transfer_aborted;
-
-  i2c_item          rsp;
 
   extern function new (string name, uvm_component parent);
   extern virtual function void build_phase (uvm_phase phase);
@@ -107,14 +106,6 @@ task i2c_master_driver::do_drive(i2c_item req);
 
   `uvm_info("Driver", "do_drive task executed", UVM_HIGH)
 endtask // i2c_master_driver::do_drive
-
-
-task i2c_master_driver::reset_on_the_fly();
-  // * * * Leave this untoched if planning to implement Reset on the fly feature. If not delete it. * * *
-  @(negedge i2c_vif.reset_n);
-  reset_flag = 1;
-endtask
-
                                                                                 // TODO refine timings
 task i2c_master_driver::do_start_cond();
   `uvm_info("Driver", "Sending START", UVM_HIGH)
