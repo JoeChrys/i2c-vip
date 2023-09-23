@@ -21,3 +21,11 @@ a single byte instead of a dynamic byte array
 
 ##### 20/09
 - Rewritten Monitor to adapt to new structure
+
+##### 21/09
+- Implemented master sequence
+- Implemented slave sequence
+
+##### 22/09
+- Finished slave driver
+- Added clock stretching at data bits

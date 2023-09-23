@@ -14,27 +14,30 @@
     - [x] Constraints
     - [x] Register variables to factory
   - [ ] Sequence
-    - [ ] Start - Finish - Get response item
-    - [ ] check data byte or ACK
-    - [ ] change ack_nack
+    - [x] Start - Finish - Get response item
+    - [x] check data byte or ACK
+    - [x] change ack_nack
 - [ ] Master Driver
     - [x] Bit driving (setting SDA and SCL in the correct order prefferably without using delays)
-    - [ ] Bit sample after sending
-    - [x] (optional) assign Z for uvc_* in do_init()
-    - [ ] write
-    - [ ] check
-    - [ ] read
+    - [x] Bit sample after sending
+    - [x] Assign Z for uvc_* in do_init()
+    - [x] write
+    - [x] check
+    - [x] read
 - [ ] Slave Driver
-    - [ ] Sample and send RSP to seq
+    - [x] Sample (and send RSP to seq)
     - [ ] Add Start Byte functionality (should get from config_db at build phase)
-    - [ ] 
-    - [x] (optional) assign Z for uvc_* in do_init()
+    - [s] Add clock stretching at data bits
+    - [x] Add clock stretching at ack
+    - [x] Assign Z for uvc_* in do_init()
 - [ ] Testbench
     - [ ] Create 2 IF for masters and 1 IF for slave
-    - [ ] connect `sda` and `scl` of all interfaces
+    - [ ] Connect `sda` and `scl` of all interfaces
 - [ ] Environment
     - [ ] Make and use modifiable clock timings
     - [ ] 
+- [ ] Virtual sequence
+    - [] 
 
 ---
 
