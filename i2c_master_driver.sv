@@ -24,7 +24,7 @@ class i2c_master_driver extends uvm_driver #(i2c_item);
   extern virtual task  check_data();
   extern virtual task  read_data();
   extern virtual task  send_bit(bit data_bit);
-  extern virtual task  capture_bit(bit[2:0] index);
+  extern virtual task  capture_bit(int index);
   extern virtual task  pulse_clock();
 
   extern virtual task  do_delay();
@@ -136,10 +136,7 @@ task i2c_master_driver::write_data();
   `uvm_info("Driver", "Sent byte", UVM_HIGH)
 
   // pulse for ack/nack
-  fork
-    pulse_clock();
-    @(posedge i2c_vif.scl); // in case of slave clock stretching
-  join
+  pulse_clock();
 
   `uvm_info("Driver", "Done sending data", UVM_HIGH)
 endtask
@@ -200,15 +197,14 @@ task i2c_master_driver::send_bit(bit data_bit);
   else               `uvm_info("Driver", "SDA was driven with 0", UVM_DEBUG)
 endtask
 
-task i2c_master_driver::capture_bit(bit[2:0] index);
-  @(posedge i2c_vif.scl) begin  // use begin-end block to control the order and sent rsp before the next pulse
-    rsp.data[index] = i2c_vif.sda;
+task i2c_master_driver::capture_bit(int index);
+  @(posedge i2c_vif.scl);  // or use begin-end block to control the order and sent rsp before the next pulse
+  rsp.data[index] = i2c_vif.sda;
 
-    // after reading the last bit, sent rsp to sequence
-    if (index == 0) begin
-      rsp.set_id_info(req);
-      seq_item_port.put(rsp);
-    end
+  // after reading the last bit, sent rsp to sequence
+  if (index == 0) begin
+    rsp.set_id_info(req);
+    seq_item_port.put(rsp);
   end
 endtask
 
@@ -216,6 +212,7 @@ task i2c_master_driver::pulse_clock();
   i2c_vif.uvc_scl = 'b0;                                                        // TODO Multiply delays by clock percentiles
   #5;
   i2c_vif.uvc_scl = 'bz;
+  // wait in case slave is clock stretching
   wait (i2c_vif.scl == 'b1);
   #10;
   i2c_vif.uvc_scl = 0;

@@ -28,6 +28,7 @@ class i2c_slave_driver extends uvm_driver #(i2c_item);
     extern virtual task  read_data();
     extern virtual task  write_data();
     extern virtual task  send_bit(bit data_bit);
+    extern virtual task  clock_stretch(int delay);
     // extern virtual task  polling();                                          // TODO
     
 endclass // i2c_slave_driver
@@ -67,6 +68,7 @@ task i2c_slave_driver::run_phase(uvm_phase phase);
     join_any
     disable fork;
 
+    // release lines after each transfer
     i2c_vif.uvc_sda = 'bz;
     i2c_vif.uvc_scl = 'bz;
   end   // of forever
@@ -74,7 +76,6 @@ endtask// i2c_slave_driver::run_phase
 
 //-------------------------------------------------------------------------------------------------------------
 task i2c_slave_driver::do_init();
-// * * * Write initial values for your signals here * * *
   i2c_vif.uvc_sda = 'bz;
   i2c_vif.uvc_scl = 'bz;
 
@@ -84,20 +85,20 @@ task i2c_slave_driver::do_init();
 endtask
 
 task i2c_slave_driver::do_drive(i2c_item req);
-// * * * Write driving logic here * * *
-  
-  // i2c_trans.start_condition = (start_cond_from_prev_trans) ? 'b1 : 'b0;
+  wait (enable);
 
   data_done = 'b0;
-  // cancel_first_bit = 'b0;
-  // start_cond_from_prev_trans = 'b0;
 
   case (req.transaction_type)
     WRITE: write_data();
     READ:  read_data();
   endcase
+
+  data_done = 'b1;
   
-  // @(posedge i2c_vif.system_clock);  
+  @(negedge i2c_vif.scl);
+  #5;
+
    `uvm_info("Driver", "do_drive task executed", UVM_LOW)
 endtask
 
@@ -140,38 +141,41 @@ task i2c_slave_driver::detect_stopt_cond();
 endtask
 
 task i2c_slave_driver::read_data();
-  wait (enable);
+  
   for (int bit_index = 7; bit_index >= 0; bit_index--) begin
-    @(negedge i2c_vif.scl);
+    clock_stretch(req.clock_stretch_data[bit_index]);
+    // read bit during pulse
+    @(posedge i2c_vif.scl);  // ! may need to remove
     rsp.data[bit_index] = i2c_vif.sda;
+
+    @(negedge i2c_vif.scl);
+    #5;                                                                         // TODO (5*twentyth)
   end
-  // rsp.set_id_info(req);                                                      // TODO response needed?
-  // seq_item_port.put(rsp);
-  #5;                                                                           // TODO (5*twentyth)
-  if (req.clock_stretch_ack) begin
-    i2c_vif.uvc_scl = 'b0;
-    #5;
-    i2c_vif.uvc_sda = req.ack_nack; // or use send_bit()
-    #(req.clock_stretch_ack); // May need to change constraints in item (>5)
-    i2c_vif.uvc_scl = 'bz;
-  end
+  rsp.set_id_info(req);                                                         // TODO response needed?
+  seq_item_port.put(rsp);
+  
+  fork
+    send_bit(req.ack_nack);
+    clock_stretch(req.clock_stretch_ack);
+  join
 endtask
 
 task i2c_slave_driver::write_data();
-  wait(enable);
 
   for (int bit_index = 7; bit_index >= 0; bit_index--) begin
-    send_bit(req.data[bit_index]);
+    fork
+      send_bit(req.data[bit_index]);
+      clock_stretch(req.clock_stretch_ack);
+    join
+
     @(negedge i2c_vif.scl);
     #5;
   end
 
   @(posedge i2c_vif.scl);
   rsp.ack_nack = i2c_vif.sda;
-  // rsp.set_id_info(req);                                                      // TODO response needed?
-  // seq_item_port.put(rsp);
-  @(negedge i2c_vif.scl);
-  #5;
+  rsp.set_id_info(req);                                                         // TODO response needed?
+  seq_item_port.put(rsp);
 endtask
 
 task i2c_slave_driver::send_bit(bit data_bit);
@@ -180,4 +184,13 @@ task i2c_slave_driver::send_bit(bit data_bit);
   else               i2c_vif.uvc_sda = data_bit;
   if (data_bit == 1) `uvm_info("Driver", "SDA was driven with Z", UVM_DEBUG)
   else               `uvm_info("Driver", "SDA was driven with 0", UVM_DEBUG)
+endtask
+
+task i2c_slave_driver::clock_stretch(int delay)
+  if (delay == 0) return;
+
+  // else ...
+  i2c_vif.uvc_scl = 'b0;
+  #(delay);
+  i2c_vif.uvc_scl = 'bz;
 endtask
