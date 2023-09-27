@@ -13,8 +13,12 @@ class i2c_monitor extends uvm_monitor;
     uvm_analysis_port #(i2c_item)   i2c_mon_analysis_port;
     // uvm_analysis_port #(i2c_item)   i2c_s_analysis_port;
 
+    int                             bit_counter;
+    bit                             captured_next_msb;
+    bit                             msb;
+
     bit                             transfer_done;
-    bit                             cancel_first_bit;
+    bit                             skip_first_bit;
     bit                             start_cond_from_prev_trans;
     
     extern function new (string name, uvm_component parent);
@@ -66,7 +70,6 @@ task  i2c_monitor::run_phase(uvm_phase phase);
 
   forever begin
     i2c_trans = new();
-    
     do_monitor();
   end // of forever
       
@@ -76,7 +79,6 @@ task i2c_monitor::do_monitor();
   
   i2c_trans.start_condition = (start_cond_from_prev_trans) ? 'b1 : 'b0;
   
-  cancel_first_bit = 'b0;
   start_cond_from_prev_trans = 'b0;
 
   fork
@@ -98,21 +100,24 @@ task i2c_monitor::check_start_cond();
     @(negedge i2c_vif.sda);
     if (i2c_vif.scl == 'b0) continue;
 
-    // else ...
-    start_cond_from_prev_trans = 'b1;  // already detected START, next one would be a repeated.
+    `uvm_info("Monitor", "detected start condition", UVM_HIGH)
 
     // else if... (invalid/early start condition)
     if (!transfer_done) begin
       i2c_trans.transfer_failed = 'b1;
-      `uvm_warning("Monitor", "Early START condition")
+      start_cond_from_prev_trans = 'b1;
+      `uvm_error("Monitor", "Early START condition")
       break;  // break to exit and listen for next address
     end
 
-    // else... (valid start condition)
-    cancel_first_bit = 'b1;
-    i2c_trans.start_condition = 'b1;
+    // else if ... (repeated Start Condition)
+    if (req.start_condition == 'b1) begin
+      start_cond_from_prev_trans = 'b1;  // already detected START, next one would be a repeated.
+      break;
+    end
 
-    `uvm_info("Monitor", "detected start condition", UVM_HIGH)
+    // else... (valid start condition)
+    i2c_trans.start_condition = 'b1;
   end
 endtask
 
@@ -126,7 +131,7 @@ task i2c_monitor::check_stop_cond();
       // if... (early/invalid stop condition)
     if (!transfer_done) begin
       i2c_trans.transfer_failed = 'b1;
-      `uvm_warning("Monitor", "Early STOP condition")
+      `uvm_error("Monitor", "Early STOP condition")
     end
 
     i2c_trans.stop_condition = 'b1;
@@ -137,29 +142,60 @@ task i2c_monitor::check_stop_cond();
 endtask
 
 task i2c_monitor::check_data_transfer();
-  int bit_counter = 0;
+  bit_counter = 0;
   `uvm_info("Monitor", "checking for data transfer", UVM_DEBUG)
 
   while (bit_counter < 8) begin
-    @(negedge i2c_vif.scl);
+    // if previous task call captured current MSB, retrieve it (only enters at bit_counter == 0)
+    if (captured_next_msb) begin
+      assert(bit_counter == 0);
+      else `uvm_fatal("Monitor", "Unexpected behavior")
 
-    if (cancel_first_bit) begin
-      cancel_first_bit = 'b0;
+      captured_next_msb = 'b0;
+      i2c_trans.data[bit_counter] = msb;
+      bit_counter++;
       continue;
     end
 
-    transfer_done = 'b0;
+    //
+    @(posedge i2c_vif.scl);
+    i2c_trans.data[bit_counter] = i2c_vif.sda;
+
+    @(negedge i2c_vif.scl);
+    // if ... (first negedge SCL is Start Condition, skip bit)
+    if (i2c_vif.sda != i2c_trans.data[bit_counter]) begin
+      if (bit_counter == 0) continue;
+
+      // else ...
+      `uvm_warning("Monitor", "Detected Condition, not Data bit")
+    end
+
+    transfer_done = 'b0; // at this point data transfer has begun
     i2c_trans.data[bit_counter] = i2c_vif.sda;
     bit_counter++;
     `uvm_info("Monitor", $sformatf("Got bit %1d with value %1b", bit_counter, i2c_trans.data[bit_counter]), UVM_DEBUG)
   end
 
-  @(posedge i2c_vif.scl);   // not negedge at ack as slave driver can just release scl and not pulse it
+  @(posedge i2c_vif.scl);   
   i2c_trans.ack_nack = i2c_vif.sda;
+
+  @(negedge i2c_vif.scl);
+  if (i2c_vif.sda != i2c_trans.ack_nack) begin
+    `uvm_fatal
+  end
+
+  transfer_done = 'b1;
   `uvm_info("Monitor", "detected data transfer", UVM_HIGH)
 
-  @(negedge i2c_vif.scl);   
-  transfer_done = 'b1;
+  bit_counter++;
+  @(posedge i2c_vif.scl);
+  msb = i2c_vif.sda;
 
-  // @(negedge i2c_vif.scl);   // delay task finish until negedge in case of STOP condition
+  @(negedge i2c_vif.scl);
+  assert (i2c_vif.sda == msb) 
+  else begin
+    `uvm_error("Monitor", "Expected data item to be finished by now")
+  end
+  captured_next_msb = 'b1;
+  transfer_done = 'b0;
 endtask

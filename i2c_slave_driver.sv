@@ -100,19 +100,21 @@ task i2c_slave_driver::detect_start_cond();
     `uvm_info("Driver", "checking for Start Condition", UVM_DEBUG)
     @(negedge i2c_vif.sda);
     if (i2c_vif.scl == 'b0) continue;
-
-    // else if ... (early Start Condition)
-    if (!transfer_done) begin
-      `uvm_fatal("Driver", "Early Start Condition")
-    end
+    `uvm_info("Driver", "detected Start Condition", UVM_HIGH)
 
     // else if ... (not init Start Condition)
     if (enable) begin
+      // check if EARLY Start Condition
+      assert(transfer_done)
+      else begin 
+        `uvm_error("Driver", "Early Start Condition")
+        break;
+      end
+
       // TODO get new speed mode
       break;
     end
     // else ... (is init Start Condition)
-    `uvm_info("Driver", "detected Start Condition", UVM_HIGH)
 
     enable = 'b1;
   end
@@ -123,13 +125,12 @@ task i2c_slave_driver::detect_stopt_cond();
     `uvm_info("Driver", "checking for stop condition", UVM_DEBUG)
     @(posedge i2c_vif.sda);
     if (i2c_vif.scl == 'b0) continue;
+    `uvm_info("Driver", "detected stop condition", UVM_HIGH)
 
-    if (!transfer_done) begin
+    assert (transfer_done) 
+    else begin
       `uvm_fatal("Driver", "Early Stop Condition")
     end
-
-    // else ... (is stop condition)
-    `uvm_info("Driver", "detected stop condition", UVM_HIGH)
 
     enable = 'b0;
     break; 

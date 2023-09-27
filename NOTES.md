@@ -45,12 +45,7 @@
     3. `join_any`
     4. `disable join`
 
-    ##### Start Condition
-    - Resets address
-    - __Doesn't__ reset speed mode
-
-    ##### Stop Condition
-    - Resets everything
+    
 
 #### Monitor
 
@@ -69,7 +64,7 @@
 
 
 ### Presentation / Thesis
-- Explain all communication types
+- ##### Explain all communication types
     - Start Condition (S)
         - Repeated Start (Sr)
     - Stop Condition
@@ -78,3 +73,14 @@
         - Address WRITE
         - Address Read
         - Data
+
+- ##### Start Condition
+    - Resets address
+    - __Doesn't__ reset speed mode
+    - Puts slave devices to read mode (listen for address)
+    - (Repeated) Does __not__ allow slave devices to edit their registers
+
+- ##### Stop Condition
+    - Resets everything
+    - Makes slave devices check for Start Condition
+    - Lets devices process the values in their registers
