@@ -3,18 +3,17 @@ class i2c_monitor extends uvm_monitor;
    
    `uvm_component_utils(i2c_monitor)
 
-    virtual i2c_if                   i2c_vif;
+    virtual i2c_if                  i2c_vif;
    
     i2c_cfg                         cfg;
     i2c_item                        i2c_trans;
-    // i2c_coverage                    cov;
+    i2c_coverage                    cov;
 
    
     uvm_analysis_port #(i2c_item)   i2c_mon_analysis_port;
     // uvm_analysis_port #(i2c_item)   i2c_s_analysis_port;
 
-    bit                             bus_busy;
-    bit                             data_done;
+    bit                             transfer_done;
     bit                             cancel_first_bit;
     bit                             start_cond_from_prev_trans;
     
@@ -26,14 +25,13 @@ class i2c_monitor extends uvm_monitor;
     extern virtual task  check_start_cond();
     extern virtual task  check_stop_cond();
     extern virtual task  check_data_transfer();
-    
+
 endclass // i2c_monitor_class
 
 //-------------------------------------- 
 //-----------------------------------------------------------------------
 function i2c_monitor::new (string name, uvm_component parent);
   super.new(name, parent);
-  i2c_trans = new();
 endfunction   
 
 //-------------------------------------------------------------------------------------------------------------
@@ -49,11 +47,10 @@ function void i2c_monitor::build_phase(uvm_phase phase);
 
   i2c_mon_analysis_port = new("i2c_mon_analysis_port",this);
 
-  //if (cfg.has_coverage) begin
+  // if (cfg.has_coverage) begin
   //    cov = i2c_coverage::type_id::create("i2c_coverage",this);
   //    cov.cfg = this.cfg;
-  //end  
-
+  // end  
 
   if (!cfg.has_checks)   
       `uvm_info("build_phase","CHECKERS DISABLED",UVM_LOW);
@@ -65,20 +62,20 @@ task  i2c_monitor::run_phase(uvm_phase phase);
 	@(posedge i2c_vif.reset_n);
 	repeat(3) @(posedge i2c_vif.system_clock);
   
-  bus_busy = 'b0;
+  transfer_done = 'b1;
 
   forever begin
     i2c_trans = new();
     
     do_monitor();
-  end // of forever       
+  end // of forever
+      
 endtask
 
 task i2c_monitor::do_monitor();
   
   i2c_trans.start_condition = (start_cond_from_prev_trans) ? 'b1 : 'b0;
-
-  data_done = 'b0;
+  
   cancel_first_bit = 'b0;
   start_cond_from_prev_trans = 'b0;
 
@@ -101,16 +98,17 @@ task i2c_monitor::check_start_cond();
     @(negedge i2c_vif.sda);
     if (i2c_vif.scl == 'b0) continue;
 
+    // else ...
+    start_cond_from_prev_trans = 'b1;  // already detected START, next one would be a repeated.
+
     // else if... (invalid/early start condition)
-    if (!data_done && bus_busy) begin
+    if (!transfer_done) begin
       i2c_trans.transfer_failed = 'b1;
-      start_cond_from_prev_trans = 'b1;  // already detected START, next one would be a repeated.
       `uvm_warning("Monitor", "Early START condition")
       break;  // break to exit and listen for next address
     end
 
     // else... (valid start condition)
-    bus_busy = 'b1;
     cancel_first_bit = 'b1;
     i2c_trans.start_condition = 'b1;
 
@@ -126,12 +124,11 @@ task i2c_monitor::check_stop_cond();
 
     // else if... 
       // if... (early/invalid stop condition)
-    if (!data_done) begin
+    if (!transfer_done) begin
       i2c_trans.transfer_failed = 'b1;
       `uvm_warning("Monitor", "Early STOP condition")
     end
 
-    bus_busy = 'b0;
     i2c_trans.stop_condition = 'b1;
 
     `uvm_info("Monitor", "detected stop condition", UVM_HIGH)
@@ -151,6 +148,7 @@ task i2c_monitor::check_data_transfer();
       continue;
     end
 
+    transfer_done = 'b0;
     i2c_trans.data[bit_counter] = i2c_vif.sda;
     bit_counter++;
     `uvm_info("Monitor", $sformatf("Got bit %1d with value %1b", bit_counter, i2c_trans.data[bit_counter]), UVM_DEBUG)
@@ -160,5 +158,8 @@ task i2c_monitor::check_data_transfer();
   i2c_trans.ack_nack = i2c_vif.sda;
   `uvm_info("Monitor", "detected data transfer", UVM_HIGH)
 
-  @(negedge i2c_vif.scl);   // delay task finish until negedge in case of STOP condition
+  @(negedge i2c_vif.scl);   
+  transfer_done = 'b1;
+
+  // @(negedge i2c_vif.scl);   // delay task finish until negedge in case of STOP condition
 endtask

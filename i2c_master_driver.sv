@@ -108,6 +108,18 @@ task i2c_master_driver::do_drive(i2c_item req);
 endtask // i2c_master_driver::do_drive
                                                                                 // TODO refine timings
 task i2c_master_driver::do_start_cond();
+  if (i2c_vif.scl == 'b0) begin
+    `uvm_info("Driver", "Preparing for Repeated START", UVM_HIGH)
+    i2c_vif.uvc_sda = 'bz;
+      assert (i2c_vif.sda == 'b1) 
+      else   `uvm_error("Driver", "Expected SDA High but is Low")
+    #5;
+    i2c_vif.uvc_scl = 'bz;
+      assert (i2c_vif.scl == 'b1) 
+      else   `uvm_error("Driver", "Expected SCL High but is Low")
+    #5;
+  end
+
   `uvm_info("Driver", "Sending START", UVM_HIGH)
   i2c_vif.uvc_sda = 1'b0;
   #5;
@@ -115,6 +127,9 @@ task i2c_master_driver::do_start_cond();
 endtask
 
 task i2c_master_driver::do_stop_cond();
+  assert (i2c_vif.scl == 'b0 && i2c_vif.sda == 'b0)
+  else `uvm_error("Driver", "SDA or SCL unexpected HIGH")
+
   `uvm_info("Driver", "Sending STOP", UVM_HIGH)
   i2c_vif.uvc_scl = 1'bz;
   #5;

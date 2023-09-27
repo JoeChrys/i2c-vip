@@ -29,3 +29,10 @@ a single byte instead of a dynamic byte array
 ##### 22/09
 - Finished slave driver
 - Added clock stretching at data bits
+
+##### 24/09
+- Minor changes to drivers
+
+##### 27/09
+- Simplified slave driver logic
+- Added fatal exceptions, removed error handling logic
