@@ -191,7 +191,7 @@ task i2c_slave_driver::send_bit(bit data_bit);
   else               `uvm_info("Driver", "SDA was driven with 0", UVM_DEBUG)
 endtask
 
-task i2c_slave_driver::clock_stretch(int delay)
+task i2c_slave_driver::clock_stretch(int delay);
   if (delay == 0) return;
 
   // else ...

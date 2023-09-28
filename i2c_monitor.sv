@@ -7,7 +7,7 @@ class i2c_monitor extends uvm_monitor;
    
     i2c_cfg                         cfg;
     i2c_item                        i2c_trans;
-    i2c_coverage                    cov;
+    // i2c_coverage                    cov;
 
    
     uvm_analysis_port #(i2c_item)   i2c_mon_analysis_port;
@@ -111,7 +111,7 @@ task i2c_monitor::check_start_cond();
     end
 
     // else if ... (repeated Start Condition)
-    if (req.start_condition == 'b1) begin
+    if (i2c_trans.start_condition == 'b1) begin
       start_cond_from_prev_trans = 'b1;  // already detected START, next one would be a repeated.
       break;
     end
@@ -148,8 +148,8 @@ task i2c_monitor::check_data_transfer();
   while (bit_counter < 8) begin
     // if previous task call captured current MSB, retrieve it (only enters at bit_counter == 0)
     if (captured_next_msb) begin
-      assert(bit_counter == 0);
-      else `uvm_fatal("Monitor", "Unexpected behavior")
+      assert(bit_counter == 0)
+      else `uvm_error("Monitor", "Unexpected behavior")
 
       captured_next_msb = 'b0;
       i2c_trans.data[bit_counter] = msb;
@@ -167,7 +167,7 @@ task i2c_monitor::check_data_transfer();
       if (bit_counter == 0) continue;
 
       // else ...
-      `uvm_warning("Monitor", "Detected Condition, not Data bit")
+      `uvm_error("Monitor", "Detected Condition, not Data bit")
     end
 
     transfer_done = 'b0; // at this point data transfer has begun
@@ -181,7 +181,7 @@ task i2c_monitor::check_data_transfer();
 
   @(negedge i2c_vif.scl);
   if (i2c_vif.sda != i2c_trans.ack_nack) begin
-    `uvm_fatal
+    `uvm_error("Monitor", "Unexpected behavior")
   end
 
   transfer_done = 'b1;

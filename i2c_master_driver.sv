@@ -15,7 +15,6 @@ class i2c_master_driver extends uvm_driver #(i2c_item);
   extern virtual function void build_phase (uvm_phase phase);
   extern virtual task  run_phase (uvm_phase phase);
   extern virtual task  do_init ();
-  extern virtual task  reset_on_the_fly();
   extern virtual task  do_drive(i2c_item req);
 
   extern virtual task  do_start_cond();
