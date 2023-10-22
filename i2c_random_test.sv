@@ -48,14 +48,18 @@ task i2c_random_test:: run_phase (uvm_phase phase);
         fork
             begin
                 if (!m_seq.randomize() with {                     
-                    //constraints               
+                    transaction_type == WRITE;
+                    delay inside {[5:20]};
+                    start_condition == 1;
+                    stop_condition == 1;             
                 })
                 `uvm_fatal("run_phase","i2c_master_sequence randomization failed"); 
                 m_seq.start(env.master_agent.m_seqr);
             end 
             begin
                 if (!s_seq.randomize() with { 
-				//constraints
+				    transaction_type == READ;
+                    clock_stretch_ack == 19;
                 })
                 `uvm_fatal("run_phase","i2c_slave_sequence randomization failed");        
                 s_seq.start(env.slave_agent.s_seqr);

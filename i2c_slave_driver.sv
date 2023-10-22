@@ -6,7 +6,6 @@ class i2c_slave_driver extends uvm_driver #(i2c_item);
     virtual i2c_if          i2c_vif;
 
     i2c_cfg                 cfg;
-    i2c_item                rsp;
 
     bit                     start_detected;
 
@@ -125,7 +124,7 @@ task i2c_slave_driver::detect_stopt_cond();
     `uvm_info("Driver", "checking for stop condition", UVM_DEBUG)
     @(posedge i2c_vif.sda);
     if (i2c_vif.scl == 'b0) continue;
-    `uvm_info("Driver", "detected stop condition", UVM_HIGH)
+    `uvm_info("Driver", "Detected Stop Condition", UVM_HIGH)
 
     assert (transfer_done) 
     else begin

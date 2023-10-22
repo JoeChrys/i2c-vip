@@ -1,7 +1,8 @@
 # Simulator files
-xcelium.d/
+xcelium*
 waves.shm/
 .simvision/
+xmsim*
 
 # Output Files
 *.history

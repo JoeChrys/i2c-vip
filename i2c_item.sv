@@ -16,9 +16,9 @@ rand int clock_stretch_ack;
 rand bit transfer_failed;
 
 // * * * Add constraints * * *
-constraint c_ack                { soft ack_nack == `NACK; } // can remove "soft"
+constraint c_ack                { soft ack_nack == `NACK; }
 
-constraint c_delay              { delay inside {[0:10]}; soft delay == 0; }
+constraint c_delay              { soft (delay == 0); }
 
 constraint c_clock_stretch_ack  { clock_stretch_ack inside {[0:100]};
                                   soft clock_stretch_ack == 0; }
@@ -30,9 +30,10 @@ constraint c_clock_stretch_data { foreach (clock_stretch_data[i]) {
 constraint c_start_stop         { soft start_condition == 0;
                                   soft stop_condition == 0; }
 
-constraint c_write_transaction  { soft transaction_type == WRITE; }
-constraint c_read_transaction   { if (transaction_type == READ) {
-                                  data == 'hFF; } }
+constraint c_write_transaction  { if (transaction_type == WRITE) 
+                                    ack_nack == `NACK; }
+// constraint c_read_transaction   { if (transaction_type == READ)
+//                                     data == 'hFF; }
 
 constraint c_transfer_failed    { soft transfer_failed == 'b0; 
                                   if (transfer_failed) { delay == 0; } }

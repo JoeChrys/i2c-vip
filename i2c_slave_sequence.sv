@@ -8,6 +8,21 @@ class i2c_slave_sequence extends uvm_sequence #(i2c_item);
 
     rand bit     read_rsp;
 
+    // Item fields for Slave Seq
+    rand transaction_type_enum transaction_type;
+    rand bit[7:0] data;
+    // rand bit ack_nack;
+    rand int clock_stretch_data[8];
+    rand int clock_stretch_ack;
+
+    // * * * Add constraints * * *
+    constraint c_s_transaction_type { soft transaction_type == READ; }
+    constraint c_s_clock_stretch { soft clock_stretch_ack == 0;
+                                 foreach (clock_stretch_data[i]) 
+                                    {clock_stretch_data[i] == 0}; }
+    
+    constraint c_s_read_rsp { soft read_rsp == `ACK; }
+
     extern function new(string name = "i2c_slave_sequence");
     extern virtual task body();  
 endclass // i2c_slave_sequence
@@ -25,11 +40,22 @@ task i2c_slave_sequence::body();
         `uvm_fatal("body", "cfg wasn't set through config db");
 
 	// * * * uvm_do or uvm_do_with can be used * * * 
-    `uvm_do(req)
+    `uvm_info("SLAVE SEQ", "ABOUT TO SEND REQ", UVM_DEBUG)
+    `uvm_do_with(req, { 
+        transaction_type == local::transaction_type; 
+        data == local::data;
+        // ack_nack == local::ack_nack;
+        foreach (local::clock_stretch_data[i]) 
+            {clock_stretch_data[i] == local::clock_stretch_data[i]};
+        clock_stretch_ack == local::clock_stretch_ack;
+        })
+    `uvm_info("SLAVE SEQ", "WAITING FOR RSP", UVM_DEBUG)
     get_response(rsp);
-    if (req.transaction_type == READ) begin
+    `uvm_info("SLAVE SEQ", "GOT RSP", UVM_DEBUG)
+    if (transaction_type == READ) begin
+        `uvm_info("SLAVE SEQ", "ENTERED IF", UVM_DEBUG)
       req.ack_nack = read_rsp;
+      `uvm_info("SLAVE SEQ", $sformatf("SET ACK to %1b", read_rsp), UVM_DEBUG)
     end
 
-endtask 
-
+endtask

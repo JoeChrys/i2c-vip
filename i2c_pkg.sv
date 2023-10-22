@@ -1,4 +1,4 @@
-`timescale 1ns/100ps
+`timescale 1ps/1ps
 //`ifndef I2C_PKG_SV
 //`define I2C_PKG_SV
 

@@ -172,8 +172,8 @@ task i2c_monitor::check_data_transfer();
 
     transfer_done = 'b0; // at this point data transfer has begun
     i2c_trans.data[bit_counter] = i2c_vif.sda;
+    `uvm_info("Monitor", $sformatf("Got bit %1d with value %1b", 7-bit_counter, i2c_trans.data[7-bit_counter]), UVM_DEBUG)
     bit_counter++;
-    `uvm_info("Monitor", $sformatf("Got bit %1d with value %1b", bit_counter, i2c_trans.data[bit_counter]), UVM_DEBUG)
   end
 
   @(posedge i2c_vif.scl);   

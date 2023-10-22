@@ -6,7 +6,6 @@ class i2c_master_driver extends uvm_driver #(i2c_item);
   virtual i2c_if    i2c_vif;
   
   i2c_cfg           cfg;
-  i2c_item          rsp;
 
   bit               bus_busy;
   bit               transfer_aborted;
@@ -126,9 +125,11 @@ task i2c_master_driver::do_start_cond();
 endtask
 
 task i2c_master_driver::do_stop_cond();
-  assert (i2c_vif.scl == 'b0 && i2c_vif.sda == 'b0)
+  i2c_vif.uvc_sda = 1'b0;
+  assert (i2c_vif.scl == 'b0)
   else `uvm_error("Driver", "SDA or SCL unexpected HIGH")
 
+  // #5;
   `uvm_info("Driver", "Sending STOP", UVM_HIGH)
   i2c_vif.uvc_scl = 1'bz;
   #5;
@@ -149,6 +150,9 @@ task i2c_master_driver::write_data();
   end
   `uvm_info("Driver", "Sent byte", UVM_HIGH)
 
+  // release SDA for Slave to ACK/NACK
+  send_bit('b1);
+
   // pulse for ack/nack
   pulse_clock();
 
@@ -156,12 +160,14 @@ task i2c_master_driver::write_data();
 endtask
 
 task i2c_master_driver::check_data();
+  @(posedge i2c_vif.scl);
   for (int i=7; i>=0; i--) begin
     // @(posedge i2c_vif.scl) bit_correct = 'b0;  // in case of data clock stretching feature
-    @(negedge i2c_vif.scl);  // could include the following it in a begin-end block
+    @(negedge i2c_vif.scl); // could include the following it in a begin-end block
     rsp.data[i] = i2c_vif.sda;
+    `uvm_info("Driver", $sformatf("Bit %1d has value: %1b", i, rsp.data[i]), UVM_DEBUG)
     if (rsp.data[i] != req.data[i]) begin
-      `uvm_warning("Driver", "Bit sent does NOT match SDA, aborting sequence...")
+      `uvm_warning("Driver", $sformatf("Bit sent (%1b) does NOT match SDA, aborting sequence...", rsp.data[i]))
       transfer_aborted = 'b1;
       
       rsp.transfer_failed = 'b1;
