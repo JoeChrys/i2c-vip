@@ -54,12 +54,12 @@ task i2c_master_driver::run_phase(uvm_phase phase);
 	repeat(3) @(posedge i2c_vif.system_clock);
 
   forever begin 
-    seq_item_port.get_next_item(req);
+    seq_item_port.get(req);
     rsp = i2c_item::type_id::create("rsp");
 
     do_drive(req);
   
-    seq_item_port.item_done();
+    // seq_item_port.item_done();
   end   // of forever
 endtask // i2c_master_driver::run_phase
 
@@ -167,7 +167,7 @@ task i2c_master_driver::check_data();
     rsp.data[i] = i2c_vif.sda;
     `uvm_info("Driver", $sformatf("Bit %1d has value: %1b", i, rsp.data[i]), UVM_DEBUG)
     if (rsp.data[i] != req.data[i]) begin
-      `uvm_warning("Driver", $sformatf("Bit sent (%1b) does NOT match SDA, aborting sequence...", rsp.data[i]))
+      `uvm_error("Driver", $sformatf("Bit sent (%1b) does NOT match SDA, aborting sequence...", rsp.data[i]))
       transfer_aborted = 'b1;
       
       rsp.transfer_failed = 'b1;
@@ -184,7 +184,7 @@ task i2c_master_driver::check_data();
 
   case(rsp.ack_nack)
     `ACK:  `uvm_info("Driver", "Got ACK from slave", UVM_HIGH)
-    `NACK: `uvm_warning("Driver", "Got NACK")
+    `NACK: `uvm_info("Driver", "Got NACK", UVM_LOW)
   endcase
 endtask
 
@@ -194,8 +194,16 @@ task i2c_master_driver::read_data();
   for (int bit_index=7; bit_index>=0; bit_index--) begin
     fork
       pulse_clock();
-      capture_bit(bit_index);
+      begin
+        capture_bit(bit_index);
+        // after reading the last bit, sent rsp to sequence
+        if (index == 0) begin
+          rsp.set_id_info(req);
+          seq_item_port.put(rsp);
+        end
+      end
     join
+    
     `uvm_info("Driver", $sformatf("Got bit %1d with value %1b", bit_index, rsp.data[bit_index]), UVM_DEBUG)
   end
   //at this point seq should have set ack_nack
@@ -220,12 +228,6 @@ endtask
 task i2c_master_driver::capture_bit(int index);
   @(posedge i2c_vif.scl);  // or use begin-end block to control the order and sent rsp before the next pulse
   rsp.data[index] = i2c_vif.sda;
-
-  // after reading the last bit, sent rsp to sequence
-  if (index == 0) begin
-    rsp.set_id_info(req);
-    seq_item_port.put(rsp);
-  end
 endtask
 
 task i2c_master_driver::pulse_clock();

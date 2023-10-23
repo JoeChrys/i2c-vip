@@ -148,54 +148,58 @@ task i2c_monitor::check_data_transfer();
   while (bit_counter < 8) begin
     // if previous task call captured current MSB, retrieve it (only enters at bit_counter == 0)
     if (captured_next_msb) begin
-      assert(bit_counter == 0)
-      else `uvm_error("Monitor", "Unexpected behavior")
+      if (bit_counter != 0) `uvm_fatal("Monitor", "Unexpected behavior")
 
-      captured_next_msb = 'b0;
-      i2c_trans.data[bit_counter] = msb;
+      captured_next_msb = 0;
+      i2c_trans.data[`rev_put(bit_counter)] = msb;
       bit_counter++;
       continue;
     end
 
     //
     @(posedge i2c_vif.scl);
-    i2c_trans.data[bit_counter] = i2c_vif.sda;
+    i2c_trans.data[`rev_put(bit_counter)] = i2c_vif.sda;
+    `uvm_info("Monitor", $sformatf("(posedge) Bit %1d has value: %b", `rev_put(bit_counter), i2c_vif.sda), UVM_DEBUG)
 
     @(negedge i2c_vif.scl);
+    `uvm_info("Monitor", $sformatf("(negedge) Bit %1d has value: %b", `rev_put(bit_counter), i2c_vif.sda), UVM_DEBUG)
     // if ... (first negedge SCL is Start Condition, skip bit)
-    if (i2c_vif.sda != i2c_trans.data[bit_counter]) begin
-      if (bit_counter == 0) continue;
+    if (i2c_vif.sda != i2c_trans.data[`rev_put(bit_counter)]) begin
+      // if (bit_counter == 0) continue;
 
       // else ...
       `uvm_error("Monitor", "Detected Condition, not Data bit")
     end
 
     transfer_done = 'b0; // at this point data transfer has begun
-    i2c_trans.data[bit_counter] = i2c_vif.sda;
+    i2c_trans.data[`rev_put(bit_counter)] = i2c_vif.sda;
     `uvm_info("Monitor", $sformatf("Got bit %1d with value %1b", 7-bit_counter, i2c_trans.data[7-bit_counter]), UVM_DEBUG)
     bit_counter++;
   end
 
   @(posedge i2c_vif.scl);   
   i2c_trans.ack_nack = i2c_vif.sda;
+  `uvm_info("Monitor", $sformatf("(posedge) ACK_NACK: %b", i2c_vif.sda), UVM_DEBUG)
 
   @(negedge i2c_vif.scl);
+  `uvm_info("Monitor", $sformatf("(negedge) ACK_NACK: %b", i2c_vif.sda), UVM_DEBUG)
   if (i2c_vif.sda != i2c_trans.ack_nack) begin
     `uvm_error("Monitor", "Unexpected behavior")
   end
 
   transfer_done = 'b1;
-  `uvm_info("Monitor", "detected data transfer", UVM_HIGH)
+  `uvm_info("Monitor", "Detected data transfer (byte)", UVM_HIGH)
 
   bit_counter++;
   @(posedge i2c_vif.scl);
   msb = i2c_vif.sda;
+  `uvm_info("Monitor", $sformatf("(posedge) Next byte MSB has value: %b", i2c_vif.sda), UVM_DEBUG)
 
   @(negedge i2c_vif.scl);
-  assert (i2c_vif.sda == msb) 
-  else begin
-    `uvm_error("Monitor", "Expected data item to be finished by now")
-  end
+  `uvm_info("Monitor", $sformatf("(negedge) Next byte MSB has value: %b", i2c_vif.sda), UVM_DEBUG)
+
+  if (i2c_vif.sda != msb) `uvm_fatal("Monitor", "Expected data item to be finished by now")
+
   captured_next_msb = 'b1;
   transfer_done = 'b0;
 endtask

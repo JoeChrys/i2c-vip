@@ -53,7 +53,7 @@ task i2c_slave_driver::run_phase(uvm_phase phase);
 	repeat(3) @(posedge i2c_vif.system_clock);
 	
   forever begin 
-    seq_item_port.get_next_item(req);
+    seq_item_port.get(req);
     rsp = i2c_item::type_id::create("rsp");
     
     fork
@@ -91,7 +91,7 @@ task i2c_slave_driver::do_drive(i2c_item req);
   @(negedge i2c_vif.scl);
   #5;
 
-   `uvm_info("Driver", "do_drive task executed", UVM_LOW)
+  `uvm_info("Driver", "do_drive task executed", UVM_LOW)
 endtask
 
 task i2c_slave_driver::detect_start_cond();
@@ -104,14 +104,19 @@ task i2c_slave_driver::detect_start_cond();
     // else if ... (not init Start Condition)
     if (enable) begin
       // check if EARLY Start Condition
-      assert(transfer_done)
-      else begin 
+      if (!transfer_done) begin 
+        rsp.transfer_failed = 'b1;
         `uvm_error("Driver", "Early Start Condition")
+        rsp.set_id_info(req);                                                         // TODO response needed?
+        seq_item_port.put(rsp);
         break;
       end
 
       // TODO get new speed mode
-      break;
+      // ! not needed below
+      // rsp.set_id_info(req);                                                         // TODO response needed?
+      // seq_item_port.put(rsp);
+      // break;
     end
     // else ... (is init Start Condition)
 
@@ -126,12 +131,14 @@ task i2c_slave_driver::detect_stopt_cond();
     if (i2c_vif.scl == 'b0) continue;
     `uvm_info("Driver", "Detected Stop Condition", UVM_HIGH)
 
-    assert (transfer_done) 
-    else begin
-      `uvm_fatal("Driver", "Early Stop Condition")
+    if (!transfer_done) begin
+      rsp.transfer_failed = 'b1;
+      `uvm_error("Driver", "Early Stop Condition")
     end
 
     enable = 'b0;
+    rsp.set_id_info(req);                                                         // TODO response needed?
+    seq_item_port.put(rsp);
     break; 
   end
 endtask
@@ -145,14 +152,17 @@ task i2c_slave_driver::read_data();
     join
     rsp.data[bit_index] = i2c_vif.sda;
 
+    if (bit_index == 0) begin
+      rsp.set_id_info(req);                                                         // TODO response needed?
+      seq_item_port.put(rsp);
+    end
+
     // wait for end of pulse
     @(negedge i2c_vif.scl);
     // transfer_done flag reset after first bit in case of (repeated) start condition
     transfer_done = 'b0;
     #5;                                                                         // TODO (5*twentyth)
   end
-  rsp.set_id_info(req);                                                         // TODO response needed?
-  seq_item_port.put(rsp);
   
   fork
     send_bit(req.ack_nack);

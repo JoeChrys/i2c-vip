@@ -10,6 +10,7 @@
 // `define DATA_W 32 //data width in ITEM
 `define ACK  'b0
 `define NACK 'b1
+`define rev_put(a) (7-a)
 
 typedef enum {MASTER, SLAVE} agent_type_enum;
 // typedef enum {DATA, START, STOP} item_type_enum;
