@@ -8,6 +8,8 @@ module top;
     import i2c_pkg::*;
     import i2c_env_pkg::*;
 
+    tri1 sda;
+    tri1 scl;
       
     bit system_clock, reset_n;
     
@@ -28,11 +30,22 @@ module top;
         reset_n = 1;
     end
     
-    i2c_if i2c_vif (system_clock,reset_n);
+    i2c_if i2c_vif_master (system_clock,reset_n);
+    i2c_if i2c_vif_slave  (system_clock,reset_n);
+    assign sda = i2c_vif_master.uvc_sda;
+    assign sda = i2c_vif_slave.uvc_sda;
+    assign scl = i2c_vif_master.uvc_scl;
+    assign scl = i2c_vif_slave.uvc_scl;
+
+    assign i2c_vif_master.sda = sda;
+    assign i2c_vif_master.scl = scl;
+    assign i2c_vif_slave.sda = sda;
+    assign i2c_vif_slave.scl = scl;
 
     //interface
     initial begin
-        uvm_config_db#(virtual i2c_if)::set(null,"*", "i2c_vif", i2c_vif);
+        uvm_config_db#(virtual i2c_if)::set(null,"uvm_test_top", "i2c_vif_master", i2c_vif_master);
+        uvm_config_db#(virtual i2c_if)::set(null,"uvm_test_top", "i2c_vif_slave", i2c_vif_slave);
     end
     
     // invoking simulation phases of all components

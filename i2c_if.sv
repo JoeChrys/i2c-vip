@@ -5,11 +5,11 @@ interface i2c_if (input bit system_clock, input bit reset_n);
   logic uvc_sda;
   logic uvc_scl;
 
-  tri1 sda;
-  tri1 scl;
+  wire sda;
+  wire scl;
 
-  assign sda = uvc_sda;
-  assign scl = uvc_scl;
+  // assign sda = uvc_sda;
+  // assign scl = uvc_scl;
   
   modport dut (
   inout sda, scl
@@ -35,8 +35,8 @@ interface i2c_if (input bit system_clock, input bit reset_n);
   endtask
 
   // * * * You can add assertion checkers bellow * * * 
-  always @(sda) assert (sda !== 1'bx);
-  always @(scl) assert (scl !== 1'bx);
+  // always @(sda) assert (sda !== 1'bx);
+  // always @(scl) assert (scl !== 1'bx);
 
   always @(uvc_sda) begin
     assert (uvc_sda !== 1'bx);

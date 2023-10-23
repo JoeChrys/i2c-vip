@@ -186,6 +186,11 @@ task i2c_slave_driver::write_data();
     #5;
   end
 
+  // release SDA for Master to ACK/NACK
+  wait(i2c_vif.scl == 'b0);
+  i2c_vif.uvc_sda = 'bz;
+  `uvm_info("Driver", "Released SDA for ACK", UVM_HIGH)
+
   @(posedge i2c_vif.scl);
   rsp.ack_nack = i2c_vif.sda;
   rsp.set_id_info(req);                                                         // TODO response needed?

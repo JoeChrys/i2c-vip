@@ -109,12 +109,10 @@ task i2c_master_driver::do_start_cond();
   if (i2c_vif.scl == 'b0) begin
     `uvm_info("Driver", "Preparing for Repeated START", UVM_HIGH)
     i2c_vif.uvc_sda = 'bz;
-      assert (i2c_vif.sda == 'b1) 
-      else   `uvm_error("Driver", "Expected SDA High but is Low")
+      if (i2c_vif.sda != 'b1) `uvm_error("Driver", "Expected SDA High but is Low")
     #5;
     i2c_vif.uvc_scl = 'bz;
-      assert (i2c_vif.scl == 'b1) 
-      else   `uvm_error("Driver", "Expected SCL High but is Low")
+      if (i2c_vif.scl != 'b1) `uvm_error("Driver", "Expected SCL High but is Low")
     #5;
   end
 
@@ -122,18 +120,19 @@ task i2c_master_driver::do_start_cond();
   i2c_vif.uvc_sda = 1'b0;
   #5;
   i2c_vif.uvc_scl = 1'b0;
+  #5;
 endtask
 
 task i2c_master_driver::do_stop_cond();
-  i2c_vif.uvc_sda = 1'b0;
-  assert (i2c_vif.scl == 'b0)
-  else `uvm_error("Driver", "SDA or SCL unexpected HIGH")
+  if (i2c_vif.scl != 'b0) `uvm_error("Driver", "SSCL unexpected HIGH")
 
-  // #5;
+  i2c_vif.uvc_sda = 1'b0;
+  #5;
   `uvm_info("Driver", "Sending STOP", UVM_HIGH)
   i2c_vif.uvc_scl = 1'bz;
   #5;
   i2c_vif.uvc_sda = 1'bz;
+  #5;
 endtask
 
 task i2c_master_driver::write_data();
@@ -151,7 +150,9 @@ task i2c_master_driver::write_data();
   `uvm_info("Driver", "Sent byte", UVM_HIGH)
 
   // release SDA for Slave to ACK/NACK
-  send_bit('b1);
+  wait(i2c_vif.scl == 'b0);
+  i2c_vif.uvc_sda = 'bz;
+  `uvm_info("Driver", "Released SDA for ACK", UVM_HIGH)
 
   // pulse for ack/nack
   pulse_clock();
@@ -197,7 +198,7 @@ task i2c_master_driver::read_data();
       begin
         capture_bit(bit_index);
         // after reading the last bit, sent rsp to sequence
-        if (index == 0) begin
+        if (bit_index == 0) begin
           rsp.set_id_info(req);
           seq_item_port.put(rsp);
         end

@@ -5,7 +5,7 @@
 #
 # You can restore this configuration with:
 #
-#      xrun top.sv -timescale 1ns/1ns -sysv -access +rw -uvm -seed random -uvmhome CDNS-1.2 +UVM_TESTNAME=i2c_random_test -clean -l i2c_random_test.log +DUMPNAME=i2c_random_test.vcd +VERBOSITY=UVM_DEBUG -s -input restore.tcl
+#      xrun top.sv -timescale 1ps/1ps -sysv -access +rw -uvm -seed random -uvmhome CDNS-1.2 +UVM_TESTNAME=i2c_random_test -clean -l i2c_random_test.log +DUMPNAME=i2c_random_test.vcd +VERBOSITY=UVM_DEBUG -s -input restore.tcl
 #
 
 set tcl_prompt1 {puts -nonewline "xcelium> "}
@@ -50,11 +50,10 @@ set vcd_compact_mode 0
 alias . run
 alias quit exit
 stop -create -name Randomize -randomize
-database -open -vcd -into verilog.dump _verilog.dump1 -timescale fs
-database -open -shm -into waves.shm _waves.shm
-database -open -shm -into xcelium.shm xcelium.shm -default
 database -open -vcd -into i2c_random_test.vcd _i2c_random_test.vcd1 -timescale fs
-probe -create -database xcelium.shm top.i2c_vif.__assert_1 top.i2c_vif.sda top.i2c_vif.__assert_2 top.i2c_vif.scl top.i2c_vif.__assert_3 top.i2c_vif.uvc_sda top.i2c_vif.__assert_4 top.i2c_vif.__assert_5 top.i2c_vif.uvc_scl top.i2c_vif.__assert_6 top.i2c_vif.__assert_7 top.i2c_vif.__assert_8 top.i2c_vif.reset_n top.i2c_vif.system_clock
+database -open -shm -into xcelium.shm xcelium.shm -default
+database -open -shm -into waves.shm _waves.shm
+database -open -vcd -into verilog.dump _verilog.dump1 -timescale fs
 probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv}.super i2c_pkg::i2c_item::type_name
 probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv}.req \$uvm:{uvm_test_top.env.master_agent.m_drv}.rsp -all -depth  2
 probe -create -database xcelium.shm i2c_pkg::i2c_master_driver::type_name \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
@@ -65,6 +64,55 @@ probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.slave_agent.s_drv.rs
 probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.slave_agent.s_drv}.rsp_port \$uvm:{uvm_test_top.env.slave_agent.s_drv}.seq_item_port \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
 probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv.rsp_port} \$uvm:{uvm_test_top.env.master_agent.m_drv.seq_item_port} \$uvm:{uvm_test_top.env.master_agent.m_drv}.seq_item_prod_if \$uvm:{uvm_test_top.env.slave_agent.s_drv.rsp_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv.seq_item_port} \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
 probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv.rsp_port} \$uvm:{uvm_test_top.env.master_agent.m_drv.seq_item_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv.rsp_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv.seq_item_port} \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
-probe -create -database xcelium.shm $uvm:{uvm_test_top.env.master_agent.m_drv} $uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv}.super i2c_pkg::i2c_item::type_name
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv}.req \$uvm:{uvm_test_top.env.master_agent.m_drv}.rsp -all -depth  2
+probe -create -database xcelium.shm i2c_pkg::i2c_master_driver::type_name \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.slave_agent.s_drv.rsp_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv.seq_item_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv}.seq_item_prod_if \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.slave_agent.s_drv.rsp_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv.seq_item_port} \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.slave_agent.s_drv.rsp_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv.seq_item_port} \$uvm:{uvm_test_top}.m_seq \$uvm:{uvm_test_top}.s_seq \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.slave_agent.s_drv}.rsp_port \$uvm:{uvm_test_top.env.slave_agent.s_drv}.seq_item_port \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv.rsp_port} \$uvm:{uvm_test_top.env.master_agent.m_drv.seq_item_port} \$uvm:{uvm_test_top.env.master_agent.m_drv}.seq_item_prod_if \$uvm:{uvm_test_top.env.slave_agent.s_drv.rsp_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv.seq_item_port} \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv.rsp_port} \$uvm:{uvm_test_top.env.master_agent.m_drv.seq_item_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv.rsp_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv.seq_item_port} \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv}.super i2c_pkg::i2c_item::type_name
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv}.req \$uvm:{uvm_test_top.env.master_agent.m_drv}.rsp -all -depth  2
+probe -create -database xcelium.shm i2c_pkg::i2c_master_driver::type_name \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.slave_agent.s_drv.rsp_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv.seq_item_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv}.seq_item_prod_if \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.slave_agent.s_drv.rsp_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv.seq_item_port} \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.slave_agent.s_drv.rsp_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv.seq_item_port} \$uvm:{uvm_test_top}.m_seq \$uvm:{uvm_test_top}.s_seq \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.slave_agent.s_drv}.rsp_port \$uvm:{uvm_test_top.env.slave_agent.s_drv}.seq_item_port \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv.rsp_port} \$uvm:{uvm_test_top.env.master_agent.m_drv.seq_item_port} \$uvm:{uvm_test_top.env.master_agent.m_drv}.seq_item_prod_if \$uvm:{uvm_test_top.env.slave_agent.s_drv.rsp_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv.seq_item_port} \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv.rsp_port} \$uvm:{uvm_test_top.env.master_agent.m_drv.seq_item_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv.rsp_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv.seq_item_port} \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv}.super i2c_pkg::i2c_item::type_name
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv}.req \$uvm:{uvm_test_top.env.master_agent.m_drv}.rsp -all -depth  2
+probe -create -database xcelium.shm i2c_pkg::i2c_master_driver::type_name \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.slave_agent.s_drv.rsp_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv.seq_item_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv}.seq_item_prod_if \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.slave_agent.s_drv.rsp_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv.seq_item_port} \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.slave_agent.s_drv.rsp_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv.seq_item_port} \$uvm:{uvm_test_top}.m_seq \$uvm:{uvm_test_top}.s_seq \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.slave_agent.s_drv}.rsp_port \$uvm:{uvm_test_top.env.slave_agent.s_drv}.seq_item_port \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv.rsp_port} \$uvm:{uvm_test_top.env.master_agent.m_drv.seq_item_port} \$uvm:{uvm_test_top.env.master_agent.m_drv}.seq_item_prod_if \$uvm:{uvm_test_top.env.slave_agent.s_drv.rsp_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv.seq_item_port} \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv.rsp_port} \$uvm:{uvm_test_top.env.master_agent.m_drv.seq_item_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv.rsp_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv.seq_item_port} \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv}.super i2c_pkg::i2c_item::type_name
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv}.req \$uvm:{uvm_test_top.env.master_agent.m_drv}.rsp -all -depth  2
+probe -create -database xcelium.shm i2c_pkg::i2c_master_driver::type_name \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.slave_agent.s_drv.rsp_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv.seq_item_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv}.seq_item_prod_if \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.slave_agent.s_drv.rsp_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv.seq_item_port} \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.slave_agent.s_drv.rsp_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv.seq_item_port} \$uvm:{uvm_test_top}.m_seq \$uvm:{uvm_test_top}.s_seq \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.slave_agent.s_drv}.rsp_port \$uvm:{uvm_test_top.env.slave_agent.s_drv}.seq_item_port \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv.rsp_port} \$uvm:{uvm_test_top.env.master_agent.m_drv.seq_item_port} \$uvm:{uvm_test_top.env.master_agent.m_drv}.seq_item_prod_if \$uvm:{uvm_test_top.env.slave_agent.s_drv.rsp_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv.seq_item_port} \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv.rsp_port} \$uvm:{uvm_test_top.env.master_agent.m_drv.seq_item_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv.rsp_port} \$uvm:{uvm_test_top.env.slave_agent.s_drv.seq_item_port} \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm \$uvm:{uvm_test_top.env.master_agent.m_drv} \$uvm:{uvm_test_top.env.slave_agent.s_drv} -all -depth all
+probe -create -database xcelium.shm top.i2c_vif_master.__assert_1 top.i2c_vif_master.__assert_2 top.i2c_vif_master.__assert_3 top.i2c_vif_master.__assert_4 top.i2c_vif_master.__assert_5 top.i2c_vif_master.__assert_6
+probe -create -database xcelium.shm top.i2c_vif_master.sda top.i2c_vif_master.scl top.i2c_vif_master.uvc_sda top.i2c_vif_master.uvc_scl top.i2c_vif_master.reset_n top.i2c_vif_master.system_clock
+probe -create -database xcelium.shm top.i2c_vif_slave.__assert_1 top.i2c_vif_slave.__assert_2 top.i2c_vif_slave.__assert_3 top.i2c_vif_slave.__assert_4 top.i2c_vif_slave.__assert_5 top.i2c_vif_slave.__assert_6
+probe -create -database xcelium.shm top.i2c_vif_slave.uvc_sda top.i2c_vif_slave.uvc_scl top.i2c_vif_slave.sda top.i2c_vif_slave.scl top.i2c_vif_slave.reset_n top.i2c_vif_slave.system_clock
+probe -create -database xcelium.shm
 
 simvision -input restore.tcl.svcf
