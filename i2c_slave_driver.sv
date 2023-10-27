@@ -17,8 +17,8 @@ class i2c_slave_driver extends uvm_driver #(i2c_item);
     extern function new (string name, uvm_component parent);
     extern virtual function void build_phase (uvm_phase phase);
     extern virtual task  run_phase (uvm_phase phase);
-    extern virtual task  do_init ();
-    extern virtual task  do_drive(i2c_item req);
+    extern virtual task  do_init();
+    extern virtual task  do_drive();
 
     extern virtual task  detect_start_cond();
     extern virtual task  detect_stopt_cond();
@@ -32,12 +32,12 @@ class i2c_slave_driver extends uvm_driver #(i2c_item);
 endclass // i2c_slave_driver
 
 //-------------------------------------------------------------------------------------------------------------
-function i2c_slave_driver::new(string name, uvm_component parent);
+function i2c_slave_driver:: new(string name, uvm_component parent);
     super.new(name, parent);
 endfunction // i2c_slave_driver::new
 
 //-------------------------------------------------------------------------------------------------------------
-function void i2c_slave_driver::build_phase(uvm_phase phase);
+function void i2c_slave_driver:: build_phase(uvm_phase phase);
     super.build_phase(phase); 
     `uvm_info("build_phase","BUILD i2c_slave_DRIVER",UVM_HIGH);
     if(!uvm_config_db#(virtual i2c_if)::get(this, "", "i2c_vif", i2c_vif)) 
@@ -48,7 +48,7 @@ function void i2c_slave_driver::build_phase(uvm_phase phase);
 endfunction // i2c_slave_driver::build_phase
 
 //-------------------------------------------------------------------------------------------------------------
-task i2c_slave_driver::run_phase(uvm_phase phase);
+task i2c_slave_driver:: run_phase(uvm_phase phase);
   do_init();
 	@(posedge i2c_vif.reset_n);
 	repeat(3) @(posedge i2c_vif.system_clock);
@@ -60,7 +60,7 @@ task i2c_slave_driver::run_phase(uvm_phase phase);
     fork
       detect_start_cond();
       detect_stopt_cond();
-      do_drive(req);
+      do_drive();
     join_any
     disable fork;
 
@@ -71,7 +71,7 @@ task i2c_slave_driver::run_phase(uvm_phase phase);
 endtask// i2c_slave_driver::run_phase
 
 //-------------------------------------------------------------------------------------------------------------
-task i2c_slave_driver::do_init();
+task i2c_slave_driver:: do_init();
   i2c_vif.uvc_sda = 'bz;
   i2c_vif.uvc_scl = 'bz;
 
@@ -80,7 +80,7 @@ task i2c_slave_driver::do_init();
   `uvm_info("Driver", "do_init task executed", UVM_LOW)
 endtask
 
-task i2c_slave_driver::do_drive(i2c_item req);
+task i2c_slave_driver:: do_drive();
   // wait (enable);
 
   case (req.transaction_type)
@@ -95,7 +95,7 @@ task i2c_slave_driver::do_drive(i2c_item req);
   `uvm_info("Driver", "do_drive task executed", UVM_LOW)
 endtask
 
-task i2c_slave_driver::detect_start_cond();
+task i2c_slave_driver:: detect_start_cond();
   forever begin
     `uvm_info("Driver", "checking for Start Condition", UVM_DEBUG)
     @(negedge i2c_vif.sda);
@@ -126,7 +126,7 @@ task i2c_slave_driver::detect_start_cond();
   end
 endtask
 
-task i2c_slave_driver::detect_stopt_cond();
+task i2c_slave_driver:: detect_stopt_cond();
   forever begin
     `uvm_info("Driver", "checking for stop condition", UVM_DEBUG)
     @(posedge i2c_vif.sda);
@@ -145,7 +145,7 @@ task i2c_slave_driver::detect_stopt_cond();
   end
 endtask
 
-task i2c_slave_driver::read_data();
+task i2c_slave_driver:: read_data();
   
   for (bit_index = 7; bit_index >= 0; bit_index--) begin
     // if (reset_counter) begin
@@ -180,7 +180,7 @@ task i2c_slave_driver::read_data();
   join
 endtask
 
-task i2c_slave_driver::write_data();
+task i2c_slave_driver:: write_data();
 
   for (bit_index = 7; bit_index >= 0; bit_index--) begin
     // if (reset_counter) begin
@@ -219,7 +219,7 @@ task i2c_slave_driver:: check_status();
   end
 endtask
 
-task i2c_slave_driver::send_bit(bit data_bit);
+task i2c_slave_driver:: send_bit(bit data_bit);
   wait(i2c_vif.scl == 'b0);
   if (data_bit == 1) i2c_vif.uvc_sda = 'bz;
   else               i2c_vif.uvc_sda = data_bit;
@@ -227,7 +227,7 @@ task i2c_slave_driver::send_bit(bit data_bit);
   else               `uvm_info("Driver", "SDA was driven with 0", UVM_DEBUG)
 endtask
 
-task i2c_slave_driver::clock_stretch(int delay);
+task i2c_slave_driver:: clock_stretch(int delay);
   if (delay == 0) return;
 
   // else ...

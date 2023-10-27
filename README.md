@@ -1,2 +1,2 @@
-# uvc_template
+# I<sup>2</sup>C Protocol UVC
 

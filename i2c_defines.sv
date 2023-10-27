@@ -7,6 +7,8 @@
 `define rev_put(a)  (7-a)
 
 typedef enum {MASTER, SLAVE} agent_type_enum;
-typedef enum {SM, FM, FMP} speed_mode_enum;
 typedef enum {WRITE, READ} transaction_type_enum;
 typedef enum {PERIPHERAL_DEVICE, POLLING_CPU} slave_driver_type_enum;
+
+typedef enum {SM, FM, FMP, HSM} speed_mode_enum;
+typedef enum {FULL, HALF, QUARTER, QUANTUM} period_fraction_enum;

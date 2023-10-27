@@ -46,6 +46,24 @@
     4. `disable join`
 
     
+- Polling
+    ```
+    forever
+      #delay [1:7] clocks
+      if (sda = HIGH) continue;
+
+      fork
+        check_start();
+        forever
+          #delay 10 clocks 
+          if (!enable) 
+            disable check_start; // or disble fork
+            break(?)
+        end forever
+      join_any
+    end foverever
+    ```
+    
 
 #### Monitor
 
