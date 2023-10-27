@@ -1,20 +1,12 @@
 // * * * Add defines structs enums * * * 
 
-
-// const int MAX_SLAVE_DELAY = 50;
-
-
-// `define IF_ADDR_W 32 //addr width in base_test if
-// `define IF_DATA_W 32 //data width in base_test if
-// `define ADDR_W 32 //addr width in ITEM
-// `define DATA_W 32 //data width in ITEM
-`define ACK  'b0
-`define NACK 'b1
-`define rev_put(a) (7-a)
+`define ACK         ('b0)
+`define NACK        ('b1)
+`define W           ('b0)
+`define R           ('b1)
+`define rev_put(a)  (7-a)
 
 typedef enum {MASTER, SLAVE} agent_type_enum;
-// typedef enum {DATA, START, STOP} item_type_enum;
-// typedef enum {ACK = 0, NACK = 1} ack_nack_enum;
 typedef enum {SM, FM, FMP} speed_mode_enum;
 typedef enum {WRITE, READ} transaction_type_enum;
 typedef enum {PERIPHERAL_DEVICE, POLLING_CPU} slave_driver_type_enum;

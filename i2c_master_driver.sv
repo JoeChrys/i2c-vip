@@ -81,6 +81,7 @@ task i2c_master_driver::do_drive(i2c_item req);
       //bus_busy_timeout();
   join_any
 
+  if (bus_busy) `uvm_info("Driver", "Waiting for bus to be released", UVM_LOW)
   wait (!bus_busy);
   disable fork;
 
@@ -124,12 +125,14 @@ task i2c_master_driver::do_start_cond();
 endtask
 
 task i2c_master_driver::do_stop_cond();
-  if (i2c_vif.scl != 'b0) `uvm_error("Driver", "SSCL unexpected HIGH")
+  if (i2c_vif.scl != 'b0) `uvm_error("Driver", "SCL unexpected HIGH")
 
   i2c_vif.uvc_sda = 1'b0;
   #5;
+
   `uvm_info("Driver", "Sending STOP", UVM_HIGH)
   i2c_vif.uvc_scl = 1'bz;
+  wait(i2c_vif.scl == 1'b1);
   #5;
   i2c_vif.uvc_sda = 1'bz;
   #5;

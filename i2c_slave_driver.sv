@@ -7,9 +7,9 @@ class i2c_slave_driver extends uvm_driver #(i2c_item);
 
     i2c_cfg                 cfg;
 
-    bit                     start_detected;
-
     bit                     enable;
+    int                     bit_index;
+    bit                     counter_reset;
     bit                     transfer_done;
 
     slave_driver_type_enum  slave_driver_type = PERIPHERAL_DEVICE;              // TODO make it change in build_phase via cfg
@@ -24,6 +24,7 @@ class i2c_slave_driver extends uvm_driver #(i2c_item);
     extern virtual task  detect_stopt_cond();
     extern virtual task  read_data();
     extern virtual task  write_data();
+    extern virtual task  check_status();
     extern virtual task  send_bit(bit data_bit);
     extern virtual task  clock_stretch(int delay);
     // extern virtual task  polling();                                          // TODO
@@ -80,7 +81,7 @@ task i2c_slave_driver::do_init();
 endtask
 
 task i2c_slave_driver::do_drive(i2c_item req);
-  wait (enable);
+  // wait (enable);
 
   case (req.transaction_type)
     WRITE: write_data();
@@ -113,13 +114,14 @@ task i2c_slave_driver::detect_start_cond();
       end
 
       // TODO get new speed mode
-      // ! not needed below
-      // rsp.set_id_info(req);                                                         // TODO response needed?
-      // seq_item_port.put(rsp);
-      // break;
+      // ! not needed below (if enable, dont forget the delay below)
     end
     // else ... (is init Start Condition)
 
+    // wait for Master to finish Start Cond
+    #10;
+
+    counter_reset = 'b1;
     enable = 'b1;
   end
 endtask
@@ -134,20 +136,25 @@ task i2c_slave_driver::detect_stopt_cond();
     if (!transfer_done) begin
       rsp.transfer_failed = 'b1;
       `uvm_error("Driver", "Early Stop Condition")
+      rsp.set_id_info(req);                                                         // TODO response needed?
+      seq_item_port.put(rsp);
+      // break; 
     end
 
     enable = 'b0;
-    rsp.set_id_info(req);                                                         // TODO response needed?
-    seq_item_port.put(rsp);
-    break; 
   end
 endtask
 
 task i2c_slave_driver::read_data();
   
-  for (int bit_index = 7; bit_index >= 0; bit_index--) begin
+  for (bit_index = 7; bit_index >= 0; bit_index--) begin
+    // if (reset_counter) begin
+    //   bit_index = 7;
+    //   reset_counter = 'b0;
+    // end
+    check_status();
     fork
-      clock_stretch(req.clock_stretch_data[bit_index]);
+      if (!transfer_done) clock_stretch(req.clock_stretch_data[bit_index]);
       @(posedge i2c_vif.scl);  // block until posedge clock
     join
     rsp.data[bit_index] = i2c_vif.sda;
@@ -156,6 +163,8 @@ task i2c_slave_driver::read_data();
       rsp.set_id_info(req);                                                         // TODO response needed?
       seq_item_port.put(rsp);
     end
+
+    `uvm_info("Driver", $sformatf("Got bit %1d with value %1b", bit_index, rsp.data[bit_index]), UVM_DEBUG)
 
     // wait for end of pulse
     @(negedge i2c_vif.scl);
@@ -173,10 +182,15 @@ endtask
 
 task i2c_slave_driver::write_data();
 
-  for (int bit_index = 7; bit_index >= 0; bit_index--) begin
+  for (bit_index = 7; bit_index >= 0; bit_index--) begin
+    // if (reset_counter) begin
+    //   bit_index = 7;
+    //   reset_counter = 'b0;
+    // end
+    check_status();
     fork
       send_bit(req.data[bit_index]);
-      clock_stretch(req.clock_stretch_ack);
+      if (!transfer_done) clock_stretch(req.clock_stretch_data[bit_index]);
       @(posedge i2c_vif.scl);
     join
 
@@ -195,6 +209,14 @@ task i2c_slave_driver::write_data();
   rsp.ack_nack = i2c_vif.sda;
   rsp.set_id_info(req);                                                         // TODO response needed?
   seq_item_port.put(rsp);
+endtask
+
+task i2c_slave_driver:: check_status();
+  if (!enable) wait (enable);
+  if (counter_reset) begin
+    bit_index = 7;
+    counter_reset = 'b0;
+  end
 endtask
 
 task i2c_slave_driver::send_bit(bit data_bit);

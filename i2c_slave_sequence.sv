@@ -19,7 +19,7 @@ class i2c_slave_sequence extends uvm_sequence #(i2c_item);
     constraint c_s_transaction_type { soft transaction_type == READ; }
     constraint c_s_clock_stretch { soft clock_stretch_ack == 0;
                                  foreach (clock_stretch_data[i]) 
-                                    {clock_stretch_data[i] == 0}; }
+                                    {soft clock_stretch_data[i] == 0;} }
     
     constraint c_s_read_rsp { soft read_rsp == `ACK; }
 

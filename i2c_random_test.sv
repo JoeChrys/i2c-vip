@@ -43,7 +43,7 @@ endfunction
 task i2c_random_test:: run_phase (uvm_phase phase);        
     super.run_phase(phase);
     phase.raise_objection(this);
-    number_of_transactions = $urandom_range(1,1);
+    number_of_transactions = $urandom_range(3,5);
     for (int i = 0; i < number_of_transactions; i++) begin
         fork
             begin
@@ -59,7 +59,9 @@ task i2c_random_test:: run_phase (uvm_phase phase);
             begin
                 if (!s_seq.randomize() with { 
 				    transaction_type == READ;
-                    clock_stretch_ack == 19;
+                    clock_stretch_ack inside {[1:10]};
+                    // read_rsp dist { `ACK:=5, `NACK:=1 };
+                    foreach (clock_stretch_data[i]) clock_stretch_data[i] inside {[5:10]};
                 })
                 `uvm_fatal("run_phase","i2c_slave_sequence randomization failed");        
                 s_seq.start(env.slave_agent.s_seqr);

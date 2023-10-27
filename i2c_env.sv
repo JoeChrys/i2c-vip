@@ -18,10 +18,11 @@ class i2c_env extends uvm_env;
     extern function new (string name, uvm_component parent);
     extern virtual function void build_phase (uvm_phase phase);
     extern virtual function void connect_phase (uvm_phase phase);
+    extern virtual function void start_of_simulation_phase (uvm_phase phase);
     extern virtual function void print_cfg();
 endclass : i2c_env
 
-function i2c_env :: new (string name, uvm_component parent);
+function i2c_env:: new (string name, uvm_component parent);
     super.new(name, parent);
 endfunction : new
 
@@ -42,22 +43,34 @@ function void i2c_env:: build_phase (uvm_phase phase);
 
     sb = i2c_sb::type_id::create("sb",this);
     
-
 endfunction : build_phase 
  
 function void i2c_env:: connect_phase (uvm_phase phase);
     super.connect_phase(phase);
-    //connect monitor to scb !!!
-    if (cfg_env.has_master_agent_1 == 1) begin
+
+    // Connect monitors to scoreboard
+    if (cfg_env.connect_master_to_sb) begin
     master_agent.m_mon.i2c_mon_analysis_port.connect(sb.m_mon_imp);
     end
-    if (cfg_env.has_slave_agent_1 == 1) begin    
+    if (cfg_env.connect_slave_to_sb) begin    
     slave_agent.m_mon.i2c_mon_analysis_port.connect(sb.s_mon_imp); 
     end
 
 endfunction : connect_phase
 
-function void i2c_env ::print_cfg();
+function void i2c_env:: start_of_simulation_phase(uvm_phase phase);
+    super.start_of_simulation_phase(phase);
+
+    // Disable verbosity of unconnected monitors
+    if (!cfg_env.connect_master_to_sb) begin
+        master_agent.m_mon.set_report_verbosity_level_hier(UVM_NONE);
+    end
+    if (!cfg_env.connect_slave_to_sb) begin
+        slave_agent.m_mon.set_report_verbosity_level_hier(UVM_NONE);
+    end
+endfunction : start_of_simulation_phase
+
+function void i2c_env:: print_cfg();
    `uvm_info(get_type_name(), $sformatf ("The configuration that was set : \n%s", cfg_env.sprint()), UVM_MEDIUM)
 endfunction : print_cfg
 
