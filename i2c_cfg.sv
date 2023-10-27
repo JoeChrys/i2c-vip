@@ -49,15 +49,15 @@ function i2c_cfg:: new(string name = "i2c_cfg");
     super.new(name);
 endfunction // new
 
-function i2c_cfg:: get_delay(period_fraction_enum period_fraction = QUARTER);
+function int i2c_cfg:: get_delay(period_fraction_enum period_fraction = QUARTER);
   int period;
-  case (speed_mode);
+  case (speed_mode)
     SM:   period = period_SM;
     FM:   period = period_FM;
     FMP:  period = period_FMP;
     HSM:  period = period_HSM;
   endcase
-  case (period_fraction);
+  case (period_fraction)
     FULL:     return period;
     HALF:     return period/2;
     QUARTER:  return period/4;

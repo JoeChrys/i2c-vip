@@ -87,10 +87,10 @@ task i2c_slave_driver:: do_drive();
     WRITE: write_data();
     READ:  read_data();
   endcase
-  transfer_done = 'b1;
   
   @(negedge i2c_vif.scl);
   #5;
+  transfer_done = 'b1;
 
   `uvm_info("Driver", "do_drive task executed", UVM_LOW)
 endtask
