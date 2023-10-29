@@ -118,24 +118,25 @@ task i2c_master_driver::do_start_cond();
   end
 
   `uvm_info("Driver", "Sending START", UVM_HIGH)
-  i2c_vif.uvc_sda = 1'b0;
+  i2c_vif.uvc_sda = 'b0;
   #5;
-  i2c_vif.uvc_scl = 1'b0;
+  i2c_vif.uvc_scl = 'b0;
   #5;
 endtask
 
 task i2c_master_driver::do_stop_cond();
   if (i2c_vif.scl != 'b0) `uvm_error("Driver", "SCL unexpected HIGH")
 
-  i2c_vif.uvc_sda = 1'b0;
+  i2c_vif.uvc_sda = 'b0;
   #5;
 
   `uvm_info("Driver", "Sending STOP", UVM_HIGH)
-  i2c_vif.uvc_scl = 1'bz;
-  wait(i2c_vif.scl == 1'b1);
+  i2c_vif.uvc_scl = 'bz;
+  wait(i2c_vif.scl == 'b1);
   #5;
-  i2c_vif.uvc_sda = 1'bz;
+  i2c_vif.uvc_sda = 'bz;
   #5;
+  if (i2c_vif.sda != 'b1) `uvm_error("Driver", "SDA unexpected LOW")
 endtask
 
 task i2c_master_driver::write_data();

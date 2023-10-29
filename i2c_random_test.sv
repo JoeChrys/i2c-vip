@@ -49,7 +49,7 @@ task i2c_random_test:: run_phase (uvm_phase phase);
             begin
                 if (!m_seq.randomize() with {                     
                     transaction_type == WRITE;
-                    delay inside {[5:20]};
+                    delay inside {[25:30]};
                     start_condition == 1;
                     stop_condition == 1;             
                 })
@@ -59,9 +59,9 @@ task i2c_random_test:: run_phase (uvm_phase phase);
             begin
                 if (!s_seq.randomize() with { 
 				    transaction_type == READ;
-                    clock_stretch_ack inside {[1:10]};
-                    // read_rsp dist { `ACK:=5, `NACK:=1 };
-                    foreach (clock_stretch_data[i]) clock_stretch_data[i] inside {[5:10]};
+                    clock_stretch_ack inside {[25:30]};
+                    ack_nack dist { `ACK:=5, `NACK:=1 };
+                    foreach (clock_stretch_data[i]) clock_stretch_data[i] inside {[25:30]};
                 })
                 `uvm_fatal("run_phase","i2c_slave_sequence randomization failed");        
                 s_seq.start(env.slave_agent.s_seqr);

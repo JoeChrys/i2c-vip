@@ -4,14 +4,14 @@ class i2c_master_sequence extends uvm_sequence #(i2c_item);
     `uvm_declare_p_sequencer(i2c_master_sequencer)
     i2c_cfg cfg;
 
-    rand bit read_rsp;
+    // rand bit read_rsp;
     // rand bit transfer_failed;
     // rand bit require_ack_rsp;
 
     // Item fields for Master Seq
     rand transaction_type_enum transaction_type;
     rand bit[7:0] data;
-    // rand bit ack_nack;
+    rand bit ack_nack;
     rand bit start_condition;
     rand bit stop_condition;
     rand int delay;
@@ -21,7 +21,7 @@ class i2c_master_sequence extends uvm_sequence #(i2c_item);
                                       soft stop_condition == 0; }
     constraint c_m_delay            { soft delay == 0; }
 
-    constraint c_read_rsp { soft read_rsp == `ACK; }
+    // constraint c_read_rsp { soft read_rsp == `ACK; }
     
     extern function new(string name = "i2c_master_sequence");
     extern virtual task body();
@@ -45,7 +45,7 @@ task i2c_master_sequence::body();
     `uvm_do_with(req, { 
         transaction_type == local::transaction_type;
         data == local::data;
-        // ack_nack == local::ack_nack;
+        ack_nack == local::ack_nack;
         start_condition == local::start_condition;
         stop_condition == local::stop_condition;
         delay == local::delay;
@@ -54,8 +54,7 @@ task i2c_master_sequence::body();
     get_response(rsp);
     `uvm_info("MASTER SEQ", "GOT RSP", UVM_DEBUG)
     if (transaction_type == READ) begin
-      req.ack_nack = read_rsp;
-      `uvm_info("MASTER SEQ", $sformatf("SET ACK to %1b", read_rsp), UVM_DEBUG)
+    //   req.ack_nack = read_rsp;
     end
 
 	
