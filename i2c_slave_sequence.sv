@@ -6,8 +6,6 @@ class i2c_slave_sequence extends uvm_sequence #(i2c_item);
 
     i2c_cfg cfg;
 
-    // rand bit     read_rsp;
-
     // Item fields for Slave Seq
     rand transaction_type_enum transaction_type;
     rand bit[7:0] data;

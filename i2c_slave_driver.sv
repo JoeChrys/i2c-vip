@@ -90,12 +90,8 @@ task i2c_slave_driver:: detect_start_cond();
     if (i2c_vif.scl == 'b0) continue;
 
     `uvm_info("Driver", "detected Start Condition", UVM_HIGH)
-    disable do_drive;
-    fork
-      do_drive();
-    join_none
 
-    // else if ... (not init Start Condition)
+    // else if ... (Repeated Start Condition)
     if (enable) begin
 
       // check if EARLY Start Condition
@@ -107,10 +103,17 @@ task i2c_slave_driver:: detect_start_cond();
 
       // TODO get new speed mode
     end
-    // else ... (is init Start Condition)
+    // else ... ([init] Start Condition)
+    enable = 'b0;
+    disable do_drive;
+    #5;
+
+    fork
+      do_drive();
+    join_none
 
     // wait for Master to finish Start Cond
-    #10;
+    #5;
     enable = 'b1;
   end
 endtask
@@ -141,8 +144,8 @@ task i2c_slave_driver:: do_drive();
     rsp = i2c_item::type_id::create("rsp");
 
     case (req.transaction_type)
-      WRITE: write_data();
       READ:  read_data();
+      WRITE: write_data();
     endcase
     
     transfer_done = 'b1;
@@ -156,7 +159,6 @@ endtask
 
 task i2c_slave_driver:: read_data();
   for (bit_index = 7; bit_index >= 0; bit_index--) begin
-
     fork
       clock_stretch();
       @(posedge i2c_vif.scl);
@@ -215,10 +217,10 @@ endtask
 
 task i2c_slave_driver:: send_bit(bit data_bit);
   if (i2c_vif.scl != 'b0) `uvm_error("Driver", "SCL unexpected HIGH")
-  if (data_bit == 1) i2c_vif.uvc_sda = 'bz;
-  else               i2c_vif.uvc_sda = data_bit;
-  if (data_bit == 1) `uvm_info("Driver", "SDA was driven with Z", UVM_DEBUG)
-  else               `uvm_info("Driver", "SDA was driven with 0", UVM_DEBUG)
+  if (data_bit == 0) i2c_vif.uvc_sda = data_bit;
+  else               i2c_vif.uvc_sda = 'bz;
+  if (data_bit == 0) `uvm_info("Driver", "SDA was driven with 0", UVM_DEBUG)
+  else               `uvm_info("Driver", "SDA was driven with Z", UVM_DEBUG)
 endtask
 
 task i2c_slave_driver:: clock_stretch();

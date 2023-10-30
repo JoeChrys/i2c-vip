@@ -43,32 +43,105 @@ endfunction
 task i2c_random_test:: run_phase (uvm_phase phase);        
     super.run_phase(phase);
     phase.raise_objection(this);
-    number_of_transactions = $urandom_range(3,5);
+    number_of_transactions = $urandom_range(5,10);
+    // for (int i = 0; i < number_of_transactions; i++) begin
+    //     fork
+    //         begin
+    //             if (!m_seq.randomize() with {                     
+    //                 transaction_type == WRITE;
+    //                 delay inside {[25:30]};
+    //                 start_condition == 1;
+    //                 stop_condition == 1;             
+    //             })
+    //             `uvm_fatal("run_phase","i2c_master_sequence randomization failed"); 
+    //             m_seq.start(env.master_agent.m_seqr);
+    //         end 
+    //         begin
+    //             if (!s_seq.randomize() with { 
+	// 			    transaction_type == READ;
+    //                 clock_stretch_ack inside {[25:30]};
+    //                 ack_nack dist { `ACK:=5, `NACK:=1 };
+    //                 foreach (clock_stretch_data[i]) clock_stretch_data[i] inside {[25:30]};
+    //             })
+    //             `uvm_fatal("run_phase","i2c_slave_sequence randomization failed");        
+    //             s_seq.start(env.slave_agent.s_seqr);
+    //         end                
+    //     join
+    // end
+    
+    // #200;
+    // for (int i = 0; i < number_of_transactions; i++) begin
+    //     fork
+    //         begin
+    //             if (!m_seq.randomize() with {                     
+    //                 transaction_type == WRITE;
+    //                 delay inside {[25:30]};
+    //                 start_condition == 1;        
+    //             })
+    //             `uvm_fatal("run_phase","i2c_master_sequence randomization failed"); 
+    //             m_seq.start(env.master_agent.m_seqr);
+    //         end 
+    //         begin
+    //             if (!s_seq.randomize() with { 
+	// 			    transaction_type == READ;
+    //                 clock_stretch_ack inside {[25:30]};
+    //                 ack_nack dist { `ACK:=5, `NACK:=1 };
+    //                 foreach (clock_stretch_data[i]) clock_stretch_data[i] inside {[25:30]};
+    //             })
+    //             `uvm_fatal("run_phase","i2c_slave_sequence randomization failed");        
+    //             s_seq.start(env.slave_agent.s_seqr);
+    //         end
+    //     join
+    // end
+
+    // #200;
+    fork
+        begin
+            if (!m_seq.randomize() with {                     
+                transaction_type == WRITE;
+                // ack_nack dist { `ACK:=5, `NACK:=1 };
+                delay inside {[25:30]};   
+                start_condition == 'b1;
+            })
+            `uvm_fatal("run_phase","i2c_master_sequence randomization failed"); 
+            m_seq.start(env.master_agent.m_seqr);
+        end 
+        begin
+            if (!s_seq.randomize() with { 
+                transaction_type == READ;
+                ack_nack == `ACK;
+                clock_stretch_ack inside {[25:30]};
+                foreach (clock_stretch_data[i]) clock_stretch_data[i] inside {[25:30]};
+            })
+            `uvm_fatal("run_phase","i2c_slave_sequence randomization failed");        
+            s_seq.start(env.slave_agent.s_seqr);
+        end
+    join
     for (int i = 0; i < number_of_transactions; i++) begin
         fork
             begin
                 if (!m_seq.randomize() with {                     
-                    transaction_type == WRITE;
-                    delay inside {[25:30]};
-                    start_condition == 1;
-                    stop_condition == 1;             
+                    transaction_type == READ;
+                    ack_nack == `ACK;
+                    // ack_nack dist { `ACK:=5, `NACK:=1 };
+                    // delay inside {[25:30]};   
                 })
                 `uvm_fatal("run_phase","i2c_master_sequence randomization failed"); 
                 m_seq.start(env.master_agent.m_seqr);
             end 
             begin
                 if (!s_seq.randomize() with { 
-				    transaction_type == READ;
-                    clock_stretch_ack inside {[25:30]};
-                    ack_nack dist { `ACK:=5, `NACK:=1 };
-                    foreach (clock_stretch_data[i]) clock_stretch_data[i] inside {[25:30]};
+				    transaction_type == WRITE;
+                    // clock_stretch_ack inside {[25:30]};
+                    // foreach (clock_stretch_data[i]) clock_stretch_data[i] inside {[25:30]};
                 })
                 `uvm_fatal("run_phase","i2c_slave_sequence randomization failed");        
                 s_seq.start(env.slave_agent.s_seqr);
-            end                
+            end
         join
     end
-    #100;
+
+    #100
     phase.drop_objection (this);
 endtask
     

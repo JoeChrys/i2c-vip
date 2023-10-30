@@ -24,6 +24,7 @@ class i2c_master_driver extends uvm_driver #(i2c_item);
   extern virtual task  send_bit(bit data_bit);
   extern virtual task  capture_bit(int index);
   extern virtual task  pulse_clock();
+  extern virtual task  release_sda();
 
   extern virtual task  do_delay();
   extern virtual task  check_bus_busy();
@@ -59,19 +60,18 @@ task i2c_master_driver::run_phase(uvm_phase phase);
 
     do_drive(req);
   
-    // seq_item_port.item_done();
   end   // of forever
 endtask // i2c_master_driver::run_phase
 
 //-------------------------------------------------------------------------------------------------------------
-task i2c_master_driver::do_init();
+task i2c_master_driver:: do_init();
   i2c_vif.uvc_sda = 'bz;
   i2c_vif.uvc_scl = 'bz;
   @(posedge i2c_vif.system_clock);
   `uvm_info("Driver", "do_init task executed", UVM_LOW)
 endtask // i2c_master_driver::do_init
 
-task i2c_master_driver::do_drive(i2c_item req);
+task i2c_master_driver:: do_drive(i2c_item req);
   bus_busy = (transfer_aborted) ? 'b1 : 'b0;  // check it previous transfer was aborted to toggle bus_busy flag
   transfer_aborted = 'b0;
 
@@ -106,15 +106,15 @@ task i2c_master_driver::do_drive(i2c_item req);
   `uvm_info("Driver", "do_drive task executed", UVM_HIGH)
 endtask // i2c_master_driver::do_drive
                                                                                 // TODO refine timings
-task i2c_master_driver::do_start_cond();
+task i2c_master_driver:: do_start_cond();
   if (i2c_vif.scl == 'b0) begin
     `uvm_info("Driver", "Preparing for Repeated START", UVM_HIGH)
     i2c_vif.uvc_sda = 'bz;
-      if (i2c_vif.sda != 'b1) `uvm_error("Driver", "Expected SDA High but is Low")
     #5;
+    if (i2c_vif.sda != 'b1) `uvm_error("Driver", "Expected SDA High but is Low")
     i2c_vif.uvc_scl = 'bz;
-      if (i2c_vif.scl != 'b1) `uvm_error("Driver", "Expected SCL High but is Low")
     #5;
+    if (i2c_vif.scl != 'b1) `uvm_error("Driver", "Expected SCL High but is Low")
   end
 
   `uvm_info("Driver", "Sending START", UVM_HIGH)
@@ -124,7 +124,7 @@ task i2c_master_driver::do_start_cond();
   #5;
 endtask
 
-task i2c_master_driver::do_stop_cond();
+task i2c_master_driver:: do_stop_cond();
   if (i2c_vif.scl != 'b0) `uvm_error("Driver", "SCL unexpected HIGH")
 
   i2c_vif.uvc_sda = 'b0;
@@ -139,7 +139,7 @@ task i2c_master_driver::do_stop_cond();
   if (i2c_vif.sda != 'b1) `uvm_error("Driver", "SDA unexpected LOW")
 endtask
 
-task i2c_master_driver::write_data();
+task i2c_master_driver:: write_data();
   `uvm_info("Driver", "Master: Starting data transfer", UVM_HIGH)
   
   for (int i=7; i>=0; i--) begin
@@ -154,8 +154,7 @@ task i2c_master_driver::write_data();
   `uvm_info("Driver", "Sent byte", UVM_HIGH)
 
   // release SDA for Slave to ACK/NACK
-  wait(i2c_vif.scl == 'b0);
-  i2c_vif.uvc_sda = 'bz;
+  release_sda();
   `uvm_info("Driver", "Released SDA for ACK", UVM_HIGH)
 
   // pulse for ack/nack
@@ -164,7 +163,7 @@ task i2c_master_driver::write_data();
   `uvm_info("Driver", "Done sending data", UVM_HIGH)
 endtask
 
-task i2c_master_driver::check_data();
+task i2c_master_driver:: check_data();
   @(posedge i2c_vif.scl);
   for (int i=7; i>=0; i--) begin
     // @(posedge i2c_vif.scl) bit_correct = 'b0;  // in case of data clock stretching feature
@@ -193,7 +192,7 @@ task i2c_master_driver::check_data();
   endcase
 endtask
 
-task i2c_master_driver::read_data();
+task i2c_master_driver:: read_data();
   `uvm_info("Driver", "Master: Reading data", UVM_HIGH)
 
   for (int bit_index=7; bit_index>=0; bit_index--) begin
@@ -216,13 +215,14 @@ task i2c_master_driver::read_data();
     send_bit(req.ack_nack);
     pulse_clock();
   join
+  release_sda();
   case(req.ack_nack)
     `ACK:  `uvm_info("Driver", "Sent ACK to slave", UVM_HIGH)
     `NACK: `uvm_warning("Driver", "Sent NACK")
   endcase
 endtask
 
-task i2c_master_driver::send_bit(bit data_bit);
+task i2c_master_driver:: send_bit(bit data_bit);
   wait(i2c_vif.scl == 'b0);
   if (data_bit == 1) i2c_vif.uvc_sda = 'bz;
   else               i2c_vif.uvc_sda = data_bit;
@@ -230,12 +230,12 @@ task i2c_master_driver::send_bit(bit data_bit);
   else               `uvm_info("Driver", "SDA was driven with 0", UVM_DEBUG)
 endtask
 
-task i2c_master_driver::capture_bit(int index);
+task i2c_master_driver:: capture_bit(int index);
   @(posedge i2c_vif.scl);  // or use begin-end block to control the order and sent rsp before the next pulse
   rsp.data[index] = i2c_vif.sda;
 endtask
 
-task i2c_master_driver::pulse_clock();
+task i2c_master_driver:: pulse_clock();
   i2c_vif.uvc_scl = 'b0;                                                        // TODO Multiply delays by clock percentiles
   #5;
   i2c_vif.uvc_scl = 'bz;
@@ -246,12 +246,17 @@ task i2c_master_driver::pulse_clock();
   #5;
 endtask
 
+task i2c_master_driver:: release_sda();
+  if (i2c_vif.scl == 'b1) `uvm_error("Driver", "SCL unexpected HIGH when releasing SDA")
+  i2c_vif.uvc_sda = 'bz;
+endtask
+
 /* 
  * This task executes the required item delay, it must be executed for the rest
  * of do_drive() to finish since it is the only task that returns, thus joining
  * the fork
  */
-task i2c_master_driver::do_delay();
+task i2c_master_driver:: do_delay();
     `uvm_info("Driver", $sformatf("Waiting for %03d tu before sending", req.delay), UVM_HIGH)
     #(req.delay);                                                               // TODO Multiply by clock percentiles
     `uvm_info("Driver", "Done waiting (for item delay)", UVM_DEBUG)
@@ -262,7 +267,7 @@ endtask
  * is not set, then it is killed by 'disable fork'.
  * It checks for START/STOP conditions and alters the bus_busy flag accordingly
  */
-task i2c_master_driver::check_bus_busy();
+task i2c_master_driver:: check_bus_busy();
   forever begin
       `uvm_info("Driver", "Checking if bus is busy...", UVM_DEBUG)
       fork
@@ -290,7 +295,7 @@ endtask
  * It checks whether bus_busy flag has not been reset in a while and manually
  * resets it.
  */
-task i2c_master_driver::bus_busy_timeout();                                     // TODO define bus_busy timeout according to default period (~100*clock_time)
+task i2c_master_driver:: bus_busy_timeout();                                     // TODO define bus_busy timeout according to default period (~100*clock_time)
   int i;
   wait (bus_busy);
   while(bus_busy) begin

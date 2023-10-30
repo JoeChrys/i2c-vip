@@ -4,9 +4,7 @@ class i2c_master_sequence extends uvm_sequence #(i2c_item);
     `uvm_declare_p_sequencer(i2c_master_sequencer)
     i2c_cfg cfg;
 
-    // rand bit read_rsp;
     // rand bit transfer_failed;
-    // rand bit require_ack_rsp;
 
     // Item fields for Master Seq
     rand transaction_type_enum transaction_type;
