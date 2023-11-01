@@ -113,6 +113,7 @@ task i2c_master_driver:: do_start_cond();
     #5;
     if (i2c_vif.sda != 'b1) `uvm_error("Driver", "Expected SDA High but is Low")
     i2c_vif.uvc_scl = 'bz;
+    wait(i2c_vif.scl == 'b1);
     #5;
     if (i2c_vif.scl != 'b1) `uvm_error("Driver", "Expected SCL High but is Low")
   end

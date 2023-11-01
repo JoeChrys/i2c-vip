@@ -48,7 +48,7 @@ task i2c_random_test:: run_phase (uvm_phase phase);
         begin
             if (!m_seq.randomize() with {                     
                 transaction_type == WRITE;
-                // ack_nack dist { `ACK:=5, `NACK:=1 };
+                ack_nack dist { `ACK:=5, `NACK:=1 };
                 delay inside {[25:30]};   
                 start_condition == 'b1;
             })
@@ -106,8 +106,8 @@ task i2c_random_test:: run_phase (uvm_phase phase);
             begin
                 if (!s_seq.randomize() with { 
 				    transaction_type == READ;
-                    clock_stretch_ack inside {[25:30]};
                     ack_nack dist { `ACK:=5, `NACK:=1 };
+                    clock_stretch_ack inside {[25:30]};
                     foreach (clock_stretch_data[i]) clock_stretch_data[i] inside {[25:30]};
                 })
                 `uvm_fatal("run_phase","i2c_slave_sequence randomization failed");        
@@ -131,8 +131,8 @@ task i2c_random_test:: run_phase (uvm_phase phase);
             begin
                 if (!s_seq.randomize() with { 
 				    transaction_type == READ;
-                    clock_stretch_ack inside {[25:30]};
                     ack_nack dist { `ACK:=5, `NACK:=1 };
+                    clock_stretch_ack inside {[25:30]};
                     foreach (clock_stretch_data[i]) clock_stretch_data[i] inside {[25:30]};
                 })
                 `uvm_fatal("run_phase","i2c_slave_sequence randomization failed");        
@@ -140,7 +140,7 @@ task i2c_random_test:: run_phase (uvm_phase phase);
             end
         join
     end
-    
+
     #100
     phase.drop_objection (this);
 endtask

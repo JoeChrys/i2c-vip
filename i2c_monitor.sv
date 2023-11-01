@@ -13,12 +13,12 @@ class i2c_monitor extends uvm_monitor;
     uvm_analysis_port #(i2c_item)   i2c_mon_analysis_port;
 
     int                             bit_counter;
+    bit                             start_cond_from_prev_trans;
     bit                             captured_next_msb;
     bit                             msb;
 
     bit                             transfer_done;
-    bit                             skip_first_bit;
-    bit                             start_cond_from_prev_trans;
+    bit                             bus_active;
     
     extern function new (string name, uvm_component parent);
     extern virtual function void build_phase (uvm_phase phase);
@@ -76,8 +76,7 @@ endtask
 
 task i2c_monitor::do_monitor();
   
-  i2c_trans.start_condition = (start_cond_from_prev_trans) ? 'b1 : 'b0;
-  
+  if (start_cond_from_prev_trans) i2c_trans.start_condition = 'b1;
   start_cond_from_prev_trans = 'b0;
 
   fork
@@ -95,7 +94,7 @@ endtask
 
 task i2c_monitor::check_start_cond();
   forever begin
-    `uvm_info("Monitor", "checking for start condition", UVM_DEBUG)
+    // `uvm_info("Monitor", "checking for start condition", UVM_DEBUG)
     @(negedge i2c_vif.sda);
     if (i2c_vif.scl == 'b0) continue;
 
@@ -110,19 +109,20 @@ task i2c_monitor::check_start_cond();
     end
 
     // else if ... (repeated Start Condition)
-    if (i2c_trans.start_condition == 'b1) begin
+    if (bus_active == 'b1) begin
       start_cond_from_prev_trans = 'b1;  // already detected START, next one would be a repeated.
       break;
     end
 
     // else... (valid start condition)
     i2c_trans.start_condition = 'b1;
+    bus_active = 'b1;
   end
 endtask
 
 task i2c_monitor::check_stop_cond();
   forever begin
-    `uvm_info("Monitor", "checking for stop condition", UVM_DEBUG)
+    // `uvm_info("Monitor", "checking for stop condition", UVM_DEBUG)
     @(posedge i2c_vif.sda);
     if (i2c_vif.scl == 'b0) continue;
 
@@ -134,6 +134,7 @@ task i2c_monitor::check_stop_cond();
     end
 
     i2c_trans.stop_condition = 'b1;
+    bus_active = 'b0;
 
     `uvm_info("Monitor", "detected stop condition", UVM_HIGH)
     break; 
@@ -167,7 +168,7 @@ task i2c_monitor::check_data_transfer();
       // if (bit_counter == 0) continue;
 
       // else ...
-      `uvm_error("Monitor", "Detected Condition, not Data bit")
+      `uvm_error("Monitor", "Detected Start/Stop Condition, not Data bit")
     end
 
     transfer_done = 'b0; // at this point data transfer has begun
@@ -183,7 +184,7 @@ task i2c_monitor::check_data_transfer();
   @(negedge i2c_vif.scl);
   `uvm_info("Monitor", $sformatf("(negedge) ACK_NACK: %b", i2c_vif.sda), UVM_DEBUG)
   if (i2c_vif.sda != i2c_trans.ack_nack) begin
-    `uvm_error("Monitor", "Unexpected behavior")
+    `uvm_error("Monitor", "Detected Start/Stop Condition, not ACK bit")
   end
 
   transfer_done = 'b1;
