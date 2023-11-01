@@ -25,8 +25,9 @@ class i2c_slave_driver extends uvm_driver #(i2c_item);
     extern virtual task  read_data();
     extern virtual task  write_data();
     extern virtual task  send_bit(bit data_bit);
-    extern virtual task  clock_stretch();
+    extern virtual task  clock_stretch(int release_clock = 1);
     extern virtual task  release_sda();
+    extern virtual task  release_scl();
     // extern virtual task  polling();                                          // TODO
     
 endclass // i2c_slave_driver
@@ -151,7 +152,7 @@ task i2c_slave_driver:: do_drive();
     transfer_done = 'b1;
 
     // release SDA after each transfer
-    release_sda();
+    // release_sda();
 
     `uvm_info("Driver", "do_drive task executed", UVM_MEDIUM)
   end
@@ -159,45 +160,51 @@ endtask
 
 task i2c_slave_driver:: read_data();
   for (bit_index = 7; bit_index >= 0; bit_index--) begin
-    fork
-      clock_stretch();
-      @(posedge i2c_vif.scl);
-    join
+    @(posedge i2c_vif.scl);
     rsp.data[bit_index] = i2c_vif.sda;
     @(negedge i2c_vif.scl);
-    `uvm_info("Driver", $sformatf("Got bit %1d with value %1b", bit_index, rsp.data[bit_index]), UVM_DEBUG)
 
-    transfer_done = 'b0;
-    if (bit_index == 7) seq_item_port.get(req);
+    if (bit_index == 7) begin
+      seq_item_port.get(req);
+      transfer_done = 'b0;
+    end
     if (bit_index == 0) begin
       rsp.set_id_info(req);                                                         // TODO response needed?
       seq_item_port.put(rsp);
     end
-    #5;                                                                         // TODO (5*twentyth)
-  end
-  
-  fork
-    send_bit(req.ack_nack);
-    clock_stretch();
-    @(posedge i2c_vif.scl);
-  join
-  @(negedge i2c_vif.scl);
-  #5;
+    `uvm_info("Driver", $sformatf("Got bit %1d with value %1b", bit_index, rsp.data[bit_index]), UVM_DEBUG)
 
+    fork
+      clock_stretch();
+    join_none
+    #5;
+  end
+
+  send_bit(req.ack_nack);
+  @(posedge i2c_vif.scl);
+  @(negedge i2c_vif.scl);
+  fork
+    clock_stretch();
+  join_none
+  #5;
+  release_sda();
 endtask
 
 task i2c_slave_driver:: write_data();
   for (bit_index = 7; bit_index >= 0; bit_index--) begin
-    fork
-      send_bit(req.data[bit_index]);
-      clock_stretch();
-      @(posedge i2c_vif.scl);
-    join
+    send_bit(req.data[bit_index]);
+    @(posedge i2c_vif.scl);
     @(negedge i2c_vif.scl);
+
+    if (bit_index == 7) begin
+      seq_item_port.get(req);
+      transfer_done = 'b0;
+    end
     `uvm_info("Driver", $sformatf("Sent bit %1d with value %1b", bit_index, req.data[bit_index]), UVM_DEBUG)
 
-    transfer_done = 'b0;
-    if (bit_index == 7) seq_item_port.get(req);
+    fork
+      clock_stretch();
+    join_none
     #5;
   end
 
@@ -212,6 +219,9 @@ task i2c_slave_driver:: write_data();
   seq_item_port.put(rsp);
 
   @(negedge i2c_vif.scl);
+  fork
+    clock_stretch();
+  join_none
   #5;
 endtask
 
@@ -223,22 +233,32 @@ task i2c_slave_driver:: send_bit(bit data_bit);
   else               `uvm_info("Driver", "SDA was driven with Z", UVM_DEBUG)
 endtask
 
-task i2c_slave_driver:: clock_stretch();
-  int delay = 0;
-  if (bit_index == 7) return;
+task i2c_slave_driver:: release_sda();
+  if (i2c_vif.scl == 'b1) `uvm_error("Driver", "SCL unexpected HIGH when releasing SDA")
+  if (i2c_vif.uvc_sda == 'b1) return;
+  i2c_vif.uvc_sda = 'bz;
+  `uvm_info("Driver", "Released SDA", UVM_DEBUG)
+endtask
 
+task i2c_slave_driver:: release_scl();
+  if (i2c_vif.scl == 'b1) `uvm_error("Driver", "SCL unexpected HIGH, call this task only after 'clock_stretch()'")
+  if (i2c_vif.uvc_scl == 'b1) return;
+  i2c_vif.uvc_scl = 'bz;
+  `uvm_info("Driver", "Released SCL", UVM_DEBUG)
+endtask
+
+task i2c_slave_driver:: clock_stretch(int release_clock = 1);
+  int delay = 0;
+  if (i2c_vif.scl == 'b1) `uvm_error("Driver", "SCL unexpected HIGH when clock stretching")
   if (bit_index < 0) delay = req.clock_stretch_ack;
   else               delay = req.clock_stretch_data[bit_index];
 
   if (delay == 0) return;
 
   // else ...
+  `uvm_info("Driver", "Starting Clock Stretch", UVM_DEBUG)
   i2c_vif.uvc_scl = 'b0;
-  #(delay);
-  i2c_vif.uvc_scl = 'bz;
-endtask
-
-task i2c_slave_driver:: release_sda();
-  if (i2c_vif.scl == 'b1) `uvm_error("Driver", "SCL unexpected HIGH when releasing SDA")
-  i2c_vif.uvc_sda = 'bz;
+  #(delay);                 // TODO
+  `uvm_info("Driver", "DONE Clock Stretch", UVM_DEBUG)
+  if (release_clock) release_scl();
 endtask

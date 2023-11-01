@@ -11,7 +11,7 @@ rand bit start_condition;
 rand bit stop_condition;
 
 rand int delay;
-rand int clock_stretch_data[6:0];
+rand int clock_stretch_data[7:0];
 rand int clock_stretch_ack;
 rand bit transfer_failed;
 
@@ -32,8 +32,9 @@ constraint c_start_stop         { soft start_condition == 0;
 
 // constraint c_write_transaction  { if (transaction_type == WRITE) 
 //                                     ack_nack == `NACK; }
-// constraint c_read_transaction   { if (transaction_type == READ)
-//                                     data == 'hFF; }
+constraint c_read_transaction   { if (transaction_type == READ) {
+                                    start_condition == 0;
+                                    stop_condition == 0; } }
 
 constraint c_transfer_failed    { soft transfer_failed == 'b0; 
                                   if (transfer_failed) { delay == 0; } }

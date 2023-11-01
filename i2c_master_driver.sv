@@ -9,6 +9,7 @@ class i2c_master_driver extends uvm_driver #(i2c_item);
 
   bit               bus_busy;
   bit               transfer_aborted;
+  int               bit_index;
 
   extern function new (string name, uvm_component parent);
   extern virtual function void build_phase (uvm_phase phase);
@@ -59,7 +60,7 @@ task i2c_master_driver::run_phase(uvm_phase phase);
     rsp = i2c_item::type_id::create("rsp");
 
     do_drive(req);
-  
+
   end   // of forever
 endtask // i2c_master_driver::run_phase
 
@@ -102,7 +103,6 @@ task i2c_master_driver:: do_drive(i2c_item req);
   if (req.stop_condition && !transfer_aborted) begin
     do_stop_cond();
   end
-
   `uvm_info("Driver", "do_drive task executed", UVM_HIGH)
 endtask // i2c_master_driver::do_drive
                                                                                 // TODO refine timings
@@ -142,14 +142,12 @@ endtask
 task i2c_master_driver:: write_data();
   `uvm_info("Driver", "Master: Starting data transfer", UVM_HIGH)
   
-  for (int i=7; i>=0; i--) begin
+  for (bit_index = 7; bit_index >= 0; bit_index--) begin
     if (transfer_aborted) return;
-    `uvm_info("Driver", $sformatf("Sending bit %1d with value %1b", i, req.data[i]), UVM_DEBUG)
-    fork
-      send_bit(req.data[i]);
-      pulse_clock();
-    join
-    `uvm_info("Driver", $sformatf("Sent bit %1d", i), UVM_HIGH)
+    `uvm_info("Driver", $sformatf("Sending bit %1d with value %1b", bit_index, req.data[bit_index]), UVM_DEBUG)
+    send_bit(req.data[bit_index]);
+    pulse_clock();
+    `uvm_info("Driver", $sformatf("Bit %1d DONE\n", bit_index), UVM_HIGH)
   end
   `uvm_info("Driver", "Sent byte", UVM_HIGH)
 
@@ -158,8 +156,15 @@ task i2c_master_driver:: write_data();
   `uvm_info("Driver", "Released SDA for ACK", UVM_HIGH)
 
   // pulse for ack/nack
-  pulse_clock();
-
+  fork
+    pulse_clock();
+    begin
+      @(posedge i2c_vif.scl);
+      rsp.ack_nack = i2c_vif.sda;
+      rsp.set_id_info(req);
+      seq_item_port.put(rsp);
+    end
+  join
   `uvm_info("Driver", "Done sending data", UVM_HIGH)
 endtask
 
@@ -181,11 +186,8 @@ task i2c_master_driver:: check_data();
     end
     // else... (bit is correct)
   end
-  @(posedge i2c_vif.scl);
-  rsp.ack_nack = i2c_vif.sda;
-  rsp.set_id_info(req);
-  seq_item_port.put(rsp);
 
+  @(negedge i2c_vif.scl);
   case(rsp.ack_nack)
     `ACK:  `uvm_info("Driver", "Got ACK from slave", UVM_HIGH)
     `NACK: `uvm_info("Driver", "Got NACK", UVM_LOW)
@@ -195,26 +197,20 @@ endtask
 task i2c_master_driver:: read_data();
   `uvm_info("Driver", "Master: Reading data", UVM_HIGH)
 
-  for (int bit_index=7; bit_index>=0; bit_index--) begin
+  for (bit_index = 7; bit_index >= 0; bit_index--) begin
     fork
       pulse_clock();
-      begin
-        capture_bit(bit_index);
-        // after reading the last bit, sent rsp to sequence
-        if (bit_index == 0) begin
-          rsp.set_id_info(req);
-          seq_item_port.put(rsp);
-        end
-      end
+      capture_bit(bit_index);
     join
-    
-    `uvm_info("Driver", $sformatf("Got bit %1d with value %1b", bit_index, rsp.data[bit_index]), UVM_DEBUG)
+    // May need to include it in fork in case of race conditions
+    if (bit_index == 0) begin
+      rsp.set_id_info(req);
+      seq_item_port.put(rsp);
+    end
   end
   //at this point seq should have set ack_nack
-  fork
-    send_bit(req.ack_nack);
-    pulse_clock();
-  join
+  send_bit(req.ack_nack);
+  pulse_clock();
   release_sda();
   case(req.ack_nack)
     `ACK:  `uvm_info("Driver", "Sent ACK to slave", UVM_HIGH)
@@ -223,7 +219,7 @@ task i2c_master_driver:: read_data();
 endtask
 
 task i2c_master_driver:: send_bit(bit data_bit);
-  wait(i2c_vif.scl == 'b0);
+  if (i2c_vif.scl != 'b0) `uvm_error("Driver", "SCL unexpected HIGH")
   if (data_bit == 1) i2c_vif.uvc_sda = 'bz;
   else               i2c_vif.uvc_sda = data_bit;
   if (data_bit == 1) `uvm_info("Driver", "SDA was driven with Z", UVM_DEBUG)
@@ -233,6 +229,7 @@ endtask
 task i2c_master_driver:: capture_bit(int index);
   @(posedge i2c_vif.scl);  // or use begin-end block to control the order and sent rsp before the next pulse
   rsp.data[index] = i2c_vif.sda;
+  `uvm_info("Driver", $sformatf("Got bit %1d with value %1b", bit_index, rsp.data[bit_index]), UVM_DEBUG)
 endtask
 
 task i2c_master_driver:: pulse_clock();
@@ -242,7 +239,7 @@ task i2c_master_driver:: pulse_clock();
   // wait in case slave is clock stretching
   wait (i2c_vif.scl == 'b1);
   #10;
-  i2c_vif.uvc_scl = 0;
+  i2c_vif.uvc_scl = 'b0;
   #5;
 endtask
 
@@ -268,25 +265,21 @@ endtask
  * It checks for START/STOP conditions and alters the bus_busy flag accordingly
  */
 task i2c_master_driver:: check_bus_busy();
-  forever begin
-      `uvm_info("Driver", "Checking if bus is busy...", UVM_DEBUG)
-      fork
-        //START CONDITION
-        begin
-            @(negedge i2c_vif.sda) if (i2c_vif.scl == 1'b1);
-            bus_busy = 1;
-            `uvm_info("Driver", "External START condition detected, bus is busy, waiting...", UVM_LOW)
-        end
-
-        //STOP CONDITION
-        begin
-            @(posedge i2c_vif.sda) if (i2c_vif.scl == 1'b1);
-            bus_busy = 0;
-            `uvm_info("Driver", "External STOP condition detected, bus is now free", UVM_LOW)
-        end
-      join_any;
-      disable fork;
-  end
+  fork
+    forever begin : DETECT_START
+      @(negedge i2c_vif.sda);
+      if (i2c_vif.scl == 'b0) continue;
+      bus_busy = 1;
+      `uvm_info("Driver", "External START condition detected, bus is busy, waiting...", UVM_LOW)
+    end
+    forever begin
+      @(posedge i2c_vif.sda);
+      if (i2c_vif.scl == 'b0) continue;
+      bus_busy = 0;
+      `uvm_info("Driver", "External STOP condition detected, bus is now free", UVM_LOW)
+    end
+  join_any
+  `uvm_error("Driver", "Execution should not reach this point")
 endtask
 
 /*

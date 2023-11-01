@@ -10,7 +10,7 @@ class i2c_slave_sequence extends uvm_sequence #(i2c_item);
     rand transaction_type_enum transaction_type;
     rand bit[7:0] data;
     rand bit ack_nack;
-    rand int clock_stretch_data[6:0];
+    rand int clock_stretch_data[7:0];
     rand int clock_stretch_ack;
 
     // * * * Add constraints * * *

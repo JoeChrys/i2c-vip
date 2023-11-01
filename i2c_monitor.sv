@@ -11,7 +11,6 @@ class i2c_monitor extends uvm_monitor;
 
    
     uvm_analysis_port #(i2c_item)   i2c_mon_analysis_port;
-    // uvm_analysis_port #(i2c_item)   i2c_s_analysis_port;
 
     int                             bit_counter;
     bit                             captured_next_msb;
