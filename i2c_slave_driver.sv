@@ -79,6 +79,7 @@ task i2c_slave_driver:: do_init();
   i2c_vif.uvc_scl = 'bz;
 
   enable = 'b0;
+  transfer_done = 'b1;
   @(posedge i2c_vif.system_clock);  
   `uvm_info("Driver", "do_init task executed", UVM_LOW)
 endtask
