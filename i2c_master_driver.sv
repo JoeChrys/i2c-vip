@@ -58,6 +58,7 @@ task i2c_master_driver::run_phase(uvm_phase phase);
   forever begin 
     seq_item_port.get(req);
     rsp = i2c_item::type_id::create("rsp");
+    rsp.transaction_type = req.transaction_type;
 
     do_drive(req);
 

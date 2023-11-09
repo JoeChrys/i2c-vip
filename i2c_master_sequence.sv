@@ -5,6 +5,8 @@ class i2c_master_base_sequence extends uvm_sequence #(i2c_item);
     i2c_cfg cfg;
 
     rand bit transfer_failed;
+    rand bit stop_on_nack;
+    rand bit stop_on_fail;
 
     // Item fields for Master Seq
     rand transaction_type_enum  transaction_type;
@@ -14,14 +16,18 @@ class i2c_master_base_sequence extends uvm_sequence #(i2c_item);
     rand bit                    stop_condition;
     rand int                    delay;
 
+    constraint c_master_transfer_failed   { soft (transfer_failed == 0); }
+    constraint c_master_stop_on           { soft (stop_on_nack == 1);
+                                            soft (stop_on_fail == 0); }
+
     constraint c_master_transaction_type  { soft (transaction_type == WRITE); }
     constraint c_master_conditions        { soft (start_condition == 0);
                                             soft (stop_condition == 0); }
     constraint c_master_delay             { soft (delay == 0); }
-    constraint c_master_transfer_failed   { soft (transfer_failed == 0); }
     
     extern function new(string name = "i2c_master_base_sequence");
     extern virtual task body();
+    extern virtual function void post_do(uvm_sequence_item this_item);
 
 endclass // i2c_master_sequence
 
@@ -33,6 +39,7 @@ endfunction // i2c_sequence::new
 //-------------------------------------------------------------------
 task i2c_master_base_sequence:: body();
     
+    // TODO add below to pre_start()
     uvm_config_db#(i2c_cfg)::set(null, "*", "cfg", p_sequencer.cfg);
     if (!uvm_config_db#(i2c_cfg)::get(p_sequencer,"", "cfg",cfg))
         `uvm_fatal("Master Sequence", "cfg wasn't set through config db");
@@ -62,10 +69,30 @@ task i2c_master_base_sequence:: body();
     `uvm_info("MASTER SEQ", "WAITING FOR RSP", UVM_DEBUG)
     get_response(rsp);
     `uvm_info("MASTER SEQ", "GOT RSP", UVM_DEBUG)
-    transfer_failed = rsp.transfer_failed;
+    // transfer_failed = rsp.transfer_failed;
+    // if (transaction_type == WRITE) begin
+    //   ack_nack = rsp.ack_nack;
+    // end
 
-	
-endtask 
+endtask
+
+function void i2c_master_base_sequence:: post_do(uvm_sequence_item this_item);
+  i2c_item rsp;
+  $cast(rsp, this_item);
+
+  transfer_failed |= rsp.transfer_failed;
+  if (transfer_failed) begin
+    `uvm_error("MASTER SEQ" "RSP indicates failed seq")
+    if (stop_on_fail) begin
+      disable body;
+    end
+  end
+  if (stop_on_nack) begin
+    if (rsp.ack_nack ==  `NACK)begin
+      disable body;
+    end 
+  end
+endfunction
 
 class i2c_master_multibyte_sequence extends i2c_master_base_sequence;
     `uvm_object_utils(i2c_master_multibyte_sequence)
@@ -100,20 +127,20 @@ endfunction //i2c_sequence::new
 
 //-------------------------------------------------------------------
 task i2c_master_multibyte_sequence:: body();
-    for ( int i = 0; i < number_of_bytes; i++) begin
-      seq = i2c_master_base_sequence::type_id::create("seq");
-      if ( !seq.randomize() with { 
-        transaction_type == local::transaction_type;
-        data == local::data[i];
-        ack_nack == local::ack_nack[i];
-        if (local::i == 0)                  {start_condition == local::start_condition;}
-        if (local::i == number_of_bytes-1)  {stop_condition == local::stop_condition;}
-        delay == local::delay;
-        } )
-        `uvm_error("Master Sequence", $sformatf("Multibyte Sequence Randomization failed at %3d", i))
-      seq.start(p_sequencer, this);
-      transfer_failed |= seq.transfer_failed;
-    end
+  seq = i2c_master_base_sequence::type_id::create("seq");
+
+  for ( int i = 0; i < number_of_bytes; i++) begin
+    if ( !seq.randomize() with { 
+      transaction_type == local::transaction_type;
+      data == local::data[i];
+      ack_nack == local::ack_nack[i];
+      if (local::i == 0)                  {start_condition == local::start_condition;}
+      if (local::i == number_of_bytes-1)  {stop_condition == local::stop_condition;}
+      delay == local::delay;
+      } )
+      `uvm_error("Master Sequence", $sformatf("Multibyte Sequence Randomization failed at %3d", i))
+    seq.start(p_sequencer, this);
+  end
 
 endtask 
 
@@ -121,7 +148,9 @@ class i2c_master_write_sequence extends i2c_master_base_sequence;
     `uvm_object_utils(i2c_master_write_sequence)
 
     i2c_master_base_sequence    seq;
+
     rand int                    number_of_bytes;
+    rand bit                    ignore_register;
 
     // Item fields for Master Seq
     rand bit[7:0]               target_address;
@@ -137,6 +166,7 @@ class i2c_master_write_sequence extends i2c_master_base_sequence;
     constraint c_master_write_delay       { foreach(delay[i]) { 
                                               delay[i] >= 0; 
                                               soft (delay[i] == 0); } }
+    constraint c_master_write_ignore_reg  { soft (ignore_register == 'b0); }
     
     extern function new(string name = "i2c_master_write_sequence");
     extern virtual task body();
@@ -151,8 +181,6 @@ endfunction //i2c_sequence::new
 //-------------------------------------------------------------------
 task i2c_master_write_sequence:: body();
 
-  // TODO create and fork a seq monitor
-
   seq = i2c_master_base_sequence::type_id::create("seq");
 
   // Send target address
@@ -164,17 +192,18 @@ task i2c_master_write_sequence:: body();
     } )
   `uvm_error("Master Sequence", "Write Sequence Randomization failed at Target Adress")
   seq.start(p_sequencer, this);
-  transfer_failed |= seq.transfer_failed;
+  
 
   // Send register address
-  if ( !seq.randomize() with { 
-    transaction_type == WRITE;
-    data == register_address;
-    delay == local::delay[1];
-    } )
-  `uvm_error("Master Sequence", "Write Sequence Randomization failed at Register Address")
-  seq.start(p_sequencer, this);
-  transfer_failed |= seq.transfer_failed;
+  if (!ignore_register) begin
+    if ( !seq.randomize() with { 
+      transaction_type == WRITE;
+      data == register_address;
+      delay == local::delay[1];
+      } )
+    `uvm_error("Master Sequence", "Write Sequence Randomization failed at Register Address")
+    seq.start(p_sequencer, this);
+  end
 
   for ( int i = 0; i < number_of_bytes; i++) begin
     if ( !seq.randomize() with { 
@@ -185,7 +214,7 @@ task i2c_master_write_sequence:: body();
       } )
       `uvm_error("Master Sequence", $sformatf("Write Sequence Randomization failed at %3d", i))
     seq.start(p_sequencer, this);
-    transfer_failed |= seq.transfer_failed;
+    
   end
 
 endtask 
@@ -195,6 +224,7 @@ class i2c_master_read_sequence extends i2c_master_base_sequence;
 
     i2c_master_base_sequence    seq;
     rand int                    number_of_bytes;
+    rand bit                    ignore_register;
 
     // Item fields for Master Seq
     rand bit[7:0]               target_address;
@@ -210,6 +240,7 @@ class i2c_master_read_sequence extends i2c_master_base_sequence;
     constraint c_master_read_delay       { foreach(delay[i]) { 
                                               delay[i] >= 0; 
                                               soft (delay[i] == 0); } }
+    constraint c_master_write_ignore_reg  { soft (ignore_register == 'b0); }
     
     extern function new(string name = "i2c_master_read_sequence");
     extern virtual task body();
@@ -235,17 +266,18 @@ task i2c_master_read_sequence:: body();
     } )
   `uvm_error("Master Sequence", "Read Sequence Randomization failed at Target Adress")
   seq.start(p_sequencer, this);
-  transfer_failed |= seq.transfer_failed;
+  
 
   // Send register address
-  if ( !seq.randomize() with { 
-    transaction_type == WRITE;
-    data == register_address;
-    delay == local::delay[1];
-    } )
-  `uvm_error("Master Sequence", "Read Sequence Randomization failed at Register Address")
-  seq.start(p_sequencer, this);
-  transfer_failed |= seq.transfer_failed;
+  if (!ignore_register) begin
+    if ( !seq.randomize() with { 
+      transaction_type == WRITE;
+      data == register_address;
+      delay == local::delay[1];
+      } )
+    `uvm_error("Master Sequence", "Read Sequence Randomization failed at Register Address")
+    seq.start(p_sequencer, this);
+  end
 
   // Send target address again (read)
   if ( !seq.randomize() with { 
@@ -256,7 +288,7 @@ task i2c_master_read_sequence:: body();
     } )
   `uvm_error("Master Sequence", "Read Sequence Randomization failed at Target Adress")
   seq.start(p_sequencer, this);
-  transfer_failed |= seq.transfer_failed;
+  
 
   for ( int i = 0; i < number_of_bytes; i++) begin
     if ( !seq.randomize() with { 
@@ -266,7 +298,7 @@ task i2c_master_read_sequence:: body();
       } )
       `uvm_error("Master Sequence", $sformatf("Read Sequence Randomization failed at %3d", i))
     seq.start(p_sequencer, this);
-    transfer_failed |= seq.transfer_failed;
+    
   end
 
 endtask 

@@ -144,6 +144,7 @@ task i2c_slave_driver:: do_drive();
   while (enable) begin
     seq_item_port.peek(req);
     rsp = i2c_item::type_id::create("rsp");
+    rsp.transaction_type = req.transaction_type;
 
     case (req.transaction_type)
       READ:  read_data();
