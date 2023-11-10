@@ -19,15 +19,16 @@ rand transaction_type_enum    transaction_type;
 rand bit                      transfer_failed;
 
 // Default/Universal Constraints
-constraint c_ack                { soft ack_nack == `ACK; }
+constraint c_ack                { soft (ack_nack == `ACK); }
 
-constraint c_delay              { soft (delay == 0); }
+constraint c_delay              { delay >= 0;
+                                  soft (delay == 0); }
 
-constraint c_clock_stretch_ack  { clock_stretch_ack inside {[0:100]};
+constraint c_clock_stretch_ack  { clock_stretch_ack >= 0;
                                   soft clock_stretch_ack == 0; }
 
 constraint c_clock_stretch_data { foreach (clock_stretch_data[i]) {
-                                    clock_stretch_data[i] inside {[0:100]};
+                                    clock_stretch_data[i] >= 0;
                                     soft clock_stretch_data[i] == 0; } }
 
 constraint c_start_stop         { soft start_condition == 0;
@@ -37,9 +38,7 @@ constraint c_read_transaction   { if (transaction_type == READ) {
                                     start_condition == 0;
                                     stop_condition == 0; } }
 
-// constraint c_write_transaction  { if (transaction_type == WRITE) 
-//                                     ack_nack == `NACK; }
-
+// ! how to handle multiple drivers
 // constraint c_transfer_failed    { soft transfer_failed == 'b0; 
 //                                   if (transfer_failed) { delay == 0; } }
 
