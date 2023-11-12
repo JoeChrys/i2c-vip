@@ -10,14 +10,14 @@ class i2c_slave_base_sequence extends uvm_sequence #(i2c_item);
   rand bit stop_on_nack;
   rand bit stop_on_fail;
 
-  // Item fields for Slave Seq
+  // *** Item fields for Slave Seq ***
   rand transaction_type_enum  transaction_type;
   rand bit[7:0]               data;
   rand bit                    ack_nack;
   rand int                    clock_stretch_data[7:0];
   rand int                    clock_stretch_ack;
 
-  // * * * Add constraints * * *
+  // *** Constraints for Slave Seq ***
   constraint c_slave_transfer_failed {
     soft (transfer_failed == 0);
   }
@@ -180,7 +180,7 @@ class i2c_slave_read_sequence extends i2c_slave_base_sequence;
     soft (number_of_bytes < 20); 
   }
   constraint c_slave_read_array_size {
-    data_ack_nack.size() == number_of_bytes;
+    data_ack_nack.size() == number_of_bytes-1;
     clock_stretch_ack.size() == number_of_bytes+2;
     clock_stretch_data.size() == number_of_bytes+2;
   }
@@ -235,10 +235,12 @@ task i2c_slave_read_sequence:: body();
   if ( !seq.randomize() with { 
     transaction_type == READ;
     ack_nack == target_ack_nack;
-    clock_stretch_data == local::clock_stretch_data[0];
     clock_stretch_ack == local::clock_stretch_ack[0];
-    } )
-  `uvm_error("Master Sequence", "Write Sequence Randomization failed at Target Adress")
+    foreach (local::clock_stretch_data[0][j]) {
+      clock_stretch_data[j] == local::clock_stretch_data[0][j];
+    }
+  } )
+    `uvm_error("Master Sequence", "Write Sequence Randomization failed at Target Adress")
   seq.start(p_sequencer, this);
   
 
@@ -247,10 +249,12 @@ task i2c_slave_read_sequence:: body();
     if ( !seq.randomize() with { 
       transaction_type == READ;
       ack_nack == register_ack_nack;
-      clock_stretch_data == local::clock_stretch_data[1];
       clock_stretch_ack == local::clock_stretch_ack[1];
-      } )
-    `uvm_error("Master Sequence", "Write Sequence Randomization failed at Register Address")
+      foreach (local::clock_stretch_data[1][j]) {
+        clock_stretch_data[j] == local::clock_stretch_data[1][j];
+      }
+    } )
+      `uvm_error("Master Sequence", "Write Sequence Randomization failed at Register Address")
     seq.start(p_sequencer, this);
   end
 
@@ -259,10 +263,14 @@ task i2c_slave_read_sequence:: body();
     if ( !seq.randomize() with { 
       transaction_type == READ;
       ack_nack == data_ack_nack[i];
-      clock_stretch_data == local::clock_stretch_data[i+2];
       clock_stretch_ack == local::clock_stretch_ack[i+2];
-      if (local::i == number_of_bytes-1)  {ack_nack == `NACK;}
-      } )
+      foreach (local::clock_stretch_data[i+2][j]) {
+        clock_stretch_data[j] == local::clock_stretch_data[i+2][j];
+      }
+      if (local::i == number_of_bytes-1)  {
+        ack_nack == `NACK;
+      }
+    } )
       `uvm_error("Master Sequence", $sformatf("Write Sequence Randomization failed at %3d", i))
     seq.start(p_sequencer, this);
     
@@ -319,10 +327,10 @@ class i2c_slave_write_sequence extends i2c_slave_base_sequence;
   // Introduce zero clock stretching on target and register addressing
   constraint c_slave_write_normal_clock_stretch_behavior {
     clock_stretch_ack[0:2] == 0;
-    foreach (clock_stretch_data[0][i]) {
-      clock_stretch_data[0][i] = 0;
-      clock_stretch_data[1][i] = 0;
-      clock_stretch_data[2][i] = 0;
+    foreach (clock_stretch_data[0][j]) {
+      clock_stretch_data[0][j] = 0;
+      clock_stretch_data[1][j] = 0;
+      clock_stretch_data[2][j] = 0;
     }
   }
   
@@ -342,9 +350,13 @@ task i2c_slave_write_sequence:: body();
   // Get target address
   if ( !seq.randomize() with { 
     transaction_type == READ;
-    // TODO
-    } )
-  `uvm_error("Master Sequence", "Read Sequence Randomization failed at Target Adress")
+    ack_nack = target_ack_nack;
+    // clock_stretch_ack = local::clock_stretch_data[0];
+    // foreach (local::clock_stretch_ack[0][j]) {
+    //   clock_stretch_data[j] == local::clock_stretch_data[0][j];
+    // }
+  } )
+    `uvm_error("Master Sequence", "Read Sequence Randomization failed at Target Adress")
   seq.start(p_sequencer, this);
   
 
@@ -352,27 +364,39 @@ task i2c_slave_write_sequence:: body();
   if (!ignore_register) begin
     if ( !seq.randomize() with { 
       transaction_type == READ;
-      // TODO
-      } )
-    `uvm_error("Master Sequence", "Read Sequence Randomization failed at Register Address")
+      ack_nack = register_ack_nack;
+      // clock_stretch_ack = local::clock_stretch_data[1];
+      // foreach (local::clock_stretch_ack[1][j]) {
+      //   clock_stretch_data[j] == local::clock_stretch_data[1][j];
+      // }
+    } )
+      `uvm_error("Master Sequence", "Read Sequence Randomization failed at Register Address")
     seq.start(p_sequencer, this);
   end
 
   // Get target address again (to write)
   if ( !seq.randomize() with { 
     transaction_type == READ;
-    // TODO
-    } )
-  `uvm_error("Master Sequence", "Read Sequence Randomization failed at Target Adress")
+    ack_nack = target_ack_nack;
+    // clock_stretch_ack = local::clock_stretch_data[2];
+    // foreach (local::clock_stretch_ack[2][j]) {
+    //   clock_stretch_data[j] == local::clock_stretch_data[2][j];
+    // }
+  } )
+    `uvm_error("Master Sequence", "Read Sequence Randomization failed at Target Adress")
   seq.start(p_sequencer, this);
   
 
   for ( int i = 0; i < number_of_bytes; i++) begin
     if ( !seq.randomize() with { 
       transaction_type == WRITE;
+      data == data[i];
       if (local::i == number_of_bytes-1)  {ack_nack == `NACK;}
-      // TODO
-      } )
+      clock_stretch_ack = local::clock_stretch_ack[i+3];
+      foreach (local::clock_stretch_ack[i+3][j]) {
+        clock_stretch_data[j] == local::clock_stretch_data[i+3][j];
+      }
+    } )
       `uvm_error("Master Sequence", $sformatf("Read Sequence Randomization failed at %3d", i))
     seq.start(p_sequencer, this);
     

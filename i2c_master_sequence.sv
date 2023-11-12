@@ -237,7 +237,9 @@ task i2c_master_write_sequence:: body();
     if ( !seq.randomize() with { 
       transaction_type == WRITE;
       data == local::data[i];
-      if (local::i == number_of_bytes-1)  {stop_condition == local::stop_condition;}
+      if (local::i == number_of_bytes-1)  {
+        stop_condition == local::stop_condition;
+      }
       delay == local::delay[i+2];
       } )
       `uvm_error("Master Sequence", $sformatf("Write Sequence Randomization failed at %3d", i))
@@ -266,7 +268,7 @@ class i2c_master_read_sequence extends i2c_master_base_sequence;
     soft (number_of_bytes < 20); 
   }
   constraint c_master_read_array_size {
-    ack_nack.size() == number_of_bytes;
+    ack_nack.size() == number_of_bytes-1;
     delay.size() == number_of_bytes+3; 
   }
   constraint c_master_read_delay {
@@ -330,8 +332,11 @@ task i2c_master_read_sequence:: body();
   for ( int i = 0; i < number_of_bytes; i++) begin
     if ( !seq.randomize() with { 
       transaction_type == READ;
-      if (local::i == number_of_bytes-1)  {stop_condition == local::stop_condition;}
-      delay == local::delay[i+2];
+      if (local::i == number_of_bytes-1)  {
+        ack_nack == `NACK;
+        stop_condition == local::stop_condition;
+      }
+      delay == local::delay[i+3];
       } )
       `uvm_error("Master Sequence", $sformatf("Read Sequence Randomization failed at %3d", i))
     seq.start(p_sequencer, this);
