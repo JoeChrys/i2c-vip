@@ -63,15 +63,15 @@ task i2c_random_test:: run_phase (uvm_phase phase);
           stop_condition == 1;
         })
           `uvm_fatal("run_phase", "Rand err")
-        m_mb_seq.start()
+        m_mb_seq.start(env.master_agent.m_seqr);
       end
-      begin
-        if (!s_mb_seq.randomize() with {
-          transaction_type == READ;
-        })
-          `uvm_fatal("run_phase", "Rand err")
-        m_mb_seq.start()
-      end
+    //   begin
+    //     if (!s_mb_seq.randomize() with {
+    //       transaction_type == READ;
+    //     })
+    //       `uvm_fatal("run_phase", "Rand err")
+    //     m_mb_seq.start(env.slave_agent.m_seqr);
+    //   end
     join
     #100
     phase.drop_objection (this);

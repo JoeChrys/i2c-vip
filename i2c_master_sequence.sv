@@ -2,6 +2,8 @@ class i2c_master_base_sequence extends uvm_sequence #(i2c_item);
  
   `uvm_object_utils(i2c_master_base_sequence)
   `uvm_declare_p_sequencer(i2c_master_sequencer)
+  static uvm_event_pool ev_pool = uvm_event_pool:: get_global_pool();
+  static uvm_event seq_finished;
   
   i2c_cfg cfg;
 
@@ -37,7 +39,8 @@ class i2c_master_base_sequence extends uvm_sequence #(i2c_item);
   
   extern function new(string name = "i2c_master_base_sequence");
   extern virtual task body();
-  extern virtual function void post_do(uvm_sequence_item this_item);
+  extern local virtual task pre_start();
+  extern local virtual task post_start();
 
 endclass // i2c_master_sequence
 
@@ -86,25 +89,38 @@ task i2c_master_base_sequence:: body();
 
 endtask
 
-function void i2c_master_base_sequence:: post_do(uvm_sequence_item this_item);
-  `uvm_info(get_type_name(), "post_do called", UVM_DEBUG)
-  i2c_item rsp;
-  $cast(rsp, this_item);
+task i2c_master_base_sequence:: pre_start();
+  `uvm_info(get_type_name(), "PRE START", UVM_DEBUG)
+  seq_finished = ev_pool.get($sformatf("%m"));
+endtask
 
-  transfer_failed |= rsp.transfer_failed;
-  if (transfer_failed) begin
-    `uvm_error("MASTER SEQ" "RSP indicates failed seq")
-    if (stop_on_fail) begin
-      disable body;
-    end
-  end
-  if (stop_on_nack) begin
-    if (rsp.ack_nack == `NACK) begin
-      `uvm_info("MASTER SEQ", "Got NACK, stoping current sequence", UVM_LOW)
-      disable body;
-    end 
-  end
-endfunction
+task i2c_master_base_sequence:: post_start();
+  `uvm_info(get_type_name(), "POST START", UVM_DEBUG)
+  fork
+    seq_finished.trigger();
+  join_none
+endtask
+
+// function void i2c_master_base_sequence:: post_do(uvm_sequence_item this_item);
+//   i2c_master_base_sequence finished_seq;
+//   `uvm_info(get_type_name(), "post_do called", UVM_DEBUG)
+//   if ( ! $cast(finished_seq, this_item) ) return;
+//   `uvm_info(get_type_name(), "I managed to cast", UVM_DEBUG)
+
+//   transfer_failed |= finished_seq.rsp.transfer_failed;
+//   if (transfer_failed) begin
+//     `uvm_error(get_type_name(), "RSP indicates failed seq")
+//     if (stop_on_fail) begin
+//       // this.kill();
+//     end
+//   end
+//   if (stop_on_nack) begin
+//     if (finished_seq.ack_nack == `NACK) begin
+//       `uvm_info(get_type_name(), "Got NACK, stoping current sequence", UVM_LOW)
+//       this.kill();
+//     end 
+//   end
+// endfunction
 
 class i2c_master_multibyte_sequence extends i2c_master_base_sequence;
   `uvm_object_utils(i2c_master_multibyte_sequence)
@@ -146,6 +162,25 @@ endfunction //i2c_sequence::new
 
 //-------------------------------------------------------------------
 task i2c_master_multibyte_sequence:: body();
+  fork
+    begin
+      seq_finished.wait_trigger();
+      transfer_failed |= seq.rsp.transfer_failed;
+      if (transfer_failed) begin
+        `uvm_error(get_type_name(), "RSP indicates failed seq")
+        if (stop_on_fail) begin
+          this.kill();
+        end
+      end
+      if (stop_on_nack) begin
+        if (seq.rsp.ack_nack == `NACK) begin
+          `uvm_info(get_type_name(), "Got NACK, stoping current sequence", UVM_LOW)
+          this.kill();
+        end 
+      end
+    end
+  join_none
+
   seq = i2c_master_base_sequence::type_id::create("seq");
 
   for ( int i = 0; i < number_of_bytes; i++) begin
@@ -155,7 +190,7 @@ task i2c_master_multibyte_sequence:: body();
       ack_nack == local::ack_nack[i];
       if (local::i == 0)                  {start_condition == local::start_condition;}
       if (local::i == number_of_bytes-1)  {stop_condition == local::stop_condition;}
-      delay == local::delay;
+      delay == local::delay[i];
     } ) 
       `uvm_error("Master Sequence", $sformatf("Multibyte Sequence Randomization failed at %0d", i))
     seq.start(p_sequencer, this);

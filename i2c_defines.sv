@@ -1,9 +1,9 @@
 // * * * Add defines structs enums * * * 
 
-`define ACK         ('b0)
-`define NACK        ('b1)
-`define W           ('b0)
-`define R           ('b1)
+`define ACK         (1'b0)
+`define NACK        (1'b1)
+`define W           (1'b0)
+`define R           (1'b1)
 `define rev_put(a)  (7-a)
 
 typedef enum {MASTER, SLAVE} agent_type_enum;

@@ -2,7 +2,7 @@
 class i2c_slave_base_sequence extends uvm_sequence #(i2c_item);
 
   `uvm_object_utils(i2c_slave_base_sequence)
-  `uvm_declare_p_sequencer(i2c_slave_base_sequencer)
+  `uvm_declare_p_sequencer(i2c_slave_sequencer)
 
   i2c_cfg cfg;
 
@@ -82,13 +82,13 @@ task i2c_slave_base_sequence:: body();
 endtask
 
 function void i2c_slave_base_sequence:: post_do(uvm_sequence_item this_item);
-  `uvm_info(get_type_name(), "post_do called", UVM_DEBUG)
   i2c_item rsp;
+  `uvm_info(get_type_name(), "post_do called", UVM_DEBUG)
   $cast(rsp, this_item);
 
   transfer_failed |= rsp.transfer_failed;
   if (transfer_failed) begin
-    `uvm_error("Slave SEQ" "RSP indicates failed seq")
+    `uvm_error("Slave SEQ", "RSP indicates failed seq")
     if (stop_on_fail) begin
       disable body;
     end
@@ -186,9 +186,9 @@ class i2c_slave_read_sequence extends i2c_slave_base_sequence;
   }
   constraint c_slave_read_ack_nack {
     soft (target_ack_nack == `ACK);
-    soft (register_ack_nack == `ACK)
+    soft (register_ack_nack == `ACK);
     foreach (data_ack_nack[i]) {
-      soft (data_ack_nack[i] = `ACK);
+      soft (data_ack_nack[i] == `ACK);
     }
   }
   constraint c_slave_read_clock_stretch_ack_nack {
@@ -211,10 +211,11 @@ class i2c_slave_read_sequence extends i2c_slave_base_sequence;
 
   // Introduce zero clock stretching on target and register addressing
   constraint c_slave_read_normal_clock_stretch_behavior {
-    clock_stretch_ack[0:1] == 0;
+    clock_stretch_ack[0] == 0;
+    clock_stretch_ack[1] == 0;
     foreach (clock_stretch_data[0][i]) {
-      clock_stretch_data[0][i] = 0;
-      clock_stretch_data[1][i] = 0;
+      clock_stretch_data[0][i] == 0;
+      clock_stretch_data[1][i] == 0;
     }
   }
   
@@ -223,7 +224,7 @@ class i2c_slave_read_sequence extends i2c_slave_base_sequence;
 
 endclass // i2c_slave_read_sequence
 
-function i2c_slave_read_sequence:: new(string name = "i2c_slave_read_sequence")
+function i2c_slave_read_sequence:: new(string name = "i2c_slave_read_sequence");
   super.new(name);
 endfunction // i2c_slave_read_sequence::new
 
@@ -304,7 +305,7 @@ class i2c_slave_write_sequence extends i2c_slave_base_sequence;
   }
   constraint c_slave_write_ack_nack {
     soft (target_ack_nack == `ACK);
-    soft (register_ack_nack == `ACK)
+    soft (register_ack_nack == `ACK);
   }
   constraint c_slave_write_clock_stretch_ack_nack {
     foreach(clock_stretch_ack[i]) {
@@ -326,11 +327,13 @@ class i2c_slave_write_sequence extends i2c_slave_base_sequence;
 
   // Introduce zero clock stretching on target and register addressing
   constraint c_slave_write_normal_clock_stretch_behavior {
-    clock_stretch_ack[0:2] == 0;
+    clock_stretch_ack[0] == 0;
+    clock_stretch_ack[1] == 0;
+    clock_stretch_ack[2] == 0;
     foreach (clock_stretch_data[0][j]) {
-      clock_stretch_data[0][j] = 0;
-      clock_stretch_data[1][j] = 0;
-      clock_stretch_data[2][j] = 0;
+      clock_stretch_data[0][j] == 0;
+      clock_stretch_data[1][j] == 0;
+      clock_stretch_data[2][j] == 0;
     }
   }
   
@@ -350,7 +353,7 @@ task i2c_slave_write_sequence:: body();
   // Get target address
   if ( !seq.randomize() with { 
     transaction_type == READ;
-    ack_nack = target_ack_nack;
+    ack_nack == target_ack_nack;
     // clock_stretch_ack = local::clock_stretch_data[0];
     // foreach (local::clock_stretch_ack[0][j]) {
     //   clock_stretch_data[j] == local::clock_stretch_data[0][j];
@@ -364,7 +367,7 @@ task i2c_slave_write_sequence:: body();
   if (!ignore_register) begin
     if ( !seq.randomize() with { 
       transaction_type == READ;
-      ack_nack = register_ack_nack;
+      ack_nack == register_ack_nack;
       // clock_stretch_ack = local::clock_stretch_data[1];
       // foreach (local::clock_stretch_ack[1][j]) {
       //   clock_stretch_data[j] == local::clock_stretch_data[1][j];
@@ -377,7 +380,7 @@ task i2c_slave_write_sequence:: body();
   // Get target address again (to write)
   if ( !seq.randomize() with { 
     transaction_type == READ;
-    ack_nack = target_ack_nack;
+    ack_nack == target_ack_nack;
     // clock_stretch_ack = local::clock_stretch_data[2];
     // foreach (local::clock_stretch_ack[2][j]) {
     //   clock_stretch_data[j] == local::clock_stretch_data[2][j];
@@ -392,7 +395,7 @@ task i2c_slave_write_sequence:: body();
       transaction_type == WRITE;
       data == data[i];
       if (local::i == number_of_bytes-1)  {ack_nack == `NACK;}
-      clock_stretch_ack = local::clock_stretch_ack[i+3];
+      clock_stretch_ack == local::clock_stretch_ack[i+3];
       foreach (local::clock_stretch_ack[i+3][j]) {
         clock_stretch_data[j] == local::clock_stretch_data[i+3][j];
       }
