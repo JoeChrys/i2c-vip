@@ -36,3 +36,17 @@ a single byte instead of a dynamic byte array
 ##### 27/09
 - Simplified slave driver logic
 - Added fatal exceptions, removed error handling logic
+
+##### 21/11 Long time no see
+- Drivers working as expected
+- Initial work on sequences is done
+- Trying to find pieces of code to refine for new sequence logic
+
+##### 22/11
+- Studied SVA, SVAUnit
+- Minor changes to sequences, scrapped stop_on_ack/fail for now
+
+##### 23/11
+- SVA studing, found 2 differnt approaches (see NOTES)
+- unscrapped stop_on_ack/fail :P
+

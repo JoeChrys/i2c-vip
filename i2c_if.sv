@@ -7,26 +7,29 @@ interface i2c_if (input bit system_clock, input bit reset_n);
 
   wire sda;
   wire scl;
-
-  // assign sda = uvc_sda;
-  // assign scl = uvc_scl;
   
   modport dut (
-  inout sda, scl
+    inout sda, scl
   );
 
-//   modport uvc (
-//   input sda, scl,
-//   output uvc_sda, uvc_scl
-//   );
-  
-//   always @(sda === 1'bz) begin
-//     sda = 1;
-//   end
-  
-//   always @(scl === 1'bz) begin
-//     scl = 1;
-//   end
+  modport uvc (
+    input sda, scl,
+    output uvc_sda, uvc_scl
+  );
+
+  // Counter for clock pulses
+  integer counter = 0;
+
+  // Reset the counter at START or STOP condition
+  always @(negedge sda or posedge sda) begin
+    if (scl)  // Check if SCL is high
+      counter = 0;
+  end
+
+  // Increment the counter at every positive edge of SCL
+  always @(posedge scl) begin
+    counter = counter + 1;
+  end
 
   task wait_n_clocks(int N);
     // * * * This task is just a blocking function that waits N clock cycles. * * *
@@ -35,16 +38,33 @@ interface i2c_if (input bit system_clock, input bit reset_n);
   endtask
 
   // * * * You can add assertion checkers bellow * * * 
-  // always @(sda) assert (sda !== 1'bx);
-  // always @(scl) assert (scl !== 1'bx);
+  // Property for stable SDA when SCL is high
+  property p_sda_stable;
+    @(posedge scl) disable iff (!scl) (!($rose(sda) || $fell(sda)) && (counter % 9 != 0));
+  endproperty
+
+  // Assertion for stable SDA when SCL is high
+  a_sda_stable: assert property (p_sda_stable)
+  else $error("SDA changed while SCL was high");
+
+  // Property for START or STOP condition after 9*N clock pulses
+  property p_start_stop_condition;
+    @(posedge scl) disable iff (!scl) (($rose(sda) || $fell(sda)) -> (counter % 9 == 0));
+  endproperty
+
+  // Assertion for START or STOP condition after 9*N clock pulses
+  a_start_stop_condition: assert property (p_start_stop_condition)
+  else $error("START or STOP condition not after 9*N clock pulses");
 
   always @(uvc_sda) begin
     assert (uvc_sda !== 1'bx);
+    // ! may need to remove if we actively drive on higher speeds
     assert (uvc_sda !== 1'b1);
   end
 
   always @(uvc_scl) begin
     assert (uvc_scl !== 1'bx);
+    // ! may need to remove if we actively drive on higher speeds
     assert (uvc_sda !== 1'b1);
   end
 
@@ -57,7 +77,4 @@ interface i2c_if (input bit system_clock, input bit reset_n);
   // expect following assertion to fail when slave is clock stretching
   always @(uvc_scl === 'bz) assert (scl == 'b1);
 
-endinterface   
-    
-
-
+endinterface

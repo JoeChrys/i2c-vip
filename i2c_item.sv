@@ -25,14 +25,14 @@ constraint c_delay              { delay >= 0;
                                   soft (delay == 0); }
 
 constraint c_clock_stretch_ack  { clock_stretch_ack >= 0;
-                                  soft clock_stretch_ack == 0; }
+                                  soft (clock_stretch_ack == 0); }
 
 constraint c_clock_stretch_data { foreach (clock_stretch_data[i]) {
                                     clock_stretch_data[i] >= 0;
-                                    soft clock_stretch_data[i] == 0; } }
+                                    soft (clock_stretch_data[i] == 0); } }
 
-constraint c_start_stop         { soft start_condition == 0;
-                                  soft stop_condition == 0; }
+constraint c_start_stop         { soft (start_condition == 0);
+                                  soft (stop_condition == 0); }
 
 constraint c_read_transaction   { if (transaction_type == READ) {
                                     start_condition == 0;

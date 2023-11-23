@@ -102,3 +102,36 @@
     - Resets everything
     - Makes slave devices check for Start Condition
     - Lets devices process the values in their registers
+
+- ##### Assertions
+  - ##### Approach 1
+    - Start Condition bit counter
+      1. @(negedge SDA) if SCL==1 task assert;
+      2. fork
+          forever @(posedge clk) counter++
+          begin
+            fork : conditions
+              forever begin
+                @(negedge SDA) if (SCL) break;
+              end
+              forever begin
+                @(posedge SDA) if (SCL) break;
+              end
+            join_any
+          end
+        join_any
+        disable fork;
+        if (counter % 10 == 0) pass
+        else fail
+      assert (pass/fail)
+      endtask
+
+- ##### Approach 2
+    - property START
+        @(negedge SDA) scl |-> counter % 10 == 0;
+    - @(posedge scl) task sda_stable
+        temp = sda;
+        @(negedge scl);
+        if (temp == sda || counter % 10 == 0) pass
+        else fail
+      endtask
