@@ -217,7 +217,7 @@ task i2c_slave_driver:: write_data();
   @(posedge i2c_vif.scl);
 
   rsp.ack_nack = i2c_vif.sda;
-  rsp.set_id_info(req);                                                         // TODO response needed?
+  rsp.set_id_info(req);
   seq_item_port.put(rsp);
 
   @(negedge i2c_vif.scl);
@@ -225,6 +225,7 @@ task i2c_slave_driver:: write_data();
     clock_stretch();
   join_none
   #5;
+  if (rsp.ack_nack == `NACK) enable = 'b0;
 endtask
 
 task i2c_slave_driver:: send_bit(bit data_bit);
@@ -237,14 +238,14 @@ endtask
 
 task i2c_slave_driver:: release_sda();
   if (i2c_vif.scl == 'b1) `uvm_error("Driver", "SCL unexpected HIGH when releasing SDA")
-  if (i2c_vif.uvc_sda == 'b1) return;
+  // if (i2c_vif.uvc_sda == 'b1) return;
   i2c_vif.uvc_sda = 'bz;
   `uvm_info("Driver", "Released SDA", UVM_DEBUG)
 endtask
 
 task i2c_slave_driver:: release_scl();
   if (i2c_vif.scl == 'b1) `uvm_error("Driver", "SCL unexpected HIGH, call this task only after 'clock_stretch()'")
-  if (i2c_vif.uvc_scl == 'b1) return;
+  // if (i2c_vif.uvc_scl == 'b1) return;
   i2c_vif.uvc_scl = 'bz;
   `uvm_info("Driver", "Released SCL", UVM_DEBUG)
 endtask
@@ -260,7 +261,7 @@ task i2c_slave_driver:: clock_stretch(int release_clock = 1);
   // else ...
   `uvm_info("Driver", "Starting Clock Stretch", UVM_DEBUG)
   i2c_vif.uvc_scl = 'b0;
-  #(delay);                 // TODO
+  #(delay);                                                                                                             // TODO
   `uvm_info("Driver", "DONE Clock Stretch", UVM_DEBUG)
   if (release_clock) release_scl();
 endtask

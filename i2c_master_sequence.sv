@@ -1,13 +1,14 @@
 class i2c_master_base_sequence extends uvm_sequence #(i2c_item);
- 
   `uvm_object_utils(i2c_master_base_sequence)
   `uvm_declare_p_sequencer(i2c_master_sequencer)
-  static uvm_event_pool ev_pool = uvm_event_pool:: get_global_pool();
-  static uvm_event seq_finished;
+
+  // static uvm_event_pool ev_pool = uvm_event_pool:: get_global_pool();
+  // static uvm_event seq_finished;
   
   i2c_cfg cfg;
 
   rand bit transfer_failed;
+  rand bit receiver_response;
   rand bit stop_on_nack;
   rand bit stop_on_fail;
 
@@ -21,6 +22,9 @@ class i2c_master_base_sequence extends uvm_sequence #(i2c_item);
 
   constraint c_master_transfer_failed {
     soft (transfer_failed == 0); 
+  }
+  constraint c_master_receiver_response {
+    soft (receiver_response == `ACK);
   }
   constraint c_master_stop_on {
     soft (stop_on_nack == 1);
@@ -41,7 +45,7 @@ class i2c_master_base_sequence extends uvm_sequence #(i2c_item);
   extern virtual task body();
   extern local virtual task pre_start();
   extern local virtual task post_start();
-
+  extern local virtual function int check_exit(bit stop_on_fail, bit stop_on_nack);
 endclass // i2c_master_sequence
 
 //-------------------------------------------------------------------
@@ -53,9 +57,9 @@ endfunction // i2c_sequence::new
 task i2c_master_base_sequence:: body();
   
   // TODO add below to pre_start()
-  uvm_config_db#(i2c_cfg)::set(null, "*", "cfg", p_sequencer.cfg);
-  if (!uvm_config_db#(i2c_cfg)::get(p_sequencer,"", "cfg",cfg))
-      `uvm_fatal("Master Sequence", "cfg wasn't set through config db");
+  // uvm_config_db#(i2c_cfg)::set(null, "*", "cfg", p_sequencer.cfg);
+  // if (!uvm_config_db#(i2c_cfg)::get(p_sequencer,"", "cfg",cfg))
+  //     `uvm_fatal("Master Sequence", "cfg wasn't set through config db");
 
 // * * * `uvm_do or `uvm_do_with can be used here * * * 
   // `uvm_do_with(req, { 
@@ -82,45 +86,40 @@ task i2c_master_base_sequence:: body();
   `uvm_info("MASTER SEQ", "WAITING FOR RSP", UVM_DEBUG)
   get_response(rsp);
   `uvm_info("MASTER SEQ", "GOT RSP", UVM_DEBUG)
-  // transfer_failed = rsp.transfer_failed;
-  // if (transaction_type == WRITE) begin
-  //   ack_nack = rsp.ack_nack;
-  // end
+  transfer_failed = rsp.transfer_failed;
+  if (transaction_type == WRITE) begin
+    receiver_response = rsp.ack_nack;
+  end
 
 endtask
 
 task i2c_master_base_sequence:: pre_start();
   `uvm_info(get_type_name(), "PRE START", UVM_DEBUG)
-  seq_finished = ev_pool.get($sformatf("%m"));
+  // seq_finished = ev_pool.get($sformatf("%m"));
+
+  uvm_config_db#(i2c_cfg)::set(null, "*", "cfg", p_sequencer.cfg);
+  if (!uvm_config_db#(i2c_cfg)::get(p_sequencer,"", "cfg",cfg))
+      `uvm_fatal("Master Sequence", "cfg wasn't set through config db");
 endtask
 
 task i2c_master_base_sequence:: post_start();
   `uvm_info(get_type_name(), "POST START", UVM_DEBUG)
-  fork
-    seq_finished.trigger();
-  join_none
+  // fork
+    // seq_finished.trigger();
+  // join_none
 endtask
 
-// function void i2c_master_base_sequence:: post_do(uvm_sequence_item this_item);
-//   i2c_master_base_sequence finished_seq;
-//   `uvm_info(get_type_name(), "post_do called", UVM_DEBUG)
-//   if ( ! $cast(finished_seq, this_item) ) return;
-//   `uvm_info(get_type_name(), "I managed to cast", UVM_DEBUG)
-
-//   transfer_failed |= finished_seq.rsp.transfer_failed;
-//   if (transfer_failed) begin
-//     `uvm_error(get_type_name(), "RSP indicates failed seq")
-//     if (stop_on_fail) begin
-//       // this.kill();
-//     end
-//   end
-//   if (stop_on_nack) begin
-//     if (finished_seq.ack_nack == `NACK) begin
-//       `uvm_info(get_type_name(), "Got NACK, stoping current sequence", UVM_LOW)
-//       this.kill();
-//     end 
-//   end
-// endfunction
+function int i2c_master_base_sequence:: check_exit(bit stop_on_fail, bit stop_on_nack);
+  if (transfer_failed) begin
+    `uvm_error("SEQFAIL", "Response from REQ indicates failure")
+    if (stop_on_fail) return 1;
+  end
+  if (receiver_response == `NACK) begin
+    `uvm_warning("SLVNCK", "Got NACK from slave")
+    if (stop_on_nack) return 2;
+  end
+  return 0;
+endfunction
 
 class i2c_master_multibyte_sequence extends i2c_master_base_sequence;
   `uvm_object_utils(i2c_master_multibyte_sequence)
@@ -162,28 +161,30 @@ endfunction //i2c_sequence::new
 
 //-------------------------------------------------------------------
 task i2c_master_multibyte_sequence:: body();
-  fork
-    begin
-      seq_finished.wait_trigger();
-      transfer_failed |= seq.rsp.transfer_failed;
-      if (transfer_failed) begin
-        `uvm_error(get_type_name(), "RSP indicates failed seq")
-        if (stop_on_fail) begin
-          this.kill();
-        end
-      end
-      if (stop_on_nack) begin
-        if (seq.rsp.ack_nack == `NACK) begin
-          `uvm_info(get_type_name(), "Got NACK, stoping current sequence", UVM_LOW)
-          this.kill();
-        end 
-      end
-    end
-  join_none
+  // fork
+  //   begin
+  //     seq_finished.wait_trigger();
+  //     transfer_failed |= seq.rsp.transfer_failed;
+  //     if (transfer_failed) begin
+  //       `uvm_error(get_type_name(), "RSP indicates failed seq")
+  //       if (stop_on_fail) begin
+  //         this.kill();
+  //       end
+  //     end
+  //     if (stop_on_nack) begin
+  //       if (seq.rsp.ack_nack == `NACK) begin
+  //         `uvm_info(get_type_name(), "Got NACK, stoping current sequence", UVM_LOW)
+  //         this.kill();
+  //       end 
+  //     end
+  //   end
+  // join_none
 
   seq = i2c_master_base_sequence::type_id::create("seq");
 
   for ( int i = 0; i < number_of_bytes; i++) begin
+    // req = i2c_item::type_id::create("req");
+    // start_item(req);
     if ( !seq.randomize() with { 
       transaction_type == local::transaction_type;
       data == local::data[i];
@@ -193,6 +194,8 @@ task i2c_master_multibyte_sequence:: body();
       delay == local::delay[i];
     } ) 
       `uvm_error("Master Sequence", $sformatf("Multibyte Sequence Randomization failed at %0d", i))
+    // finish_item(req);
+    // get_response(rsp);
     seq.start(p_sequencer, this);
   end
 
@@ -243,43 +246,57 @@ endfunction // i2c_master_write_sequence::new
 
 //-------------------------------------------------------------------
 task i2c_master_write_sequence:: body();
+  int exit_flag;
 
   seq = i2c_master_base_sequence::type_id::create("seq");
 
-  // Send target address
-  if ( !seq.randomize() with { 
-    transaction_type == WRITE;
-    start_condition == 'b1;
-    data == { target_address, `W };
-    delay == local::delay[0];
-    } )
-  `uvm_error("Master Sequence", "Write Sequence Randomization failed at Target Adress")
-  seq.start(p_sequencer, this);
-  
+  while (1) begin
+    exit_flag = 0;
 
-  // Send register address
-  if (!ignore_register) begin
+    // Send target address
     if ( !seq.randomize() with { 
-      transaction_type == WRITE;
-      data == register_address;
-      delay == local::delay[1];
-      } )
-    `uvm_error("Master Sequence", "Write Sequence Randomization failed at Register Address")
-    seq.start(p_sequencer, this);
-  end
-
-  for ( int i = 0; i < number_of_bytes; i++) begin
-    if ( !seq.randomize() with { 
-      transaction_type == WRITE;
-      data == local::data[i];
-      if (local::i == number_of_bytes-1)  {
-        stop_condition == local::stop_condition;
+        transaction_type == WRITE;
+        start_condition == 'b1;
+        data == { target_address, `W };
+        delay == local::delay[0];
       }
-      delay == local::delay[i+2];
-      } )
-      `uvm_error("Master Sequence", $sformatf("Write Sequence Randomization failed at %3d", i))
+    ) `uvm_error("Master Sequence", "Write Sequence Randomization failed at Target Adress")
     seq.start(p_sequencer, this);
+    exit_flag = seq.check_exit(stop_on_fail, stop_on_nack);
+    if (exit_flag) continue;
     
+
+    // Send register address
+    if (!ignore_register) begin
+      if ( !seq.randomize() with { 
+          transaction_type == WRITE;
+          data == register_address;
+          delay == local::delay[1];
+        }
+      ) `uvm_error("Master Sequence", "Write Sequence Randomization failed at Register Address")
+      seq.start(p_sequencer, this);
+      exit_flag = seq.check_exit(stop_on_fail, stop_on_nack);
+      if (exit_flag) continue;
+    end
+
+    for ( int i = 0; i < number_of_bytes; i++) begin
+      if ( !seq.randomize() with { 
+          transaction_type == WRITE;
+          data == local::data[i];
+          if (local::i == number_of_bytes-1)  {
+            stop_condition == local::stop_condition;
+          }
+          delay == local::delay[i+2];
+        }
+      ) `uvm_error("Master Sequence", $sformatf("Write Sequence Randomization failed at %3d", i))
+      seq.start(p_sequencer, this);
+      exit_flag = seq.check_exit(stop_on_fail, stop_on_nack);
+      if (exit_flag) break;
+    end
+    if (exit_flag) continue;
+
+    // SEQUENCE FINISHED
+    break;
   end
 
 endtask 
@@ -328,54 +345,65 @@ endfunction //i2c_sequence::new
 
 //-------------------------------------------------------------------
 task i2c_master_read_sequence:: body();
+  int exit_flag;
 
   seq = i2c_master_base_sequence::type_id::create("seq");
 
-  // Send target address
-  if ( !seq.randomize() with { 
-    transaction_type == WRITE;
-    start_condition == 'b1;
-    data == { target_address, `W };
-    delay == local::delay[0];
-    } )
-  `uvm_error("Master Sequence", "Read Sequence Randomization failed at Target Adress")
-  seq.start(p_sequencer, this);
-  
+  while (1) begin
+    exit_flag = 0;
 
-  // Send register address
-  if (!ignore_register) begin
+    // Send target address
     if ( !seq.randomize() with { 
-      transaction_type == WRITE;
-      data == register_address;
-      delay == local::delay[1];
-      } )
-    `uvm_error("Master Sequence", "Read Sequence Randomization failed at Register Address")
-    seq.start(p_sequencer, this);
-  end
-
-  // Send target address again (read)
-  if ( !seq.randomize() with { 
-    transaction_type == WRITE;
-    start_condition == 'b1;
-    data == { target_address, `R };
-    delay == local::delay[2];
-    } )
-  `uvm_error("Master Sequence", "Read Sequence Randomization failed at Target Adress")
-  seq.start(p_sequencer, this);
-  
-
-  for ( int i = 0; i < number_of_bytes; i++) begin
-    if ( !seq.randomize() with { 
-      transaction_type == READ;
-      if (local::i == number_of_bytes-1)  {
-        ack_nack == `NACK;
-        stop_condition == local::stop_condition;
+        transaction_type == WRITE;
+        start_condition == 'b1;
+        data == { target_address, `W };
+        delay == local::delay[0];
       }
-      delay == local::delay[i+3];
-      } )
-      `uvm_error("Master Sequence", $sformatf("Read Sequence Randomization failed at %3d", i))
+    ) `uvm_error("Master Sequence", "Read Sequence Randomization failed at Target Adress")
     seq.start(p_sequencer, this);
+    if (exit_flag) continue;
     
-  end
 
+    // Send register address
+    if (!ignore_register) begin
+      if ( !seq.randomize() with { 
+          transaction_type == WRITE;
+          data == register_address;
+          delay == local::delay[1];
+        }
+      ) `uvm_error("Master Sequence", "Read Sequence Randomization failed at Register Address")
+      seq.start(p_sequencer, this);
+      if (exit_flag) continue;
+    end
+
+    // Send target address again (read)
+    if ( !seq.randomize() with { 
+        transaction_type == WRITE;
+        start_condition == 'b1;
+        data == { target_address, `R };
+        delay == local::delay[2];
+      }
+    )  `uvm_error("Master Sequence", "Read Sequence Randomization failed at Target Adress")
+    seq.start(p_sequencer, this);
+    if (exit_flag) continue;
+    
+
+    for ( int i = 0; i < number_of_bytes; i++) begin
+      if ( !seq.randomize() with { 
+          transaction_type == READ;
+          if (local::i == number_of_bytes-1)  {
+            ack_nack == `NACK;
+            stop_condition == local::stop_condition;
+          }
+          delay == local::delay[i+3];
+        }
+      ) `uvm_error("Master Sequence", $sformatf("Read Sequence Randomization failed at %3d", i))
+      seq.start(p_sequencer, this);
+      if (exit_flag) break;
+    end
+    if (exit_flag) continue;
+
+    // SEQUENCE FINISHED
+    break;
+  end
 endtask 
