@@ -87,6 +87,8 @@ task i2c_master_driver:: do_drive(i2c_item req);
   wait (!bus_busy);
   disable fork;
 
+  #5; // ! OPTIONAL? or race condition?
+
   if (req.start_condition) begin
     do_start_cond();
   end
@@ -274,7 +276,7 @@ task i2c_master_driver:: check_bus_busy();
       @(negedge i2c_vif.sda);
       if (i2c_vif.scl == 'b0) continue;
       bus_busy = 1;
-      `uvm_info("Driver", "External START condition detected, bus is busy, waiting...", UVM_LOW)
+      `uvm_warning("Driver", "External START condition detected, bus is busy, waiting...")
     end
     forever begin
       @(posedge i2c_vif.sda);

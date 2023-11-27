@@ -171,6 +171,7 @@ class i2c_master_write_sequence extends i2c_master_base_sequence;
 
   rand int                    number_of_bytes;
   rand bit                    ignore_register;
+  rand bit                    start_byte;
 
   // Item fields for Master Seq
   rand bit[7:1]               target_address;
@@ -179,6 +180,12 @@ class i2c_master_write_sequence extends i2c_master_base_sequence;
   rand bit[7:0]               data[];
   rand int                    delay[];
 
+  constraint c_master_write_target {
+    soft ( !(target_address inside {RESERVED_ADDRESSES}); )
+  }
+  constraint c_master_write_start_byte {
+    soft (start_byte == 'b0;)
+  }
   constraint c_master_write_nob {
     number_of_bytes > 0;
     soft (number_of_bytes < 20); 
@@ -216,6 +223,18 @@ task i2c_master_write_sequence:: body();
   while (1) begin
     exit_flag = 0;
 
+    // Send Start Byte
+    if (start_byte) begin
+      if ( !seq.randomize() with { 
+          transaction_type == WRITE;
+          data == 8'b000_0000_1;
+        }
+      ) `uvm_error("Master Sequence", "Read Sequence Randomization failed at Register Address")
+      seq.start(p_sequencer, this);
+      exit_flag = seq.check_exit();
+      if (exit_flag) continue;
+    end
+    
     // Send target address
     if ( !seq.randomize() with { 
         transaction_type == WRITE;
@@ -269,6 +288,7 @@ class i2c_master_read_sequence extends i2c_master_base_sequence;
   i2c_master_base_sequence    seq;
   rand int                    number_of_bytes;
   rand bit                    ignore_register;
+  rand bit                    start_byte;
 
   // Item fields for Master Seq
   rand bit[7:1]               target_address;
@@ -277,6 +297,12 @@ class i2c_master_read_sequence extends i2c_master_base_sequence;
   rand bit[7:0]               ack_nack[];
   rand int                    delay[];
 
+  constraint c_master_read_target {
+    soft ( !(target_address inside {RESERVED_ADDRESSES}); )
+  }
+  constraint c_master_read_start_byte {
+    soft (start_byte == 'b0;)
+  }
   constraint c_master_read_nob {
     number_of_bytes > 0;
     soft (number_of_bytes < 20); 
@@ -313,6 +339,18 @@ task i2c_master_read_sequence:: body();
 
   while (1) begin
     exit_flag = 0;
+
+    // Send Start Byte
+    if (start_byte) begin
+      if ( !seq.randomize() with { 
+          transaction_type == WRITE;
+          data == 8'b000_0000_1;
+        }
+      ) `uvm_error("Master Sequence", "Read Sequence Randomization failed at Register Address")
+      seq.start(p_sequencer, this);
+      exit_flag = seq.check_exit();
+      if (exit_flag) continue;
+    end
 
     // Send target address
     if ( !seq.randomize() with { 
@@ -372,3 +410,41 @@ task i2c_master_read_sequence:: body();
     break; // or return;
   end
 endtask 
+
+// Virtual Sequences
+
+class i2c_master_write_with_stop_no_delay extends i2c_master_write_sequence;
+  `uvm_object_utils(i2c_master_write_with_stop_no_delay)
+
+  constraint c_master_write_with_stop_no_delay {
+    stop_condition == 'b1;
+    foreach (delay[i]) delay[i] == 0;
+  }
+endclass
+
+class i2c_master_write_with_stop_with_delay extends i2c_master_write_sequence;
+  `uvm_object_utils(i2c_master_write_with_stop_with_delay)
+
+  constraint c_master_write_with_stop_no_delay {
+    stop_condition == 'b1;
+    foreach (delay[i]) delay[i] inside {[1:30]};
+  }
+endclass
+
+class i2c_master_write_no_stop_no_delay extends i2c_master_write_sequence;
+  `uvm_object_utils(i2c_master_write_no_stop_no_delay)
+
+  constraint c_master_write_with_stop_no_delay {
+    stop_condition == 'b0;
+    foreach (delay[i]) delay[i] == 0;
+  }
+endclass
+
+class i2c_master_write_no_stop_with_delay extends i2c_master_write_sequence;
+  `uvm_object_utils(i2c_master_write_with_stop_with_delay)
+
+  constraint c_master_write_with_stop_no_delay {
+    stop_condition == 'b0;
+    foreach (delay[i]) delay[i] inside {[1:30]};
+  }
+endclass
