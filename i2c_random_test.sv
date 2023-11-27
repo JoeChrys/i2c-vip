@@ -37,8 +37,8 @@ endfunction : new
 function void i2c_random_test::build_phase(uvm_phase phase);
     super.build_phase(phase);
   
-	// m_seq = i2c_master_base_sequence :: type_id :: create ("m_seq");
-	// s_seq = i2c_slave_sequence :: type_id :: create ("s_seq");
+	m_seq = i2c_master_base_sequence :: type_id :: create ("m_seq");
+	s_seq = i2c_slave_base_sequence :: type_id :: create ("s_seq");
 
   m_mb_seq = i2c_master_multibyte_sequence::type_id::create("m_mb_seq");
   s_mb_seq = i2c_slave_multibyte_sequence::type_id::create("s_mb_seq");
@@ -62,33 +62,32 @@ task i2c_random_test:: run_phase (uvm_phase phase);
     phase.raise_objection(this);
     // number_of_transactions = $urandom_range(10,20);
     number_of_transactions = 10;
-    // fork
-    //   begin
-    //     if (!m_mb_seq.randomize() with {
-    //       transaction_type == WRITE;
-    //       start_condition == 1;
-    //       stop_condition == 1;
-    //       number_of_bytes == number_of_transactions;
-    //     })
-    //       `uvm_fatal("run_phase", "Rand err")
-    //     m_mb_seq.start(env.master_agent.m_seqr);
-    //   end
-    //   begin
-    //     if (!s_mb_seq.randomize() with {
-    //       transaction_type == READ;
-    //       number_of_bytes == number_of_transactions;
-    //     })
-    //       `uvm_fatal("run_phase", "Rand err")
-    //     s_mb_seq.start(env.slave_agent.s_seqr);
-    //   end
-    // join
-    // #200
+    fork
+      begin
+        if (!m_mb_seq.randomize() with {
+          transaction_type == WRITE;
+          start_condition == 1;
+          stop_condition == 1;
+          number_of_bytes == number_of_transactions;
+        })
+          `uvm_fatal("run_phase", "Rand err")
+        m_mb_seq.start(env.master_agent.m_seqr);
+      end
+      begin
+        if (!s_mb_seq.randomize() with {
+          transaction_type == READ;
+          number_of_bytes == number_of_transactions;
+        })
+          `uvm_fatal("run_phase", "Rand err")
+        s_mb_seq.start(env.slave_agent.s_seqr);
+      end
+    join
+    #200
 
     fork
       begin
         if (!m_write_seq.randomize() with {
           stop_condition == 1;
-          stop_on_nack == 1;
           number_of_bytes == number_of_transactions;
         })
           `uvm_fatal("run_phase", "Rand err")
@@ -103,19 +102,95 @@ task i2c_random_test:: run_phase (uvm_phase phase);
     join
     #200
 
-    // fork
-    //   begin
-    //     if (!m_write_seq.randomize() with {
-    //       stop_condition == 0;
-    //     })
-    //       `uvm_fatal("run_phase", "Rand err")
-    //     m_write_seq.start(env.master_agent.m_seq);
-    //   end
-    //   begin
-    //     if (!s_read_seq.randomize()) `uvm_fatal("run_phase", "Rand err")
-    //     s_read_seq.start(env.slave_agent.s_seqr);
-    //   end
-    // join
+    fork
+      begin
+        if (!m_write_seq.randomize() with {
+          stop_condition == 0;
+          number_of_bytes == number_of_transactions;
+        })
+          `uvm_fatal("run_phase", "Rand err")
+        m_write_seq.start(env.master_agent.m_seqr);
+      end
+      begin
+        if (!s_read_seq.randomize() with {
+          number_of_bytes == number_of_transactions-2;
+        }) `uvm_fatal("run_phase", "Rand err")
+        s_read_seq.start(env.slave_agent.s_seqr);
+      end
+    join
+    #200
+
+    fork
+      begin
+        if (!m_write_seq.randomize() with {
+          stop_condition == 0;
+          number_of_bytes == number_of_transactions;
+        })
+          `uvm_fatal("run_phase", "Rand err")
+        m_write_seq.start(env.master_agent.m_seqr);
+      end
+      begin
+        if (!s_read_seq.randomize() with {
+          number_of_bytes == number_of_transactions-2;
+        }) `uvm_fatal("run_phase", "Rand err")
+        s_read_seq.start(env.slave_agent.s_seqr);
+      end
+    join
+    #200
+
+    fork
+      begin
+        if (!m_read_seq.randomize() with {
+          stop_condition == 1;
+          number_of_bytes == number_of_transactions-2;
+        })
+          `uvm_fatal("run_phase", "Rand err")
+        m_read_seq.start(env.master_agent.m_seqr);
+      end
+      begin
+        if (!s_write_seq.randomize() with {
+          number_of_bytes == number_of_transactions;
+        }) `uvm_fatal("run_phase", "Rand err")
+        s_write_seq.start(env.slave_agent.s_seqr);
+      end
+    join
+    #200
+
+    fork
+      begin
+        if (!m_read_seq.randomize() with {
+          stop_condition == 0;
+          number_of_bytes == number_of_transactions-2;
+        })
+          `uvm_fatal("run_phase", "Rand err")
+        m_read_seq.start(env.master_agent.m_seqr);
+      end
+      begin
+        if (!s_write_seq.randomize() with {
+          number_of_bytes == number_of_transactions;
+        }) `uvm_fatal("run_phase", "Rand err")
+        s_write_seq.start(env.slave_agent.s_seqr);
+      end
+    join
+    #200;
+
+    fork
+      begin
+        if (!m_read_seq.randomize() with {
+          stop_condition == 1;
+          number_of_bytes == number_of_transactions-2;
+        })
+          `uvm_fatal("run_phase", "Rand err")
+        m_read_seq.start(env.master_agent.m_seqr);
+      end
+      begin
+        if (!s_write_seq.randomize() with {
+          number_of_bytes == number_of_transactions;
+        }) `uvm_fatal("run_phase", "Rand err")
+        s_write_seq.start(env.slave_agent.s_seqr);
+      end
+    join
+    
     #100
     phase.drop_objection (this);
 endtask

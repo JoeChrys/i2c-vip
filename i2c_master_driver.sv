@@ -216,7 +216,7 @@ task i2c_master_driver:: read_data();
   release_sda();
   case(req.ack_nack)
     `ACK:  `uvm_info("Driver", "Sent ACK to slave", UVM_HIGH)
-    `NACK: `uvm_warning("Driver", "Sent NACK")
+    `NACK: `uvm_info("Driver", "Sent NACK", UVM_LOW)
   endcase
   // rsp.set_id_info(req);
   // seq_item_port.put(rsp);

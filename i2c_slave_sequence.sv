@@ -379,10 +379,10 @@ task i2c_slave_write_sequence:: body();
       for ( int i = 0; i < number_of_bytes; i++) begin
         if ( !seq.randomize() with { 
             transaction_type == WRITE;
-            data == data[i];
+            data == local::data[i];
             if (local::i == number_of_bytes-1)  {ack_nack == `NACK;}
             clock_stretch_ack == local::clock_stretch_ack[i];
-            foreach (local::clock_stretch_ack[i][j]) {
+            foreach (local::clock_stretch_data[i][j]) {
               clock_stretch_data[j] == local::clock_stretch_data[i][j];
             }
           }

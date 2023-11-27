@@ -35,8 +35,7 @@ constraint c_start_stop         { soft (start_condition == 0);
                                   soft (stop_condition == 0); }
 
 constraint c_read_transaction   { if (transaction_type == READ) {
-                                    start_condition == 0;
-                                    stop_condition == 0; } }
+                                    start_condition == 0; } }
 
 // ! how to handle multiple drivers
 // constraint c_transfer_failed    { soft transfer_failed == 'b0; 

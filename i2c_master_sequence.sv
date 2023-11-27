@@ -84,11 +84,13 @@ endtask
 function int i2c_master_base_sequence:: check_exit();
   if (transfer_failed) begin
     `uvm_error("SEQFAIL", "Response from REQ indicates failure")
-    if (stop_on_fail) return 1;
+    req.stop_condition = 1;
+    return 1;
   end
   if (receiver_response == `NACK) begin
     `uvm_warning("SLVNCK", "Got NACK from slave")
-    if (stop_on_nack) return 2;
+    req.stop_condition = 1;
+    return 2;
   end
   return 0;
 endfunction
@@ -142,7 +144,7 @@ task i2c_master_multibyte_sequence:: body();
 
   for ( int i = 0; i < number_of_bytes; i++) begin
     int exit_flag = 0;
-    
+
     if ( !seq.randomize() with { 
       transaction_type == local::transaction_type;
       data == local::data[i];
