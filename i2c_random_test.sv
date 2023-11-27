@@ -17,6 +17,9 @@ class i2c_random_test extends i2c_base_test;
 
     i2c_master_write_sequence m_write_seq;
     i2c_slave_read_sequence s_read_seq;
+
+    i2c_master_read_sequence m_read_seq;
+    i2c_slave_write_sequence s_write_seq;
         
     extern function new(string name = "i2c_random_test", uvm_component parent=null);
     extern virtual function void build_phase(uvm_phase phase);
@@ -43,6 +46,9 @@ function void i2c_random_test::build_phase(uvm_phase phase);
   m_write_seq = i2c_master_write_sequence::type_id::create("m_write_seq");
   s_read_seq = i2c_slave_read_sequence::type_id::create("s_read_seq");
 
+  m_read_seq = i2c_master_read_sequence::type_id::create("m_read_seq");
+  s_write_seq = i2c_slave_write_sequence::type_id::create("s_write_seq");
+
 endfunction : build_phase
 
 //-------------------------------------------------------------------------------------------------------------
@@ -54,25 +60,62 @@ endfunction
 task i2c_random_test:: run_phase (uvm_phase phase);        
     super.run_phase(phase);
     phase.raise_objection(this);
-    // number_of_transactions = $urandom_range(5,10);
-    fork
-      begin
-        if (!m_mb_seq.randomize() with {
-          transaction_type == WRITE;
-          start_condition == 1;
-          stop_condition == 1;
-        })
-          `uvm_fatal("run_phase", "Rand err")
-        m_mb_seq.start(env.master_agent.m_seqr);
-      end
+    // number_of_transactions = $urandom_range(10,20);
+    number_of_transactions = 10;
+    // fork
+    //   begin
+    //     if (!m_mb_seq.randomize() with {
+    //       transaction_type == WRITE;
+    //       start_condition == 1;
+    //       stop_condition == 1;
+    //       number_of_bytes == number_of_transactions;
+    //     })
+    //       `uvm_fatal("run_phase", "Rand err")
+    //     m_mb_seq.start(env.master_agent.m_seqr);
+    //   end
     //   begin
     //     if (!s_mb_seq.randomize() with {
     //       transaction_type == READ;
+    //       number_of_bytes == number_of_transactions;
     //     })
     //       `uvm_fatal("run_phase", "Rand err")
-    //     m_mb_seq.start(env.slave_agent.m_seqr);
+    //     s_mb_seq.start(env.slave_agent.s_seqr);
     //   end
+    // join
+    // #200
+
+    fork
+      begin
+        if (!m_write_seq.randomize() with {
+          stop_condition == 1;
+          stop_on_nack == 1;
+          number_of_bytes == number_of_transactions;
+        })
+          `uvm_fatal("run_phase", "Rand err")
+        m_write_seq.start(env.master_agent.m_seqr);
+      end
+      begin
+        if (!s_read_seq.randomize() with {
+          number_of_bytes == number_of_transactions-2;
+        }) `uvm_fatal("run_phase", "Rand err")
+        s_read_seq.start(env.slave_agent.s_seqr);
+      end
     join
+    #200
+
+    // fork
+    //   begin
+    //     if (!m_write_seq.randomize() with {
+    //       stop_condition == 0;
+    //     })
+    //       `uvm_fatal("run_phase", "Rand err")
+    //     m_write_seq.start(env.master_agent.m_seq);
+    //   end
+    //   begin
+    //     if (!s_read_seq.randomize()) `uvm_fatal("run_phase", "Rand err")
+    //     s_read_seq.start(env.slave_agent.s_seqr);
+    //   end
+    // join
     #100
     phase.drop_objection (this);
 endtask

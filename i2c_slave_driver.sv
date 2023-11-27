@@ -190,6 +190,8 @@ task i2c_slave_driver:: read_data();
   join_none
   #5;
   release_sda();
+  // rsp.set_id_info(req);
+  // seq_item_port.put(rsp);
 endtask
 
 task i2c_slave_driver:: write_data();

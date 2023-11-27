@@ -218,6 +218,8 @@ task i2c_master_driver:: read_data();
     `ACK:  `uvm_info("Driver", "Sent ACK to slave", UVM_HIGH)
     `NACK: `uvm_warning("Driver", "Sent NACK")
   endcase
+  // rsp.set_id_info(req);
+  // seq_item_port.put(rsp);
 endtask
 
 task i2c_master_driver:: send_bit(bit data_bit);

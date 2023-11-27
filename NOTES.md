@@ -104,6 +104,7 @@
     - Lets devices process the values in their registers
 
 - ##### Assertions
+(int counter = -1, counter % 9)
   - ##### Approach 1
     - Start Condition bit counter
       1. @(negedge SDA) if SCL==1 task assert;
@@ -121,17 +122,21 @@
           end
         join_any
         disable fork;
-        if (counter % 10 == 0) pass
+        if (counter % 9 == 0) pass
         else fail
       assert (pass/fail)
       endtask
 
 - ##### Approach 2
     - property START
-        @(negedge SDA) scl |-> counter % 10 == 0;
+        @(negedge SDA) scl |-> counter % 9 == 0;
     - @(posedge scl) task sda_stable
         temp = sda;
         @(negedge scl);
-        if (temp == sda || counter % 10 == 0) pass
+        if (temp == sda || counter % 9 == 0) pass
         else fail
       endtask
+
+- ##### Approach 3
+    - property
+        @(scl) disable iff (!scl) !($stable(sda)) |-> (counter % 9 == 0)
