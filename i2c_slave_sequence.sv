@@ -1,3 +1,4 @@
+// *** Basic Sequences ***
 
 class i2c_slave_base_sequence extends uvm_sequence #(i2c_item);
   `uvm_object_utils(i2c_slave_base_sequence)
@@ -46,53 +47,53 @@ class i2c_slave_base_sequence extends uvm_sequence #(i2c_item);
   extern virtual function int check_exit();
 endclass // i2c_slave_base_sequence
 
-//-------------------------------------------------------------------
-function i2c_slave_base_sequence:: new(string name = "i2c_slave_base_sequence");
-    super.new(name);
-endfunction //i2c_sequence::new
+  //-------------------------------------------------------------------
+  function i2c_slave_base_sequence:: new(string name = "i2c_slave_base_sequence");
+      super.new(name);
+  endfunction //i2c_sequence::new
 
-//-------------------------------------------------------------------
-task i2c_slave_base_sequence:: body();
-    
-  uvm_config_db#(i2c_cfg)::set(null, "*", "cfg", p_sequencer.cfg);
-  if (!uvm_config_db#(i2c_cfg)::get(p_sequencer,"", "cfg",cfg))
-      `uvm_fatal("body", "cfg wasn't set through config db");
+  //-------------------------------------------------------------------
+  task i2c_slave_base_sequence:: body();
+      
+    uvm_config_db#(i2c_cfg)::set(null, "*", "cfg", p_sequencer.cfg);
+    if (!uvm_config_db#(i2c_cfg)::get(p_sequencer,"", "cfg",cfg))
+        `uvm_fatal("body", "cfg wasn't set through config db");
 
-  req = i2c_item::type_id::create("req");
-  start_item(req);
-  if ( !req.randomize() with { 
-      transaction_type == local::transaction_type; 
-      data == local::data;
-      ack_nack == local::ack_nack;
-      clock_stretch_ack == local::clock_stretch_ack;
-      foreach (local::clock_stretch_data[i]) {
-        clock_stretch_data[i] == local::clock_stretch_data[i];
+    req = i2c_item::type_id::create("req");
+    start_item(req);
+    if ( !req.randomize() with { 
+        transaction_type == local::transaction_type; 
+        data == local::data;
+        ack_nack == local::ack_nack;
+        clock_stretch_ack == local::clock_stretch_ack;
+        foreach (local::clock_stretch_data[i]) {
+          clock_stretch_data[i] == local::clock_stretch_data[i];
+        }
       }
-    }
-  ) `uvm_error("SLAVE SEQ", "Sequence Randomization failed")
-  finish_item(req);
+    ) `uvm_error(get_type_name(), "Sequence Randomization failed")
+    finish_item(req);
 
-  `uvm_info("SLAVE SEQ", "WAITING FOR RSP", UVM_DEBUG)
-  get_response(rsp);
-  `uvm_info("SLAVE SEQ", "GOT RSP", UVM_DEBUG)
-  transfer_failed = rsp.transfer_failed;
-  if (transaction_type == WRITE) begin
-    receiver_response = rsp.ack_nack;
-  end
+    `uvm_info(get_type_name(), "\n\nWAITING FOR RSP", UVM_DEBUG)
+    get_response(rsp);
+    `uvm_info(get_type_name(), "GOT RSP", UVM_DEBUG)
+    transfer_failed = rsp.transfer_failed;
+    if (transaction_type == WRITE) begin
+      receiver_response = rsp.ack_nack;
+    end
 
-endtask
+  endtask
 
-function int i2c_slave_base_sequence:: check_exit();
-  if (transfer_failed) begin
-    `uvm_error("SEQFAIL", "Response from REQ indicates failure")
-    return 1;
-  end
-  if (receiver_response == `NACK) begin
-    `uvm_info("SLAVESEQ", "Got NACK", UVM_HIGH)
-    return 2;
-  end
-  return 0;
-endfunction
+  function int i2c_slave_base_sequence:: check_exit();
+    if (transfer_failed) begin
+      `uvm_error("SEQFAIL", "Response from REQ indicates failure")
+      return 1;
+    end
+    if (receiver_response == `NACK) begin
+      `uvm_info(get_type_name(), "Got NACK", UVM_HIGH)
+      return 2;
+    end
+    return 0;
+  endfunction
 
 class i2c_slave_multibyte_sequence extends i2c_slave_base_sequence;
   `uvm_object_utils(i2c_slave_multibyte_sequence)
@@ -138,37 +139,35 @@ class i2c_slave_multibyte_sequence extends i2c_slave_base_sequence;
 
   extern function new(string name = "i2c_slave_multibyte_sequence");
   extern virtual task body();
-
 endclass // i2c_slave_multibyte_sequence
 
-function i2c_slave_multibyte_sequence:: new(string name = "i2c_slave_multibyte_sequence");
-  super.new(name);
-endfunction
+  function i2c_slave_multibyte_sequence:: new(string name = "i2c_slave_multibyte_sequence");
+    super.new(name);
+  endfunction
 
-task i2c_slave_multibyte_sequence:: body();
-  seq = i2c_slave_base_sequence::type_id::create("seq");
+  task i2c_slave_multibyte_sequence:: body();
+    seq = i2c_slave_base_sequence::type_id::create("seq");
 
-  for (int i = 0; i < number_of_bytes; i++) begin
-    int exit_flag = 0;
-    if ( !seq.randomize() with {
-        transaction_type == local::transaction_type;
-        data == local::data[i];
-        ack_nack == local::ack_nack[i];
-        clock_stretch_ack == local::clock_stretch_ack[i];
-        foreach (local::clock_stretch_data[i][j]) {
-          clock_stretch_data[j] == local::clock_stretch_data[i][j];
+    for (int i = 0; i < number_of_bytes; i++) begin
+      int exit_flag = 0;
+      if ( !seq.randomize() with {
+          transaction_type == local::transaction_type;
+          data == local::data[i];
+          ack_nack == local::ack_nack[i];
+          clock_stretch_ack == local::clock_stretch_ack[i];
+          foreach (local::clock_stretch_data[i][j]) {
+            clock_stretch_data[j] == local::clock_stretch_data[i][j];
+          }
         }
-      }
-    ) `uvm_error("Slave Sequence", $sformatf("Multibyte Sequence Randomization failed at %0d", i))
-    seq.start(p_sequencer, this);
-    exit_flag = seq.check_exit();
-    if (exit_flag) begin
-      if (stop_on_fail) return;
-      if (stop_on_nack) return;
+      ) `uvm_error(get_type_name(), $sformatf("Multibyte Sequence Randomization failed at %0d", i))
+      seq.start(p_sequencer, this);
+      exit_flag = seq.check_exit();
+      if (exit_flag) begin
+        if (stop_on_fail) return;
+        if (stop_on_nack) return;
+      end
     end
-  end
-
-endtask
+  endtask
 
 class i2c_slave_read_sequence extends i2c_slave_base_sequence;
   `uvm_object_utils(i2c_slave_read_sequence)
@@ -221,64 +220,66 @@ class i2c_slave_read_sequence extends i2c_slave_base_sequence;
   
   extern function new(string name = "i2c_slave_read_sequence");
   extern virtual task body();
-
 endclass // i2c_slave_read_sequence
 
-function i2c_slave_read_sequence:: new(string name = "i2c_slave_read_sequence");
-  super.new(name);
-endfunction // i2c_slave_read_sequence::new
+  function i2c_slave_read_sequence:: new(string name = "i2c_slave_read_sequence");
+    super.new(name);
+  endfunction // i2c_slave_read_sequence::new
 
-task i2c_slave_read_sequence:: body();
-  int exit_flag;
+  task i2c_slave_read_sequence:: body();
+    int exit_flag;
 
-  seq = i2c_slave_base_sequence::type_id::create("seq");
+    seq = i2c_slave_base_sequence::type_id::create("seq");
 
-  while (1) begin
-    exit_flag = 0;
+    while (1) begin
+      exit_flag = 0;
 
-    // Get target address
-    if ( !seq.randomize() with { 
-        transaction_type == READ;
-        ack_nack == target_ack_nack;
-      }
-    ) `uvm_error("Master Sequence", "Write Sequence Randomization failed at Target Adress")
-    seq.start(p_sequencer, this);
-    exit_flag = seq.check_exit();
-    if (exit_flag) return;
-
-    // Get register address
-    if (!ignore_register) begin
+      // Get target address
       if ( !seq.randomize() with { 
           transaction_type == READ;
-          ack_nack == register_ack_nack;
+          ack_nack == target_ack_nack;
         }
-      ) `uvm_error("Master Sequence", "Write Sequence Randomization failed at Register Address")
+      ) `uvm_error(get_type_name(), "Write Sequence Randomization failed at Target Adress")
       seq.start(p_sequencer, this);
+      `uvm_info(get_name(), "Read target address (W)", UVM_MEDIUM)
       exit_flag = seq.check_exit();
       if (exit_flag) return;
-    end
 
-    // Read data
-    for ( int i = 0; i < number_of_bytes; i++) begin
-      if ( !seq.randomize() with { 
-          transaction_type == READ;
-          ack_nack == data_ack_nack[i];
-          clock_stretch_ack == local::clock_stretch_ack[i];
-          foreach (local::clock_stretch_data[i][j]) {
-            clock_stretch_data[j] == local::clock_stretch_data[i][j];
+      // Get register address
+      if (!ignore_register) begin
+        if ( !seq.randomize() with { 
+            transaction_type == READ;
+            ack_nack == register_ack_nack;
           }
-        }
-      ) `uvm_error("Master Sequence", $sformatf("Write Sequence Randomization failed at %3d", i))
-      seq.start(p_sequencer, this);
-      exit_flag = seq.check_exit();
-      if (exit_flag) return;
+        ) `uvm_error(get_type_name(), "Write Sequence Randomization failed at Register Address")
+        seq.start(p_sequencer, this);
+        `uvm_info(get_name(), "Read register address", UVM_MEDIUM)
+        exit_flag = seq.check_exit();
+        if (exit_flag) return;
+      end
+
+      // Read data
+      for ( int i = 0; i < number_of_bytes; i++) begin
+        if ( !seq.randomize() with { 
+            transaction_type == READ;
+            ack_nack == data_ack_nack[i];
+            clock_stretch_ack == local::clock_stretch_ack[i];
+            foreach (local::clock_stretch_data[i][j]) {
+              clock_stretch_data[j] == local::clock_stretch_data[i][j];
+            }
+          }
+        ) `uvm_error(get_type_name(), $sformatf("Write Sequence Randomization failed at %3d", i))
+        seq.start(p_sequencer, this);
+        `uvm_info(get_name(), $sformatf("Read Data Byte %03d", i), UVM_MEDIUM)
+        exit_flag = seq.check_exit();
+        if (exit_flag) return;
+      end
+
+      // SEQUENCE FINISHED
+      break; // or return;
     end
 
-    // SEQUENCE FINISHED
-    break; // or return;
-  end
-
-endtask 
+  endtask 
 
 class i2c_slave_write_sequence extends i2c_slave_base_sequence;
   `uvm_object_utils(i2c_slave_write_sequence)
@@ -329,52 +330,54 @@ class i2c_slave_write_sequence extends i2c_slave_base_sequence;
   
   extern function new(string name = "i2c_slave_write_sequence");
   extern virtual task body();
-
 endclass // i2c_slave_write_sequence
 
-function i2c_slave_write_sequence:: new(string name = "i2c_slave_write_sequence");
-  super.new(name);
-endfunction
+  function i2c_slave_write_sequence:: new(string name = "i2c_slave_write_sequence");
+    super.new(name);
+  endfunction
 
-task i2c_slave_write_sequence:: body();
-  int exit_flag;
+  task i2c_slave_write_sequence:: body();
+    int exit_flag;
 
-  seq = i2c_slave_base_sequence::type_id::create("seq");
+    seq = i2c_slave_base_sequence::type_id::create("seq");
 
-  while (1) begin
-  exit_flag = 0;
+    while (1) begin
+      exit_flag = 0;
 
-    // Get target address
-    if ( !seq.randomize() with { 
-      transaction_type == READ;
-      ack_nack == target_ack_nack;
-    } )
-      `uvm_error("Master Sequence", "Read Sequence Randomization failed at Target Adress")
-    seq.start(p_sequencer, this);
-    exit_flag = seq.check_exit();
-    if (exit_flag) return;
-    
-    // Get register address
-    if (!ignore_register) begin
+      // Get target address
       if ( !seq.randomize() with { 
-        transaction_type == READ;
-        ack_nack == register_ack_nack;
-      } )
-        `uvm_error("Master Sequence", "Read Sequence Randomization failed at Register Address")
+          transaction_type == READ;
+          ack_nack == target_ack_nack;
+        } 
+      ) `uvm_error(get_type_name(), "Read Sequence Randomization failed at Target Adress")
       seq.start(p_sequencer, this);
+      `uvm_info(get_name(), "Read target address (W)", UVM_MEDIUM)
       exit_flag = seq.check_exit();
       if (exit_flag) return;
-    end
+      
+      // Get register address
+      if (!ignore_register) begin
+        if ( !seq.randomize() with { 
+            transaction_type == READ;
+            ack_nack == register_ack_nack;
+          } 
+        ) `uvm_error(get_type_name(), "Read Sequence Randomization failed at Register Address")
+        seq.start(p_sequencer, this);
+        `uvm_info(get_name(), "Read register address", UVM_MEDIUM)
+        exit_flag = seq.check_exit();
+        if (exit_flag) return;
+      end
 
-    // Get target address again (to write)
-    if ( !seq.randomize() with { 
-      transaction_type == READ;
-      ack_nack == target_ack_nack;
-    } )
-      `uvm_error("Master Sequence", "Read Sequence Randomization failed at Target Adress")
-    seq.start(p_sequencer, this);
-    exit_flag = seq.check_exit();
-    if (exit_flag) return;
+      // Get target address again (to write)
+      if ( !seq.randomize() with { 
+          transaction_type == READ;
+          ack_nack == target_ack_nack;
+        }
+      ) `uvm_error(get_type_name(), "Read Sequence Randomization failed at Target Adress")
+      seq.start(p_sequencer, this);
+      `uvm_info(get_name(), "Read target address (R)", UVM_MEDIUM)
+      exit_flag = seq.check_exit();
+      if (exit_flag) return;
 
       for ( int i = 0; i < number_of_bytes; i++) begin
         if ( !seq.randomize() with { 
@@ -386,14 +389,64 @@ task i2c_slave_write_sequence:: body();
               clock_stretch_data[j] == local::clock_stretch_data[i][j];
             }
           }
-        ) `uvm_error("Master Sequence", $sformatf("Read Sequence Randomization failed at %3d", i))
+        ) `uvm_error(get_type_name(), $sformatf("Read Sequence Randomization failed at %3d", i))
         seq.start(p_sequencer, this);
+        `uvm_info(get_name(), $sformatf("Sent Data Byte %03d", i), UVM_MEDIUM)
         exit_flag = seq.check_exit();
         if (exit_flag) return;
       end
 
-    // SEQUENCE FINISHED
-    break; // or return;
-  end
+      // SEQUENCE FINISHED
+      break; // or return;
+    end
+  endtask
 
-endtask 
+class i2c_slave_read_with_clock_stretch_ack extends i2c_slave_read_sequence;
+  `uvm_object_utils(i2c_slave_read_with_clock_stretch_ack)
+
+  constraint c_slave_read_with_clock_stretch_ack {
+    foreach (clock_stretch_ack[i]) soft (clock_stretch_ack[i] inside {[10:40]};)
+  }
+
+  function new(string name = "i2c_slave_read_with_clock_stretch_ack");
+    super.new(name);
+  endfunction
+endclass
+
+class i2c_slave_read_with_clock_stretch_all extends i2c_slave_read_sequence;
+  `uvm_object_utils(i2c_slave_read_with_clock_stretch_all)
+
+  constraint c_slave_read_with_clock_stretch_ack {
+    foreach (clock_stretch_ack[i]) soft (clock_stretch_ack[i] inside {[10:50]};)
+    foreach (clock_stretch_data[i,j]) soft (clock_stretch_data inside {[10:30]};)
+  }
+
+  function new(string name = "i2c_slave_read_with_clock_stretch_all");
+    super.new(name);
+  endfunction
+endclass
+
+class i2c_slave_write_with_clock_stretch_ack extends i2c_slave_write_sequence;
+  `uvm_object_utils(i2c_slave_write_with_clock_stretch_ack)
+
+  constraint c_slave_write_with_clock_stretch_ack {
+    foreach (clock_stretch_ack[i]) soft (clock_stretch_ack[i] inside {[10:40]};)
+  }
+
+  function new(string name = "i2c_slave_write_with_clock_stretch_ack");
+    super.new(name);
+  endfunction
+endclass
+
+class i2c_slave_write_with_clock_stretch_all extends i2c_slave_write_sequence;
+  `uvm_object_utils(i2c_slave_write_with_clock_stretch_all)
+
+  constraint c_slave_write_with_clock_stretch_ack {
+    foreach (clock_stretch_ack[i]) soft (clock_stretch_ack[i] inside {[10:50]};)
+    foreach (clock_stretch_data[i,j]) soft (clock_stretch_data inside {[10:30]};)
+  }
+
+  function new(string name = "i2c_slave_write_with_clock_stretch_all");
+    super.new(name);
+  endfunction
+endclass

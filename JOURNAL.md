@@ -47,6 +47,11 @@ a single byte instead of a dynamic byte array
 - Minor changes to sequences, scrapped stop_on_ack/fail for now
 
 ##### 23/11
-- SVA studing, found 2 differnt approaches (see NOTES)
+- SVA studying, found 2 differnt approaches (see NOTES)
 - unscrapped stop_on_ack/fail :P
 
+##### 27/11 !!
+- Sequences are running perfectly
+
+##### 28/11
+- Added most of reserved address sequences (MASTER)
