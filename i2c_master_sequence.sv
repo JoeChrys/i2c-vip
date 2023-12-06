@@ -181,7 +181,7 @@ class i2c_master_write_sequence extends i2c_master_base_sequence;
   rand int                    delay[];
 
   constraint c_master_write_target {
-    soft ( !(target_address inside {RESERVED_ADDRESSES}); )
+    soft ( !(target_address inside {RESERVED_ADDRESSES}) );
   }
   constraint c_master_write_nob {
     number_of_bytes > 0;
@@ -285,7 +285,7 @@ class i2c_master_read_sequence extends i2c_master_base_sequence;
   rand int                    delay[];
 
   constraint c_master_read_target {
-    soft ( !(target_address inside {RESERVED_ADDRESSES}); )
+    soft ( !(target_address inside {RESERVED_ADDRESSES}) );
   }
   constraint c_master_read_nob {
     number_of_bytes > 0;
@@ -398,7 +398,7 @@ class i2c_master_write_with_stop_no_delays extends i2c_master_write_sequence;
     foreach (delay[i]) delay[i] == 0;
   }
 
-  function new(string name = "i2c_master_write_with_stop_no_delays")
+  function new(string name = "i2c_master_write_with_stop_no_delays");
     super.new(name);
   endfunction
 endclass
@@ -411,7 +411,7 @@ class i2c_master_write_with_stop_with_delays extends i2c_master_write_sequence;
     foreach (delay[i]) delay[i] inside {[1:30]};
   }
 
-  function new(string name = "i2c_master_write_with_stop_with_delays")
+  function new(string name = "i2c_master_write_with_stop_with_delays");
     super.new(name);
   endfunction
 endclass
@@ -424,7 +424,7 @@ class i2c_master_write_no_stop_no_delays extends i2c_master_write_sequence;
     foreach (delay[i]) delay[i] == 0;
   }
 
-  function new(string name = "i2c_master_write_no_stop_no_delays")
+  function new(string name = "i2c_master_write_no_stop_no_delays");
     super.new(name);
   endfunction
 endclass
@@ -437,7 +437,7 @@ class i2c_master_write_no_stop_with_delays extends i2c_master_write_sequence;
     foreach (delay[i]) delay[i] inside {[1:30]};
   }
 
-  function new(string name = "i2c_master_write_no_stop_with_delays")
+  function new(string name = "i2c_master_write_no_stop_with_delays");
     super.new(name);
   endfunction
 endclass
@@ -498,7 +498,7 @@ endclass
 
 // *** Reserved Adresses ***
 
-class i2c_master_general_call_command extends i2c_master_base_sequence
+class i2c_master_general_call_command extends i2c_master_base_sequence;
   `uvm_object_utils(i2c_master_general_call_command)
 
   i2c_master_base_sequence    seq;
@@ -508,7 +508,7 @@ class i2c_master_general_call_command extends i2c_master_base_sequence
 
   constraint c_master_general_call_command {
     soft (command == 7'b000_0011);  // reset command
-    foreach (delay[i]) soft (delay[i] == 0;)
+    foreach (delay[i]) soft (delay[i] == 0);
   }
 
   extern function new(string name = "i2c_master_general_call_command");
@@ -519,7 +519,7 @@ endclass
     super.new(name);
   endfunction
 
-  task i2c_master_general_call_command:: body()
+  task i2c_master_general_call_command:: body();
     seq = i2c_master_base_sequence::type_id::create("seq");
 
     while (1) begin
@@ -543,7 +543,7 @@ endclass
     end
   endtask
 
-class i2c_master_general_call_controller_address extends i2c_master_base_sequence
+class i2c_master_general_call_controller_address extends i2c_master_base_sequence;
   `uvm_object_utils(i2c_master_general_call_controller_address)
 
   i2c_master_base_sequence    seq;
@@ -553,7 +553,7 @@ class i2c_master_general_call_controller_address extends i2c_master_base_sequenc
 
   constraint c_master_general_call_controller_address {
     soft (controller_address == 7'b101_0011);  // default controller_address
-    foreach (delay[i]) soft (delay[i] == 0;)
+    foreach (delay[i]) soft (delay[i] == 0);
   }
 
   extern function new(string name = "i2c_master_general_call_controller_address");
@@ -564,7 +564,7 @@ endclass
     super.new(name);
   endfunction
 
-  task i2c_master_general_call_controller_address:: body()
+  task i2c_master_general_call_controller_address:: body();
     seq = i2c_master_base_sequence::type_id::create("seq");
 
     while (1) begin
@@ -588,7 +588,7 @@ endclass
     end
   endtask
 
-class i2c_master_start_byte extends i2c_master_base_sequence
+class i2c_master_start_byte extends i2c_master_base_sequence;
   `uvm_object_utils(i2c_master_start_byte)
 
   constraint c_master_start_byte {
@@ -602,7 +602,7 @@ class i2c_master_start_byte extends i2c_master_base_sequence
 
   virtual task body();
     while (1) begin
-      super.body()
+      super.body();
       if (!check_exit()) break;
     end
   endtask
@@ -615,7 +615,7 @@ class i2c_master_high_speed_mode extends i2c_master_base_sequence;
   speed_mode_enum speed_mode;
 
   constraint c_master_high_speed_mode {
-    soft (speed_mode == FM;)
+    soft (speed_mode == FM);
     start_condition == 'b1;
     if (speed_mode == SM) { data == 8'b000_0100_0; }
     if (speed_mode == FM) { data == 8'b000_0101_0; }
@@ -623,14 +623,14 @@ class i2c_master_high_speed_mode extends i2c_master_base_sequence;
     if (speed_mode == HSM) { data == 8'b000_0111_0; }
   }
 
-  function new(string name = "i2c_master_high_speed_mode")
+  function new(string name = "i2c_master_high_speed_mode");
     super.new(name);
   endfunction
 
   virtual task body();
     while (1) begin
-      super.body()
-      if (rsp.ack_nack == `ACK) uvm_error("WRNGACK", "Did not expect ACK at Speed Mode Code")
+      super.body();
+      if (rsp.ack_nack == `ACK) `uvm_error("WRNGACK", "Did not expect ACK at Speed Mode Code")
       if (!check_exit()) break;
     end
   endtask

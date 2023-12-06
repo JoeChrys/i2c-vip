@@ -21,9 +21,9 @@
     - [x] Start - Finish - Get response item
     - [x] check data byte or ACK
     - [x] change ack_nack
-    - [ ] Master Reserved
+    - [x] Master Reserved
     - [ ] [Optional] Master, stop if NACK/Fail
-    - [ ] Slave normal and reserved
+    - [x] Slave normal and reserved
     - [ ] Env Virtual Seq
 
 - [x] Master Driver
@@ -33,7 +33,7 @@
     - [x] write
     - [x] check while writing
     - [x] read
-    - [ ] Add self ACK for START Byte
+    - [x] Add self ACK for START Byte
 
 - [x] Slave Driver
     - [x] Sample (and send RSP to seq)

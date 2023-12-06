@@ -405,7 +405,7 @@ class i2c_slave_read_with_clock_stretch_ack extends i2c_slave_read_sequence;
   `uvm_object_utils(i2c_slave_read_with_clock_stretch_ack)
 
   constraint c_slave_read_with_clock_stretch_ack {
-    foreach (clock_stretch_ack[i]) soft (clock_stretch_ack[i] inside {[10:40]};)
+    foreach (clock_stretch_ack[i]) soft (clock_stretch_ack[i] inside {[10:40]});
   }
 
   function new(string name = "i2c_slave_read_with_clock_stretch_ack");
@@ -417,8 +417,8 @@ class i2c_slave_read_with_clock_stretch_all extends i2c_slave_read_sequence;
   `uvm_object_utils(i2c_slave_read_with_clock_stretch_all)
 
   constraint c_slave_read_with_clock_stretch_ack {
-    foreach (clock_stretch_ack[i]) soft (clock_stretch_ack[i] inside {[10:50]};)
-    foreach (clock_stretch_data[i,j]) soft (clock_stretch_data inside {[10:30]};)
+    foreach (clock_stretch_ack[i]) soft (clock_stretch_ack[i] inside {[10:50]});
+    foreach (clock_stretch_data[i,j]) soft (clock_stretch_data[i][j] inside {[10:30]});
   }
 
   function new(string name = "i2c_slave_read_with_clock_stretch_all");
@@ -430,7 +430,7 @@ class i2c_slave_write_with_clock_stretch_ack extends i2c_slave_write_sequence;
   `uvm_object_utils(i2c_slave_write_with_clock_stretch_ack)
 
   constraint c_slave_write_with_clock_stretch_ack {
-    foreach (clock_stretch_ack[i]) soft (clock_stretch_ack[i] inside {[10:40]};)
+    foreach (clock_stretch_ack[i]) soft (clock_stretch_ack[i] inside {[10:40]});
   }
 
   function new(string name = "i2c_slave_write_with_clock_stretch_ack");
@@ -442,8 +442,8 @@ class i2c_slave_write_with_clock_stretch_all extends i2c_slave_write_sequence;
   `uvm_object_utils(i2c_slave_write_with_clock_stretch_all)
 
   constraint c_slave_write_with_clock_stretch_ack {
-    foreach (clock_stretch_ack[i]) soft (clock_stretch_ack[i] inside {[10:50]};)
-    foreach (clock_stretch_data[i,j]) soft (clock_stretch_data inside {[10:30]};)
+    foreach (clock_stretch_ack[i]) soft (clock_stretch_ack[i] inside {[10:50]});
+    foreach (clock_stretch_data[i,j]) soft (clock_stretch_data[i][j] inside {[10:30]});
   }
 
   function new(string name = "i2c_slave_write_with_clock_stretch_all");

@@ -161,6 +161,10 @@ task i2c_master_driver:: write_data();
 
   // pulse for ack/nack
   fork
+    if (req.data == `START_BYTE) begin
+      `uvm_info(get_type_name(), "Sent START BYTE, doing self-ACK", UVM_LOW)
+      send_bit(`ACK);
+    end
     pulse_clock();
     begin
       @(posedge i2c_vif.scl);
