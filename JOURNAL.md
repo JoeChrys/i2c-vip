@@ -55,3 +55,11 @@ a single byte instead of a dynamic byte array
 
 ##### 28/11
 - Added most of reserved address sequences (MASTER)
+
+##### 6/12
+- Perfected SV Assertions in IF and task assertions
+
+#### 7/12
+- Debugged Assertion
+- Initial work on Virtual Sequence
+- Created test for testing (uses virtual sequence)

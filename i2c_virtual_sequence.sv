@@ -6,6 +6,9 @@ class i2c_virtual_base_sequence extends uvm_sequence;
 
   i2c_cfg cfg;
 
+  i2c_master_base_sequence m_seq;
+  i2c_slave_base_sequence  s_seq;
+
   rand transaction_type_enum transaction_type;
   rand bit[7:0] data;
   rand bit      ack_nack;
@@ -18,6 +21,7 @@ class i2c_virtual_base_sequence extends uvm_sequence;
   rand int      clock_stretch_ack;
 
   constraint c_virtual_defaults {
+    soft (transaction_type == WRITE);
     soft (start_condition == 0);
     soft (stop_condition == 0);
     soft (delay == 0);
@@ -35,11 +39,15 @@ endclass
     super.new(name);
   endfunction // i2c_sequence::new
 
-  function i2c_virtual_base_sequence:: body();
+  task i2c_virtual_base_sequence:: body();
     m_seq = i2c_master_base_sequence :: type_id :: create ("m_seq");
 	  s_seq = i2c_slave_base_sequence :: type_id :: create ("s_seq");
 
     // could also use uvm_config_db
+    // if (!uvm_config_db#(i2c_master_sequencer)::get(null,"","m_seqr", m_seqr) ) 
+    //   `uvm_fatal("NULPTR", "Master Sequencer has not be set")
+    // if (!uvm_config_db#(i2c_slave_sequencer)::get(null,"","s_seqr", s_seqr) ) 
+    //  `uvm_fatal("NULPTR", "Slave Sequencer has not be set")
     if (m_seqr == null) `uvm_fatal("NULPTR", "Master Sequencer has not be set")
     if (s_seqr == null) `uvm_fatal("NULPTR", "Slave Sequencer has not be set")
 
@@ -51,14 +59,15 @@ endclass
           ack_nack == local::ack_nack;
           start_condition == local::start_condition;
           stop_condition == local::stop_condition;
-          delay == local::delay
+          delay == local::delay;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
         m_seq.start(m_seqr, this);
       end
       begin
         if (!s_seq.randomize() with {
-          transaction_type == local::transaction_type;
+          if (local::transaction_type == WRITE) transaction_type == READ;
+          else if (local::transaction_type == READ) transaction_type == WRITE;
           data == local::data;
           ack_nack == local::ack_nack;
           clock_stretch_ack == local::clock_stretch_ack;
@@ -70,5 +79,5 @@ endclass
         s_seq.start(s_seqr, this);
       end
     join
-  endfunction
+  endtask
 

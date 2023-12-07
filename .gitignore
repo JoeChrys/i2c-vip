@@ -12,6 +12,7 @@ simvision*
 xrun.key
 *.nfs*
 *.dump
+*.err
 
 # Other files
 *.txt

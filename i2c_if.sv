@@ -18,6 +18,11 @@ interface i2c_if (input bit system_clock, input bit reset_n);
     input uvc_sda, uvc_scl
   );
 
+  initial begin
+    uvc_sda = 'bz;
+    uvc_scl = 'bz;
+  end
+
   // Counter for clock pulses
   int counter;
   int full_counter;
