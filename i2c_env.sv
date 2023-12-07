@@ -75,3 +75,45 @@ function void i2c_env:: print_cfg();
 endfunction : print_cfg
 
 
+// *** Multimaster Env
+
+class i2c_multimaster_env extends i2c_env;
+
+    `uvm_component_param_utils(i2c_multimaster_env)
+
+    i2c_agent       master_agent_2;
+
+    extern function new (string name, uvm_component parent);
+    extern virtual function void build_phase (uvm_phase phase);
+    extern virtual function void connect_phase (uvm_phase phase);
+    extern virtual function void start_of_simulation_phase (uvm_phase phase);
+    extern virtual function void print_cfg();
+endclass : i2c_multimaster_env
+
+function i2c_multimaster_env:: new (string name, uvm_component parent);
+    super.new(name, parent);
+endfunction : new
+
+function void i2c_multimaster_env:: build_phase (uvm_phase phase);
+    super.build_phase(phase);
+    
+    master_agent_2 = i2c_agent :: type_id :: create ("master_agent", this);
+    master_agent_2.cfg = cfg_env.master_config;
+endfunction : build_phase 
+ 
+function void i2c_multimaster_env:: connect_phase (uvm_phase phase);
+    super.connect_phase(phase);
+endfunction : connect_phase
+
+function void i2c_multimaster_env:: start_of_simulation_phase(uvm_phase phase);
+    super.start_of_simulation_phase(phase);
+
+    // Disable verbosity of unconnected monitors
+    if (!cfg_env.connect_master_to_sb) begin
+        master_agent_2.m_mon.set_report_verbosity_level_hier(UVM_NONE);
+    end
+endfunction : start_of_simulation_phase
+
+function void i2c_multimaster_env:: print_cfg();
+   `uvm_info(get_type_name(), $sformatf ("The configuration that was set : \n%s", cfg_env.sprint()), UVM_MEDIUM)
+endfunction : print_cfg

@@ -112,6 +112,10 @@ class i2c_master_multibyte_sequence extends i2c_master_base_sequence;
     number_of_bytes > 0;
     soft (number_of_bytes < 20); 
   }
+  constraint c_master_mb_start_stop {
+    soft (start_condition == 'b1);
+    soft (stop_condition == 'b1);
+  }
   constraint c_master_mb_array_size {
     data.size() == number_of_bytes;
     ack_nack.size() == number_of_bytes;

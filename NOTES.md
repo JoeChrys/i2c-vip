@@ -198,3 +198,8 @@ __A: use seperate interface for each driver, each interface has 2 logic and 2 tr
     - [x] Should I implement it according to the following spec? It is __not__ widely used. [UFM](https://www.i2c-bus.org/ultra-fast-mode-ufm/) 
     Better no!?
 
+#### Xcelium
+- [ ] How to enable assertions for every pass, not just for the first.
+- [ ] How to continue the simulation even if assertion fails
+- [ ] In `/tools/cdnc/xcelium` what is each folder? UVM versions?
+- [ ] Detailed xcelium documentation?
