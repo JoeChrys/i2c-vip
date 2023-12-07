@@ -1,7 +1,6 @@
-`include "uvm_macros.svh"
-
 interface i2c_if (input bit system_clock, input bit reset_n);
-  import uvm_pkg::*;
+  // `include "uvm_macros.svh"
+  // import uvm_pkg::*;
     
   // * * * Add you specific interface logics below * * *
   logic uvc_sda;
@@ -85,22 +84,15 @@ interface i2c_if (input bit system_clock, input bit reset_n);
           @(posedge scl) clock_counter++;
         end
       end
-      begin
-        fork
-          forever begin // start/stop
-            @(sda);
-            if (scl) break;
-          end
-        join_any
+      begin// start/stop
+        @(sda iff scl);
       end
     join_any
     disable fork;
     if (clock_counter % 9 == 0) fail = 0;
-    if (fail) `uvm_error("ASRTERR", "Protocol check FAILED")
-    else `uvm_info("Protocol Checker", "Protocol check PASSED", UVM_LOW)
+    if (fail) $error("protocol_checker(): Protocol check FAILED");
   endtask
-
-  always @(negedge sda iff scl) protocol_checker();
+  always @(negedge sda iff scl) fork protocol_checker(); join_none
 
   
 
@@ -108,13 +100,11 @@ interface i2c_if (input bit system_clock, input bit reset_n);
   property p_start;
     @(negedge sda iff scl) disable iff (!reset_n) ((full_counter) % 9 == 0); // || full_counter == -1
   endproperty
-
   assert property (p_start);
 
   property p_stop;
     @(posedge sda iff scl) disable iff (!reset_n) (full_counter % 9 == 0);
   endproperty
-
   assert property (p_stop);
 
   // *** Protocol checker ***
@@ -123,22 +113,21 @@ interface i2c_if (input bit system_clock, input bit reset_n);
   task automatic sda_stable_checker();
     automatic bit temp;
     automatic bit fail = 1;
+    // could use a static local counter to make it independent of external counters
 
     temp = sda;
     fork
       begin : CONDITION
-        @(sda) if (full_counter%9==0) fail = 0;
+        @(sda) if (full_counter%9==0) fail = 0; // iff scl [optional, since other thread finishes first]
       end
       begin
         @(negedge scl) if (sda == temp) fail = 0;
       end
     join_any
     disable fork;
-    if (fail) `uvm_error("ASRTERR", "Protocol check FAILED")
-    else `uvm_info("SDA Stable Checker", "Protocol check PASSED", UVM_LOW)
+    if (fail) $error("sda_stable_checker(): Protocol check FAILED");
     // assert (!fail);
   endtask
-
   always @(posedge scl) sda_stable_checker();
   // ***
 
@@ -148,11 +137,8 @@ interface i2c_if (input bit system_clock, input bit reset_n);
   endproperty
   assert property (p_i2c_check);
 
-  // Antecedent only passes at Reapeted Start (Sr)
-  // Useless, just checks the counter
   property p_mc_stable_sda;
-    @(posedge scl) 1 ##0 @(sda iff scl) 1 |-> full_counter%9==0;
+    @(negedge sda iff scl) disable iff (!reset_n) 1 ##1 @(sda iff scl) 1 |-> full_counter%9==0;
   endproperty
-
   assert property (p_mc_stable_sda);
 endinterface
