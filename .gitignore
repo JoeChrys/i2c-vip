@@ -3,6 +3,7 @@ xcelium*
 waves.shm/
 .simvision/
 xmsim*
+.bpad/
 
 # Output Files
 *.history
