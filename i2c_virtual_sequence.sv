@@ -20,6 +20,8 @@ class i2c_virtual_base_sequence extends uvm_sequence;
   rand int      clock_stretch_data[7:0];
   rand int      clock_stretch_ack;
 
+  rand int      number_of_bytes;
+
   constraint c_virtual_defaults {
     soft (transaction_type == WRITE);
     soft (start_condition == 0);
@@ -29,6 +31,8 @@ class i2c_virtual_base_sequence extends uvm_sequence;
     foreach (clock_stretch_data[i]) {
       soft (clock_stretch_data[i] == 0);
     }
+    number_of_bytes > 0;
+    soft (number_of_bytes < 30);
   }
 
   extern function new(string name = "i2c_virtual_base_sequence");
@@ -104,14 +108,14 @@ endclass
     fork
       begin
         if(!m_seq.randomize() with {
-          // constraints
+          number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
         m_seq.start(m_seqr, this);
       end
       begin
         if (!s_seq.randomize() with {
-          // constraints
+          number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
         s_seq.start(s_seqr, this);
@@ -140,14 +144,14 @@ endclass
     fork
       begin
         if(!m_seq.randomize() with {
-          // constraints
+          number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
         m_seq.start(m_seqr, this);
       end
       begin
         if (!s_seq.randomize() with {
-          // constraints
+          number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
         s_seq.start(s_seqr, this);
@@ -176,14 +180,14 @@ endclass
     fork
       begin
         if(!m_seq.randomize() with {
-          // constraints
+          number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
         m_seq.start(m_seqr, this);
       end
       begin
         if (!s_seq.randomize() with {
-          // constraints
+          number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
         s_seq.start(s_seqr, this);
@@ -195,7 +199,7 @@ class i2c_virtual_read_no_stop_no_delays_no_cs extends i2c_virtual_base_sequence
   `uvm_object_utils(i2c_virtual_read_no_stop_no_delays_no_cs)
 
   i2c_master_read_no_stop_no_delays  m_seq;
-  i2c_slave_write_sequence             s_seq;
+  i2c_slave_write_sequence           s_seq;
 
   extern function new(string name = "i2c_virtual_read_no_stop_no_delays_no_cs");
   extern virtual task body();
@@ -212,14 +216,14 @@ endclass
     fork
       begin
         if(!m_seq.randomize() with {
-          // constraints
+          number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
         m_seq.start(m_seqr, this);
       end
       begin
         if (!s_seq.randomize() with {
-          // constraints
+          number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
         s_seq.start(s_seqr, this);
