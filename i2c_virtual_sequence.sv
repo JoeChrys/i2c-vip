@@ -91,6 +91,28 @@ class i2c_virtual_write_with_stop_no_delays_no_cs extends i2c_virtual_base_seque
   extern virtual task body();
 endclass
 
-function i2c_virtual_write_with_stop_no_delays_no_cs:: new(string name = "i2c_virtual_write_with_stop_no_delays_no_cs");
-  super.new(name);
-endfunction
+  function i2c_virtual_write_with_stop_no_delays_no_cs:: new(string name = "i2c_virtual_write_with_stop_no_delays_no_cs");
+    super.new(name);
+  endfunction
+
+  task i2c_virtual_write_with_stop_no_delays_no_cs:: body();
+    m_seq = i2c_master_write_no_stop_no_delays::type_id::create("m_seq");
+    s_seq = i2c_slave_read_sequence::type_id::create("s_seq");
+
+    fork
+      begin
+        if(!m_seq.randomize() with {
+          // constraints
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize master sequence")
+        m_seq.start(m_seqr, this);
+      end
+      begin
+        if (!s_seq.randomize() with {
+          // constraints
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize master sequence")
+        s_seq.start(s_seqr, this);
+      end
+    join
+  endtask
