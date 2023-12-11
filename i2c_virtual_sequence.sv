@@ -81,3 +81,16 @@ endclass
     join
   endtask
 
+class i2c_virtual_write_with_stop_no_delays_no_cs extends i2c_virtual_base_sequence;
+  `uvm_object_utils(i2c_virtual_write_with_stop_no_delays_no_cs)
+
+  i2c_master_write_no_stop_no_delays  m_seq;
+  i2c_slave_read_sequence             s_seq;
+
+  extern function new(string name = "i2c_virtual_write_with_stop_no_delays_no_cs");
+  extern virtual task body();
+endclass
+
+function i2c_virtual_write_with_stop_no_delays_no_cs:: new(string name = "i2c_virtual_write_with_stop_no_delays_no_cs");
+  super.new(name);
+endfunction

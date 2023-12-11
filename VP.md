@@ -48,7 +48,7 @@
     - Reset speed on Stop
     - No ACK required
 
-###### Unnecessary RA Tests
+###### Unnecessary RA Tests (will be skipped)
 1. __Test General Call Command__ `Start - 'b0000_0000 - 'bxxxx_xxx0 - Stop`
   __Send General Call Adreess followed by the General Call Command__
 

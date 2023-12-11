@@ -1,16 +1,5 @@
 ## TODO:
 - [x] Verification Plan
-    - [x] Normal behavior
-        - [x] Start - Address1|Write - Data 1.. - Start - Address2|Write - Data 1.. - Stop
-        - [x] Start - Address1|Read  - Data 1.. - Start - Address2|Read  - Data 1.. - Stop
-        - [x] Start - Address1|Write - Data 1.. - Start - Address1|Read  - Data 1.. - Stop
-        - [x] ...
-
-- [x] Interface
-    - [x] Pullup behavior when `1'bZ`
-    - [x] Basic assertions for `1'bX`
-    - [x] Assertion for pullup behavior
-    - [x] Assert uvc logic never `1'b1`
 
 - [x] Data item
     - [x] Member variables
@@ -34,6 +23,7 @@
     - [x] check while writing
     - [x] read
     - [x] Add self ACK for START Byte
+    - [ ] Configurable delays
 
 - [x] Slave Driver
     - [x] Sample (and send RSP to seq)
@@ -45,15 +35,18 @@
     - [ ] Keep speed at START
     - [ ] Implement START Byte check
     - [ ] ~~Listen only for certain address function (keep reserved in mind)~~
+    - [ ] Configurable delays
 
 - [ ] Testbench
-    - [ ] Create 2 IF for masters and 1 IF for slave
+    - [x] Create 2 IF for masters and 1 IF for slave
     - [x] Connect `sda` and `scl` of all interfaces
-    - [ ] Use modports
+    - [ ] [Optional] Use modports
 
-- [ ] Interface
-    - [ ] Implement assertions
-    - [ ] ...
+- [x] Interface
+    - [x] Interconnect wire and logic on top.sv
+    - [x] Immediate assertions (validity)
+    - [x] Concurrent assertions
+    - [x] Task assertions
 
 -  [ ] Coverage
     - [ ] ...

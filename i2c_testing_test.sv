@@ -8,7 +8,7 @@ class i2c_testing_test extends i2c_base_test;
     
     // rand int number_of_transactions;
 
-    i2c_virtual_base_sequence v_seq;
+    i2c_virtual_write_with_stop_no_delays_no_cs v_seq;
         
     extern function new(string name = "i2c_testing_test", uvm_component parent=null);
     extern virtual function void build_phase(uvm_phase phase);
@@ -27,7 +27,7 @@ endfunction : new
 function void i2c_testing_test::build_phase(uvm_phase phase);
     super.build_phase(phase);
     
-    v_seq = i2c_virtual_base_sequence :: type_id :: create ("v_seq");
+    v_seq = i2c_virtual_write_with_stop_no_delays_no_cs :: type_id :: create ("v_seq");
 endfunction : build_phase
 
 //-------------------------------------------------------------------------------------------------------------
@@ -46,8 +46,8 @@ task i2c_testing_test:: run_phase (uvm_phase phase);
     init_virtual_seq();
     
     if (!v_seq.randomize() with {
-      start_condition;
-      stop_condition;
+      // start_condition;
+      // stop_condition;
     }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
     v_seq.start(null);
 
@@ -63,5 +63,7 @@ endfunction
 function void i2c_testing_test:: init_virtual_seq();
     v_seq.m_seqr = env.master_agent.m_seqr;
     v_seq.s_seqr = env.slave_agent.s_seqr;
+    if (v_seq.m_seqr == null) `uvm_fatal("NULPTR", "Master Sequencer has not be set")
+    if (v_seq.s_seqr == null) `uvm_fatal("NULPTR", "Slave Sequencer has not be set")
 endfunction
 
