@@ -10,10 +10,11 @@
     - [x] Start - Finish - Get response item
     - [x] check data byte or ACK
     - [x] change ack_nack
-    - [x] Master Reserved
+    - [ ] Master Reserved
     - [ ] [Optional] Master, stop if NACK/Fail
     - [x] Slave normal and reserved
-    - [ ] Env Virtual Seq
+    - [x] Normal Virtual Seq
+    - [ ] Reserved Addr Virtual Seq
 
 - [x] Master Driver
     - [x] Bit driving (setting SDA and SCL in the correct order prefferably without using delays)

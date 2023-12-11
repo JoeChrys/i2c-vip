@@ -391,7 +391,7 @@ endclass // i2c_master_read_sequence
     end
   endtask 
 
-// *** Virtual Sequences ***
+// *** PreConfiged Sequences ***
 
 // ** Write **
 class i2c_master_write_with_stop_no_delays extends i2c_master_write_sequence;

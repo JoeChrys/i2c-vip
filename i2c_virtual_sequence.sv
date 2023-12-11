@@ -231,4 +231,296 @@ endclass
     join
   endtask
 
+// *** With delay and Clock Stretch
 
+// * Write
+class i2c_virtual_write_with_stop_with_delays_with_cs extends i2c_virtual_base_sequence;
+  `uvm_object_utils(i2c_virtual_write_with_stop_with_delays_with_cs)
+
+  i2c_master_write_with_stop_with_delays  m_seq;
+  i2c_slave_read_with_clock_stretch_ack   s_seq;
+
+  extern function new(string name = "i2c_virtual_write_with_stop_with_delays_with_cs");
+  extern virtual task body();
+endclass
+
+  function i2c_virtual_write_with_stop_with_delays_with_cs:: new(string name = "i2c_virtual_write_with_stop_with_delays_with_cs");
+    super.new(name);
+  endfunction
+
+  task i2c_virtual_write_with_stop_with_delays_with_cs:: body();
+    m_seq = i2c_master_write_with_stop_with_delays::type_id::create("m_seq");
+    s_seq = i2c_slave_read_with_clock_stretch_ack::type_id::create("s_seq");
+
+    fork
+      begin
+        if(!m_seq.randomize() with {
+          number_of_bytes == local::number_of_bytes;
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize master sequence")
+        m_seq.start(m_seqr, this);
+      end
+      begin
+        if (!s_seq.randomize() with {
+          number_of_bytes == local::number_of_bytes;
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize master sequence")
+        s_seq.start(s_seqr, this);
+      end
+    join
+  endtask
+
+class i2c_virtual_write_no_stop_with_delays_with_cs extends i2c_virtual_base_sequence;
+  `uvm_object_utils(i2c_virtual_write_no_stop_with_delays_with_cs)
+
+  i2c_master_write_no_stop_with_delays  m_seq;
+  i2c_slave_read_with_clock_stretch_ack   s_seq;
+
+  extern function new(string name = "i2c_virtual_write_no_stop_with_delays_with_cs");
+  extern virtual task body();
+endclass
+
+  function i2c_virtual_write_no_stop_with_delays_with_cs:: new(string name = "i2c_virtual_write_no_stop_with_delays_with_cs");
+    super.new(name);
+  endfunction
+
+  task i2c_virtual_write_no_stop_with_delays_with_cs:: body();
+    m_seq = i2c_master_write_no_stop_with_delays::type_id::create("m_seq");
+    s_seq = i2c_slave_read_with_clock_stretch_ack::type_id::create("s_seq");
+
+    fork
+      begin
+        if(!m_seq.randomize() with {
+          number_of_bytes == local::number_of_bytes;
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize master sequence")
+        m_seq.start(m_seqr, this);
+      end
+      begin
+        if (!s_seq.randomize() with {
+          number_of_bytes == local::number_of_bytes;
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize master sequence")
+        s_seq.start(s_seqr, this);
+      end
+    join
+  endtask
+
+class i2c_virtual_write_with_stop_with_delays_with_cs_all extends i2c_virtual_base_sequence;
+  `uvm_object_utils(i2c_virtual_write_with_stop_with_delays_with_cs_all)
+
+  i2c_master_write_with_stop_with_delays  m_seq;
+  i2c_slave_read_with_clock_stretch_all   s_seq;
+
+  extern function new(string name = "i2c_virtual_write_with_stop_with_delays_with_cs_all");
+  extern virtual task body();
+endclass
+
+  function i2c_virtual_write_with_stop_with_delays_with_cs_all:: new(string name = "i2c_virtual_write_with_stop_with_delays_with_cs_all");
+    super.new(name);
+  endfunction
+
+  task i2c_virtual_write_with_stop_with_delays_with_cs_all:: body();
+    m_seq = i2c_master_write_with_stop_with_delays::type_id::create("m_seq");
+    s_seq = i2c_slave_read_with_clock_stretch_all::type_id::create("s_seq");
+
+    fork
+      begin
+        if(!m_seq.randomize() with {
+          number_of_bytes == local::number_of_bytes;
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize master sequence")
+        m_seq.start(m_seqr, this);
+      end
+      begin
+        if (!s_seq.randomize() with {
+          number_of_bytes == local::number_of_bytes;
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize master sequence")
+        s_seq.start(s_seqr, this);
+      end
+    join
+  endtask
+
+class i2c_virtual_write_no_stop_with_delays_with_cs_all extends i2c_virtual_base_sequence;
+  `uvm_object_utils(i2c_virtual_write_no_stop_with_delays_with_cs_all)
+
+  i2c_master_write_no_stop_with_delays  m_seq;
+  i2c_slave_read_with_clock_stretch_all   s_seq;
+
+  extern function new(string name = "i2c_virtual_write_no_stop_with_delays_with_cs_all");
+  extern virtual task body();
+endclass
+
+  function i2c_virtual_write_no_stop_with_delays_with_cs_all:: new(string name = "i2c_virtual_write_no_stop_with_delays_with_cs_all");
+    super.new(name);
+  endfunction
+
+  task i2c_virtual_write_no_stop_with_delays_with_cs_all:: body();
+    m_seq = i2c_master_write_no_stop_with_delays::type_id::create("m_seq");
+    s_seq = i2c_slave_read_with_clock_stretch_all::type_id::create("s_seq");
+
+    fork
+      begin
+        if(!m_seq.randomize() with {
+          number_of_bytes == local::number_of_bytes;
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize master sequence")
+        m_seq.start(m_seqr, this);
+      end
+      begin
+        if (!s_seq.randomize() with {
+          number_of_bytes == local::number_of_bytes;
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize master sequence")
+        s_seq.start(s_seqr, this);
+      end
+    join
+  endtask
+
+// * Read
+class i2c_virtual_read_with_stop_with_delays_with_cs extends i2c_virtual_base_sequence;
+  `uvm_object_utils(i2c_virtual_read_with_stop_with_delays_with_cs)
+
+  i2c_master_read_with_stop_with_delays     m_seq;
+  i2c_slave_write_with_clock_stretch_ack    s_seq;
+
+  extern function new(string name = "i2c_virtual_read_with_stop_with_delays_with_cs");
+  extern virtual task body();
+endclass
+
+  function i2c_virtual_read_with_stop_with_delays_with_cs:: new(string name = "i2c_virtual_read_with_stop_with_delays_with_cs");
+    super.new(name);
+  endfunction
+
+  task i2c_virtual_read_with_stop_with_delays_with_cs:: body();
+    m_seq = i2c_master_read_with_stop_with_delays::type_id::create("m_seq");
+    s_seq = i2c_slave_write_with_clock_stretch_ack::type_id::create("s_seq");
+
+    fork
+      begin
+        if(!m_seq.randomize() with {
+          number_of_bytes == local::number_of_bytes;
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize master sequence")
+        m_seq.start(m_seqr, this);
+      end
+      begin
+        if (!s_seq.randomize() with {
+          number_of_bytes == local::number_of_bytes;
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize master sequence")
+        s_seq.start(s_seqr, this);
+      end
+    join
+  endtask
+
+class i2c_virtual_read_no_stop_with_delays_with_cs extends i2c_virtual_base_sequence;
+  `uvm_object_utils(i2c_virtual_read_no_stop_with_delays_with_cs)
+
+  i2c_master_read_no_stop_with_delays       m_seq;
+  i2c_slave_write_with_clock_stretch_ack    s_seq;
+
+  extern function new(string name = "i2c_virtual_read_no_stop_with_delays_with_cs");
+  extern virtual task body();
+endclass
+
+  function i2c_virtual_read_no_stop_with_delays_with_cs:: new(string name = "i2c_virtual_read_no_stop_with_delays_with_cs");
+    super.new(name);
+  endfunction
+
+  task i2c_virtual_read_no_stop_with_delays_with_cs:: body();
+    m_seq = i2c_master_read_no_stop_with_delays::type_id::create("m_seq");
+    s_seq = i2c_slave_write_with_clock_stretch_ack::type_id::create("s_seq");
+
+    fork
+      begin
+        if(!m_seq.randomize() with {
+          number_of_bytes == local::number_of_bytes;
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize master sequence")
+        m_seq.start(m_seqr, this);
+      end
+      begin
+        if (!s_seq.randomize() with {
+          number_of_bytes == local::number_of_bytes;
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize master sequence")
+        s_seq.start(s_seqr, this);
+      end
+    join
+  endtask
+
+class i2c_virtual_read_with_stop_with_delays_with_cs_all extends i2c_virtual_base_sequence;
+  `uvm_object_utils(i2c_virtual_read_with_stop_with_delays_with_cs_all)
+
+  i2c_master_read_with_stop_with_delays     m_seq;
+  i2c_slave_write_with_clock_stretch_all    s_seq;
+
+  extern function new(string name = "i2c_virtual_read_with_stop_with_delays_with_cs_all");
+  extern virtual task body();
+endclass
+
+  function i2c_virtual_read_with_stop_with_delays_with_cs_all:: new(string name = "i2c_virtual_read_with_stop_with_delays_with_cs_all");
+    super.new(name);
+  endfunction
+
+  task i2c_virtual_read_with_stop_with_delays_with_cs_all:: body();
+    m_seq = i2c_master_read_with_stop_with_delays::type_id::create("m_seq");
+    s_seq = i2c_slave_write_with_clock_stretch_all::type_id::create("s_seq");
+
+    fork
+      begin
+        if(!m_seq.randomize() with {
+          number_of_bytes == local::number_of_bytes;
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize master sequence")
+        m_seq.start(m_seqr, this);
+      end
+      begin
+        if (!s_seq.randomize() with {
+          number_of_bytes == local::number_of_bytes;
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize master sequence")
+        s_seq.start(s_seqr, this);
+      end
+    join
+  endtask
+
+class i2c_virtual_read_no_stop_with_delays_with_cs_all extends i2c_virtual_base_sequence;
+  `uvm_object_utils(i2c_virtual_read_no_stop_with_delays_with_cs_all)
+
+  i2c_master_read_no_stop_with_delays       m_seq;
+  i2c_slave_write_with_clock_stretch_ack_all    s_seq;
+
+  extern function new(string name = "i2c_virtual_read_no_stop_with_delays_with_cs_all");
+  extern virtual task body();
+endclass
+
+  function i2c_virtual_read_no_stop_with_delays_with_cs_all:: new(string name = "i2c_virtual_read_no_stop_with_delays_with_cs_all");
+    super.new(name);
+  endfunction
+
+  task i2c_virtual_read_no_stop_with_delays_with_cs_all:: body();
+    m_seq = i2c_master_read_no_stop_with_delays::type_id::create("m_seq");
+    s_seq = i2c_slave_write_with_clock_stretch_ack_all::type_id::create("s_seq");
+
+    fork
+      begin
+        if(!m_seq.randomize() with {
+          number_of_bytes == local::number_of_bytes;
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize master sequence")
+        m_seq.start(m_seqr, this);
+      end
+      begin
+        if (!s_seq.randomize() with {
+          number_of_bytes == local::number_of_bytes;
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize master sequence")
+        s_seq.start(s_seqr, this);
+      end
+    join
+  endtask
+
+// * Reserved Addresses

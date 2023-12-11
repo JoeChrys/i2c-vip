@@ -401,6 +401,8 @@ endclass // i2c_slave_write_sequence
     end
   endtask
 
+// *** PreConfiged Sequences
+
 class i2c_slave_read_with_clock_stretch_ack extends i2c_slave_read_sequence;
   `uvm_object_utils(i2c_slave_read_with_clock_stretch_ack)
 
