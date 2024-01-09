@@ -63,3 +63,15 @@ a single byte instead of a dynamic byte array
 - Debugged Assertion
 - Initial work on Virtual Sequence
 - Created test for testing (uses virtual sequence)
+
+#### 6/1/2014
+- Initial work on Scoreboard
+
+#### 7/1
+- Made Scoreboard behave like an FSM
+
+#### 8/1
+- Finished Scoreboard
+
+#### 9/1
+- Finished Master Seq

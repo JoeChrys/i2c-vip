@@ -524,3 +524,133 @@ endclass
   endtask
 
 // * Reserved Addresses
+
+class i2c_virtual_general_call_command extends i2c_virtual_base_sequence;
+  `uvm_object_utils(i2c_virtual_general_call_command)
+
+  i2c_master_general_call_command  m_seq;
+
+  rand bit[7:1]               command;
+  rand int                    delay[2];
+  rand int                    clock_stretch_ack[2];
+  rand int                    clock_stretch_data[2][8];
+
+  constraint c_virtual_general_call_command_defaults {
+    soft (command == 7'b000_0011);  // reset command
+    foreach(delay[i]) {
+      delay[i] >= 0;
+      soft (delay[i] == 0);
+    }
+    foreach(clock_stretch_ack[i]) {
+      clock_stretch_ack[i] >= 0;
+      soft (clock_stretch_ack[i] == 0);
+    }
+    foreach (clock_stretch_data[i]) {
+      foreach (clock_stretch_data[i][j]) {
+        clock_stretch_data[i][j] >= 0;
+        soft (clock_stretch_data[i][j] == 0);
+      }
+    } 
+  }
+
+  extern function new(string name = "i2c_virtual_general_call_command");
+  extern virtual task body();
+endclass
+
+  function i2c_virtual_general_call_command:: new(string name = "i2c_virtual_general_call_command");
+    super.new(name);
+  endfunction
+
+  task i2c_virtual_general_call_command:: body();
+    m_seq = i2c_master_general_call_command::type_id::create("m_seq");
+    s_seq = i2c_slave_base_sequence::type_id::create("s_seq");
+
+    fork
+      begin
+        if(!m_seq.randomize() with {
+          command == local::command;
+          delay[0] == local::delay[0];
+          delay[1] == local::delay[1];
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize master sequence")
+        m_seq.start(m_seqr, this);
+      end
+      begin
+        foreach (clock_stretch_ack[i]) {
+          if (!s_seq.randomize() with {
+            clock_stretch_ack[i] == local::clock_stretch_ack[i];
+            foreach (clock_stretch_data[i][j]) {
+              clock_stretch_data[i][j] == local::clock_stretch_data[i][j];
+            }
+          })
+          `uvm_fatal("RNDERR", "Failed to randomize slave sequence")
+          s_seq.start(s_seqr, this);
+        }
+      end
+    join
+  endtask
+
+class c_virtual_general_call_controller_address extends i2c_virtual_base_sequence;
+  `uvm_object_utils(c_virtual_general_call_controller_address)
+
+  i2c_master_general_call_controller_address  m_seq;
+
+  rand bit[7:1]               controller_address;
+  rand int                    delay[2];
+  rand int                    clock_stretch_ack[2];
+  rand int                    clock_stretch_data[2][8];
+
+  constraint c_virtual_general_call_controller_address_defaults {
+    soft (controller_address == 7'b101_0011);  // default controller_address
+    foreach(delay[i]) {
+      delay[i] >= 0;
+      soft (delay[i] == 0);
+    }
+    foreach(clock_stretch_ack[i]) {
+      clock_stretch_ack[i] >= 0;
+      soft (clock_stretch_ack[i] == 0);
+    }
+    foreach (clock_stretch_data[i]) {
+      foreach (clock_stretch_data[i][j]) {
+        clock_stretch_data[i][j] >= 0;
+        soft (clock_stretch_data[i][j] == 0);
+      }
+    } 
+  }
+
+  extern function new(string name = "c_virtual_general_call_controller_address");
+  extern virtual task body();
+endclass
+
+  function c_virtual_general_call_controller_address:: new(string name = "c_virtual_general_call_controller_address");
+    super.new(name);
+  endfunction
+
+  task i2c_virtual_general_call_controller_address:: body();
+    m_seq = i2c_master_general_call_controller_address::type_id::create("m_seq");
+    s_seq = i2c_slave_base_sequence::type_id::create("s_seq");
+
+    fork
+      begin
+        if(!m_seq.randomize() with {
+          command == local::command;
+          delay[0] == local::delay[0];
+          delay[1] == local::delay[1];
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize master sequence")
+        m_seq.start(m_seqr, this);
+      end
+      begin
+        foreach (clock_stretch_ack[i]) {
+          if (!s_seq.randomize() with {
+            clock_stretch_ack[i] == local::clock_stretch_ack[i];
+            foreach (clock_stretch_data[i][j]) {
+              clock_stretch_data[i][j] == local::clock_stretch_data[i][j];
+            }
+          })
+          `uvm_fatal("RNDERR", "Failed to randomize slave sequence")
+          s_seq.start(s_seqr, this);
+        }
+      end
+    join
+  endtask

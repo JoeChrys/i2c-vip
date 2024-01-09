@@ -10,11 +10,13 @@
     - [x] Start - Finish - Get response item
     - [x] check data byte or ACK
     - [x] change ack_nack
-    - [ ] Master Reserved
+    - [x] Master Reserved
     - [ ] [Optional] Master, stop if NACK/Fail
     - [x] Slave normal and reserved
     - [x] Normal Virtual Seq
-    - [ ] Reserved Addr Virtual Seq
+    - [x] Reserved Addr Virtual Seq
+    - [ ] Vseq - Avoid reserved address in normal mode
+    - [ ] Sync Vseq else fatal error
 
 - [x] Master Driver
     - [x] Bit driving (setting SDA and SCL in the correct order prefferably without using delays)
@@ -53,4 +55,8 @@
     - [ ] ...
 
 - [ ] Scoreboard
-    - [ ] ...
+    - [x] Normal Read-Write
+    - [x] Device ID
+    - [ ] Speed mode (needs NACK)
+    - [x] Rest of reserved addresses
+    - [ ] Add fatal if no start condition
