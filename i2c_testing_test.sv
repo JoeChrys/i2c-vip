@@ -31,6 +31,9 @@ function void i2c_testing_test::build_phase(uvm_phase phase);
     super.build_phase(phase);
     
     v_seq = i2c_virtual_write_with_stop_no_delays_no_cs :: type_id :: create ("v_seq");
+    v_seq1 = i2c_virtual_write_no_stop_with_delays_with_cs_all :: type_id :: create ("v_seq1");
+    v_seq2 = i2c_virtual_read_with_stop_no_delays_no_cs :: type_id :: create ("v_seq2");
+    v_seq3 = i2c_virtual_read_with_stop_with_delays_with_cs_all :: type_id :: create ("v_seq3");
 endfunction : build_phase
 
 //-------------------------------------------------------------------------------------------------------------
