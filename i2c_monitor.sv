@@ -89,7 +89,7 @@ task i2c_monitor::do_monitor();
   i2c_mon_analysis_port.write(i2c_trans); // sending sampled data to scoreboard
   // cov.i2c_cg.sample(i2c_trans); // sampling for coverage
 
-  `uvm_info("Monitor", "do_monitor task executed", UVM_LOW)
+  `uvm_info("Monitor", "do_monitor task executed", UVM_DEBUG)
 endtask
 
 task i2c_monitor::check_start_cond();

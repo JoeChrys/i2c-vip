@@ -70,7 +70,7 @@ task i2c_master_driver:: do_init();
   i2c_vif.uvc_sda = 'bz;
   i2c_vif.uvc_scl = 'bz;
   @(posedge i2c_vif.system_clock);
-  `uvm_info("Driver", "do_init task executed", UVM_LOW)
+  `uvm_info("Driver", "do_init task executed", UVM_DEBUG)
 endtask // i2c_master_driver::do_init
 
 task i2c_master_driver:: do_drive(i2c_item req);
@@ -106,7 +106,7 @@ task i2c_master_driver:: do_drive(i2c_item req);
   if (req.stop_condition && !transfer_aborted) begin
     do_stop_cond();
   end
-  `uvm_info("Driver", "do_drive task executed", UVM_HIGH)
+  `uvm_info("Driver", "do_drive task executed", UVM_DEBUG)
 endtask // i2c_master_driver::do_drive
                                                                                 // TODO refine timings
 task i2c_master_driver:: do_start_cond();
@@ -161,7 +161,7 @@ task i2c_master_driver:: write_data();
 
   // pulse for ack/nack
   fork
-    if (req.data == `START_BYTE) begin
+    if (req.data == START_BYTE) begin
       `uvm_info(get_type_name(), "Sent START BYTE, doing self-ACK", UVM_LOW)
       send_bit(`ACK);
     end

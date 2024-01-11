@@ -9,13 +9,16 @@ class i2c_testing_test extends i2c_base_test;
     // rand int number_of_transactions;
 
     i2c_virtual_write_with_stop_no_delays_no_cs v_seq;
+    i2c_virtual_write_no_stop_with_delays_with_cs_all v_seq1;
+    i2c_virtual_read_with_stop_no_delays_no_cs v_seq2;
+    i2c_virtual_read_with_stop_with_delays_with_cs_all v_seq3;
         
     extern function new(string name = "i2c_testing_test", uvm_component parent=null);
     extern virtual function void build_phase(uvm_phase phase);
     extern virtual function void start_of_simulation_phase(uvm_phase phase);
     extern virtual task run_phase (uvm_phase phase);
     extern virtual function void report_phase(uvm_phase phase);
-    extern virtual function void init_virtual_seq();
+    extern virtual function void init_virtual_seq(i2c_virtual_base_sequence virtual_sequence);
 endclass 
 
 //-------------------------------------------------------------------------------------------------------------
@@ -43,13 +46,29 @@ task i2c_testing_test:: run_phase (uvm_phase phase);
     phase.raise_objection(this);
     // number_of_transactions = $urandom_range(10,20);
     // number_of_transactions = 10;
-    init_virtual_seq();
     
+    init_virtual_seq(v_seq);
     if (!v_seq.randomize() with {
       // start_condition;
       // stop_condition;
     }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
     v_seq.start(null);
+
+    init_virtual_seq(v_seq1);
+    if (!v_seq1.randomize() with {
+    }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
+    v_seq1.start(null);
+
+    init_virtual_seq(v_seq2);
+    if (!v_seq2.randomize() with {
+    }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
+    v_seq2.start(null);
+
+
+    init_virtual_seq(v_seq3);
+    if (!v_seq3.randomize() with {
+    }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
+    v_seq3.start(null);
 
     #100;
     phase.drop_objection (this);
@@ -60,10 +79,10 @@ function void i2c_testing_test:: report_phase(uvm_phase phase);
     super.report_phase(phase);
 endfunction
 
-function void i2c_testing_test:: init_virtual_seq();
-    v_seq.m_seqr = env.master_agent.m_seqr;
-    v_seq.s_seqr = env.slave_agent.s_seqr;
-    if (v_seq.m_seqr == null) `uvm_fatal("NULPTR", "Master Sequencer has not be set")
-    if (v_seq.s_seqr == null) `uvm_fatal("NULPTR", "Slave Sequencer has not be set")
+function void i2c_testing_test:: init_virtual_seq(i2c_virtual_base_sequence virtual_sequence);
+    virtual_sequence.m_seqr = env.master_agent.m_seqr;
+    virtual_sequence.s_seqr = env.slave_agent.s_seqr;
+    if (virtual_sequence.m_seqr == null) `uvm_fatal("NULPTR", "Master Sequencer has not be set")
+    if (virtual_sequence.s_seqr == null) `uvm_fatal("NULPTR", "Slave Sequencer has not be set")
 endfunction
 

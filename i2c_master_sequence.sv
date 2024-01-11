@@ -676,11 +676,6 @@ class i2c_master_10bit_addr_write extends i2c_master_write_sequence;
 
   virtual task body();
     int exit_flag = 0;
-    
-    seq = i2c_master_write_sequence::type_id::create("seq");
-
-    int exit_flag;
-
     seq = i2c_master_base_sequence::type_id::create("seq");
 
     while (1) begin
@@ -766,11 +761,6 @@ class i2c_master_10bit_addr_read extends i2c_master_read_sequence;
 
   virtual task body();
     int exit_flag = 0;
-    
-    seq = i2c_master_read_sequence::type_id::create("seq");
-
-    int exit_flag;
-
     seq = i2c_master_base_sequence::type_id::create("seq");
 
     while (1) begin

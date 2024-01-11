@@ -81,7 +81,7 @@ task i2c_slave_driver:: do_init();
   enable = 'b0;
   transfer_done = 'b1;
   @(posedge i2c_vif.system_clock);  
-  `uvm_info("Driver", "do_init task executed", UVM_LOW)
+  `uvm_info("Driver", "do_init task executed", UVM_DEBUG)
 endtask
 
 
@@ -156,7 +156,7 @@ task i2c_slave_driver:: do_drive();
     // release SDA after each transfer
     // release_sda();
 
-    `uvm_info("Driver", "do_drive task executed", UVM_MEDIUM)
+    `uvm_info("Driver", "do_drive task executed", UVM_DEBUG)
   end
 endtask
 

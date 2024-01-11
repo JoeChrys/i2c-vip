@@ -1,8 +1,7 @@
-// `uvm_analysis_imp_decl(_m_mon) //master monitor
+`uvm_analysis_imp_decl(_m_mon) //master monitor
 `uvm_analysis_imp_decl(_s_mon) //slave monitor
 
 class i2c_sb extends uvm_scoreboard;
-
   `uvm_component_utils(i2c_sb)
 
   uvm_analysis_imp_m_mon #(i2c_item, i2c_sb) m_mon_imp; // master monitor
@@ -10,6 +9,7 @@ class i2c_sb extends uvm_scoreboard;
   
   // * * * Add fields here * * * 
   i2c_item item_q[$];
+  i2c_item current_item;
   int write_flag;
   int start_index;
 
@@ -31,19 +31,18 @@ class i2c_sb extends uvm_scoreboard;
     s_mon_imp = new("s_mon_imp", this);
   endfunction    
 
-  // virtual function void write_m_mon(i2c_item data);
-  //     `uvm_info("Scoreboard", "Just recieved item from master monitor", UVM_LOW)
-  // endfunction
+  virtual function void write_m_mon(i2c_item data);
+      `uvm_info("Scoreboard", "Just recieved item from master monitor", UVM_MEDIUM)
+  endfunction
 
   virtual function void write_s_mon(i2c_item data);
-    `uvm_info("Scoreboard", "Just recieved item from slave monitor", UVM_LOW)
+    `uvm_info("Scoreboard", "Just recieved item from slave monitor", UVM_MEDIUM)
 
     item_q.push_back(data);
     write_flag = 1;
   endfunction
 
   task run_phase(uvm_phase phase);
-    i2c_item current_item;
     
     forever begin
       wait (write_flag);
@@ -68,7 +67,7 @@ class i2c_sb extends uvm_scoreboard;
           next_state = GENERAL_CALL;
 
         end
-        else if (current_item.data[7:1] == C-BUS) begin
+        else if (current_item.data[7:1] == C_BUS) begin
 
           `uvm_info("Scoreboard", "C-BUS Address", UVM_LOW)
           next_state = CBUS_STATE;
@@ -126,11 +125,11 @@ class i2c_sb extends uvm_scoreboard;
         else begin : NORMAL_ADDRESSING
           if (current_item.data[0] == `W) begin
             `uvm_info("Scoreboard", $sformatf("Target Address WRITE %7b", current_item.data[7:1]), UVM_LOW)
-            next_state = WRITE;
+            next_state = NORMAL_WRITE;
           end
           else if (current_item.data[0] == `R) begin
             `uvm_info("Scoreboard", $sformatf("Target Address READ %7b", current_item.data[7:1]), UVM_LOW)
-            next_state = READ;
+            next_state = NORMAL_READ;
           end
         end : NORMAL_ADDRESSING
 
@@ -220,7 +219,7 @@ class i2c_sb extends uvm_scoreboard;
 
       end
 
-      WRITE: begin
+      NORMAL_WRITE: begin
 
         if (item_q.size() == (start_index+1)+1) begin
           `uvm_info("Scoreboard", $sformatf("Register / Write Data %8b", current_item.data), UVM_LOW)
@@ -229,14 +228,14 @@ class i2c_sb extends uvm_scoreboard;
           `uvm_info("Scoreboard", $sformatf("Write Data %8b", current_item.data), UVM_LOW)
         end
 
-        next_state = WRITE;
+        next_state = NORMAL_WRITE;
 
       end
 
-      READ: begin
+      NORMAL_READ: begin
 
         `uvm_info("Scoreboard", $sformatf("Read Data %8b", current_item.data), UVM_LOW)
-        next_state = READ;
+        next_state = NORMAL_READ;
 
       end
 
@@ -259,14 +258,14 @@ class i2c_sb extends uvm_scoreboard;
     start_index = -1;
   endfunction
 
-  function set_state(scoreboard_state_enum state);
+  function void set_state(scoreboard_state_enum state);
     case (state)
       WAIT_FOR_START: begin
         expect_start = 1;
         expect_stop = 0;
         expect_ack = 0;
       end
-      WRITE,
+      NORMAL_WRITE,
       ADDRESSING,
       GENERAL_CALL,
       CBUS_STATE,
@@ -277,7 +276,7 @@ class i2c_sb extends uvm_scoreboard;
         expect_stop = 0;
         expect_ack = 1;
       end
-      READ,
+      NORMAL_READ,
       DEVICE_ID_READ,
       TEN_BIT_ADDR_READ: begin
         expect_start = 0;
@@ -304,6 +303,7 @@ class i2c_sb extends uvm_scoreboard;
       `uvm_error("Scoreboard", "Unexpected start condition")
     end
     if (current_item.start_condition) begin
+      `uvm_info("Scoreboard", "Initiating Communication", UVM_LOW)
       start_index = item_q.size()-1;
       set_state(ADDRESSING);
     end
@@ -322,6 +322,7 @@ class i2c_sb extends uvm_scoreboard;
       `uvm_error("Scoreboard", "Unexpected stop condition")
     end
     if (current_item.stop_condition) begin
+      `uvm_info("Scoreboard", "BUS is IDLE\n", UVM_LOW)
       reset();
       next_state = WAIT_FOR_START;
     end
