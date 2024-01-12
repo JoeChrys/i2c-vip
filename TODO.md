@@ -52,7 +52,9 @@
     - [x] Task assertions
 
 -  [ ] Coverage
-    - [ ] ...
+    - [ ] Cover that each stage has been ended with Start(R) or Stop (exclude unexpected eg device id write with stop)
+    - [ ] Cover all stages and allowed transitions
+    - [ ] Cover all possible address (single bins eg device id wildcards or full cover 10bit addresses)
 
 - [ ] Scoreboard
     - [x] Normal Read-Write
