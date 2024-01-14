@@ -12,7 +12,6 @@ typedef enum {MASTER, SLAVE} agent_type_enum;
 typedef enum {WRITE, READ} transaction_type_enum;
 typedef enum {
   WAIT_FOR_START,
-  CHANGE_SPEED_MODE,
   ADDRESSING,
   NORMAL_WRITE, NORMAL_READ, 
   GENERAL_CALL_STATE, 

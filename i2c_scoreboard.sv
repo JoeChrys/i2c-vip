@@ -94,19 +94,19 @@ class i2c_sb extends uvm_scoreboard;
         end
         else if (current_item.data[7:3] == DEVICE_ID) begin
             
-            if (current_item.data[0] == `W) begin
-              `uvm_info("Scoreboard", "DEVICE ID Reserved Address WRITE", UVM_LOW)
-              next_state = DEVICE_ID_WRITE;
-            end
-            else if (current_item.data[0] == `R) begin
-              `uvm_info("Scoreboard", "DEVICE ID Reserved Address READ", UVM_LOW)
-              if (current_item.data[7:1] != item_q[start_index-2].data[7:1]) begin
-                `uvm_warning("Scoreboard", "Device ID does not match")
-              end
-              next_state = DEVICE_ID_READ;
-            end
-  
+          if (current_item.data[0] == `W) begin
+            `uvm_info("Scoreboard", "DEVICE ID Reserved Address WRITE", UVM_LOW)
+            next_state = DEVICE_ID_WRITE;
           end
+          else if (current_item.data[0] == `R) begin
+            `uvm_info("Scoreboard", "DEVICE ID Reserved Address READ", UVM_LOW)
+            if (current_item.data[7:1] != item_q[start_index-2].data[7:1]) begin
+              `uvm_warning("Scoreboard", "Device ID does not match")
+            end
+            next_state = DEVICE_ID_READ;
+          end
+  
+        end
         else if (current_item.data[7:3] == TEN_BIT_TARGET_ADDRESSING) begin
             
             if (current_item.data[0] == `W) begin
@@ -283,11 +283,6 @@ class i2c_sb extends uvm_scoreboard;
         expect_stop = 0;
         expect_ack = 0;
       end
-      // CHANGE_SPEED_MODE: begin
-      //   expect_start = 1;
-      //   expect_stop = 0;
-      //   expect_ack = -1;
-      // end
       default: begin
         `uvm_fatal("Scoreboard", "Invalid state")
       end
