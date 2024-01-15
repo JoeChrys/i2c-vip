@@ -64,7 +64,7 @@ class i2c_sb extends uvm_scoreboard;
         else if (current_item.data == GENERAL_CALL) begin
 
           `uvm_info("Scoreboard", "General call", UVM_LOW)
-          next_state = GENERAL_CALL;
+          next_state = GENERAL_CALL_STATE;
 
         end
         else if (current_item.data[7:1] == C_BUS) begin
