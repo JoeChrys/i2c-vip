@@ -31,21 +31,21 @@ class i2c_coverage extends uvm_component;
       }
     endgroup
 
-//     covergroup i2c_end_state_with_start_stop with function sample(
-//         i2c_item item,
-//         scoreboard_state_enum state
-//       );
+    covergroup i2c_end_state_with_start_stop with function sample(
+        i2c_item item,
+        scoreboard_state_enum state
+      );
       
-//       // * * * * WRITE YOUR COVERPOINTS HERE * * * * 
-//       each_state_start_stop: cross item.start_condition, item.stop_condition, state {
-//         ignore_bins same_start_stop = each_state_start_stop with (
-// item.start_condition == item.stop_condition
-//     );
-//     ignore_bins no_stop_at_certain_states = each_state_start_stop with (
-//       item.stop_condition == 0 && (state == WAIT_FOR_START || state == DEVICE_ID_WRITE)
-//     );
-// }
-//     endgroup
+      cp_start_condition: coverpoint item.start_condition;
+      cp_stop_condition: coverpoint item.stop_condition;
+      cp_state: coverpoint state;
+
+      each_state_start_stop: cross cp_start_condition, cp_stop_condition, cp_state {
+        // Ignore bins
+        ignore_bins ignore_WAIT_FOR_START = binsof(cp_state) intersect {WAIT_FOR_START} && binsof(cp_stop_condition) intersect {0};
+        ignore_bins ignore_DEVICE_ID_WRITE = binsof(cp_state) intersect {DEVICE_ID_WRITE} && binsof(cp_stop_condition) intersect {0};
+      }
+endgroup
 
     // covergroup for bus busy?
 	
