@@ -27,8 +27,6 @@ typedef enum {PERIPHERAL_DEVICE, POLLING_CPU} slave_driver_type_enum;
 typedef enum {SM, FM, FMP, HSM, UFM} speed_mode_enum;
 typedef enum {FULL, HALF, QUARTER, QUANTUM} period_fraction_enum;
 
-const time periods[speed_mode_enum] = { SM: 10000, FM: 2500, FMP: 1000, HSM: 300, UFM: 200 };
-
 // An array of all I2C addresses that are reserved for special purposes
 // Mainly used to be avoided during randomization
 const bit[7:1] RESERVED_ADDRESSES[16] = {
