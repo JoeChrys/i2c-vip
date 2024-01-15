@@ -21,6 +21,8 @@ class i2c_cfg extends uvm_object;
     rand speed_mode_enum default_speed_mode;
     rand speed_mode_enum higher_speed_mode;
     rand speed_mode_enum current_speed_mode;
+    
+    time periods[speed_mode_enum];
 
 //  Simulation timeout
     time test_time_out = 100000000;
@@ -53,6 +55,7 @@ endclass // i2c_cfg
 //-------------------------------------------------------------------------------------------------------------
 function i2c_cfg:: new(string name = "i2c_cfg");
     super.new(name);
+    periods = { SM: 10000, FM: 2500, FMP: 1000, HSM: 300, UFM: 200 };
 endfunction // new
 
 function int i2c_cfg:: get_delay(period_fraction_enum period_fraction = QUARTER);
