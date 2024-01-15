@@ -6,6 +6,7 @@ class i2c_sb extends uvm_scoreboard;
 
   uvm_analysis_imp_m_mon #(i2c_item, i2c_sb) m_mon_imp; // master monitor
   uvm_analysis_imp_s_mon #(i2c_item, i2c_sb) s_mon_imp; // slave monitor
+  i2c_coverage cov;
   
   // * * * Add fields here * * * 
   i2c_item item_q[$];
@@ -43,12 +44,17 @@ class i2c_sb extends uvm_scoreboard;
   endfunction
 
   task run_phase(uvm_phase phase);
-    
+    current_state = WAIT_FOR_START;
+    next_state = WAIT_FOR_START;
+
     forever begin
       wait (write_flag);
       write_flag = 0;
 
       current_item = item_q[$];
+      if (cfg.has_coverage) begin
+        cov.i2c_end_state_with_start_stop.sample(current_item, current_state);
+      end
 
       check_start();
 
@@ -89,6 +95,7 @@ class i2c_sb extends uvm_scoreboard;
           
           `uvm_info("Scoreboard", "SPEED MODE Reserved Address", UVM_LOW)
           expect_ack = -1;
+          cfg.toggle_speed_mode();
           next_state = WAIT_FOR_START;
 
         end
@@ -132,6 +139,10 @@ class i2c_sb extends uvm_scoreboard;
             next_state = NORMAL_READ;
           end
         end : NORMAL_ADDRESSING
+
+        if (cfg.has_coverage) begin
+          cov.i2c_addresses.sample(current_item, next_state);
+        end
 
       end
 
@@ -319,6 +330,7 @@ class i2c_sb extends uvm_scoreboard;
     if (current_item.stop_condition) begin
       `uvm_info("Scoreboard", "BUS is IDLE\n", UVM_LOW)
       reset();
+      cfg.reset_speed_mode();
       next_state = WAIT_FOR_START;
     end
   endfunction

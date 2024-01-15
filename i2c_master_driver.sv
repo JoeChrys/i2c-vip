@@ -126,6 +126,9 @@ task i2c_master_driver:: do_start_cond();
   #5;
   i2c_vif.uvc_scl = 'b0;
   #5;
+  if (!uvm_config_db#(i2c_cfg)::get(this, "", "cfg", cfg)) begin
+      `uvm_fatal("run_phase", "cfg wasn't set through config db");
+  end
 endtask
 
 task i2c_master_driver:: do_stop_cond();

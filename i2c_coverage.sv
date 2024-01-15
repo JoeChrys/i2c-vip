@@ -9,6 +9,7 @@ class i2c_coverage extends uvm_component;
     i2c_cfg cfg; 
 
     covergroup i2c_addresses with function sample(
+        i2c_item item,
         scoreboard_state_enum state
       );
       
@@ -29,6 +30,23 @@ class i2c_coverage extends uvm_component;
         bins ten_bit_addr_write = (ADDRESSING => TEN_BIT_ADDR_WRITE);
         bins ten_bit_addr_read = (ADDRESSING => TEN_BIT_ADDR_WRITE => ADDRESSING => TEN_BIT_ADDR_READ);
       }
+
+      coverpoint item.data[7:1] {
+        // bins ten_bit_addr[4] = {[7'b111_1000:7'b111_1011]};
+        bins c_bus = {C_BUS};
+        bins other_buses = {OTHER_BUSES};
+        bins future_purpose = {FUTURE_PURPOSE};
+
+        wildcard bins speed_mode = {{SPEED_MODE,??}};
+        wildcard bins device_id = {{DEVICE_ID,??}};
+
+        bins ten_bit_addr[4] = {[{TEN_BIT_TARGET_ADDRESSING,00}:TEN_BIT_TARGET_ADDRESSING,11]};
+      }
+
+      coverpoint item.data {
+        bins general_call = {GENERAL_CALL};
+        bins start_byte = {START_BYTE};
+      }
     endgroup
 
     covergroup i2c_end_state_with_start_stop with function sample(
@@ -46,9 +64,7 @@ class i2c_coverage extends uvm_component;
         ignore_bins ignore_DEVICE_ID_WRITE = binsof(cp_state) intersect {DEVICE_ID_WRITE} && binsof(cp_stop_condition) intersect {0};
         ignore_bins ignore_start_stop = binsof(cp_start_condition) intersect {1} && binsof(cp_stop_condition) intersect {1};
       }
-endgroup
-
-    // covergroup for bus busy?
+    endgroup
 	
     extern function new(string name = "i2c_coverage", uvm_component parent);
     extern virtual function void build_phase(uvm_phase phase);

@@ -52,13 +52,13 @@
     - [x] Task assertions
 
 -  [ ] Coverage
-    - [ ] Cover that each stage has been ended with Start(R) or Stop (exclude unexpected eg device id write with stop)
-    - [ ] Cover all stages and allowed transitions
-    - [ ] Cover all possible address (single bins eg device id wildcards or full cover 10bit addresses)
+    - [x] Cover that each stage has been ended with Start(R) or Stop (exclude unexpected eg device id write with stop)
+    - [x] Cover all stages and allowed transitions
+    - [x] Cover all possible address (single bins eg device id wildcards or full cover 10bit addresses)
 
-- [ ] Scoreboard
+- [x] Scoreboard
     - [x] Normal Read-Write
     - [x] Device ID
-    - [ ] Speed mode (needs NACK)
+    - [x] Speed mode (needs NACK)
     - [x] Rest of reserved addresses
-    - [ ] Add fatal if no start condition
+    - [x] Add fatal if no start condition

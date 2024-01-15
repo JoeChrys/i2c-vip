@@ -75,3 +75,7 @@ a single byte instead of a dynamic byte array
 
 #### 9/1
 - Finished Master Seq
+
+#### 15/1
+- Added coverage
+
