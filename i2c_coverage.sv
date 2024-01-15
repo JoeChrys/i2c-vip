@@ -37,10 +37,10 @@ class i2c_coverage extends uvm_component;
         bins other_buses = {OTHER_BUSES};
         bins future_purpose = {FUTURE_PURPOSE};
 
-        wildcard bins speed_mode = {{SPEED_MODE,??}};
-        wildcard bins device_id = {{DEVICE_ID,??}};
+        bins speed_mode = {[{SPEED_MODE,2'b00}:{SPEED_MODE,2'b11}]};
+        bins device_id = {[{DEVICE_ID,2'b00}:{DEVICE_ID,2'b11}]};
 
-        bins ten_bit_addr[4] = {[{TEN_BIT_TARGET_ADDRESSING,00}:TEN_BIT_TARGET_ADDRESSING,11]};
+        bins ten_bit_addr[4] = {[{TEN_BIT_TARGET_ADDRESSING,2'b00}:{TEN_BIT_TARGET_ADDRESSING,2'b11}]};
       }
 
       coverpoint item.data {

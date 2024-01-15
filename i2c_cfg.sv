@@ -22,8 +22,6 @@ class i2c_cfg extends uvm_object;
     rand speed_mode_enum higher_speed_mode;
     rand speed_mode_enum current_speed_mode;
     
-    time periods[speed_mode_enum];
-
 //  Simulation timeout
     time test_time_out = 100000000;
 
@@ -55,10 +53,10 @@ endclass // i2c_cfg
 //-------------------------------------------------------------------------------------------------------------
 function i2c_cfg:: new(string name = "i2c_cfg");
     super.new(name);
-    periods = { SM: 10000, FM: 2500, FMP: 1000, HSM: 300, UFM: 200 };
+    // periods = '{ SM: 10000, FM: 2500, FMP: 1000, HSM: 300, UFM: 200 };
 endfunction // new
 
-function int i2c_cfg:: get_delay(period_fraction_enum period_fraction = QUARTER);
+function time i2c_cfg:: get_delay(period_fraction_enum period_fraction = QUARTER);
   time period = periods[current_speed_mode];
   // case (speed_mode)
   //   SM:   period = period_SM;
@@ -82,10 +80,10 @@ function void i2c_cfg:: toggle_speed_mode();
   else
     `uvm_fatal("i2c_cfg", "Unknown speed mode");
 
-  `uvm_config_db#(i2c_cfg)::set(null, "uvm_test_top", "cfg", this);
+  uvm_config_db#(i2c_cfg)::set(null, "uvm_test_top", "cfg", this);
 endfunction
 
 function void i2c_cfg:: reset_speed_mode();
   current_speed_mode = default_speed_mode;
-  `uvm_config_db#(i2c_cfg)::set(null, "uvm_test_top", "cfg", this);
+  uvm_config_db#(i2c_cfg)::set(null, "uvm_test_top", "cfg", this);
 endfunction

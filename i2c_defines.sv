@@ -38,6 +38,7 @@ const bit[7:1] RESERVED_ADDRESSES[16] = {
   7'b111_1100, 7'b111_1101, 7'b111_1110, 7'b111_1111, // Device ID
   7'b111_1000, 7'b111_1001, 7'b111_1010, 7'b111_1011 // 10-bit target addressing
 };
+const time periods[speed_mode_enum] = '{ SM: 10000, FM: 2500, FMP: 1000, HSM: 300, UFM: 200 };
 
 // Reserved addresses for special purposes as separate constants
 const bit[7:0] GENERAL_CALL = 8'b0000_0000;

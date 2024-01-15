@@ -55,8 +55,8 @@ function void i2c_monitor::build_phase(uvm_phase phase);
   //    cov.cfg = this.cfg;
   // end  
 
-  if (!cfg.has_checks)   
-      `uvm_info("build_phase","CHECKERS DISABLED",UVM_LOW);
+  // if (!cfg.has_checks)   
+  //     `uvm_info("build_phase","CHECKERS DISABLED",UVM_LOW);
 endfunction
 
 //-------------------------------------------------------------------------------------------------------------

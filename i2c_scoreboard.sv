@@ -4,6 +4,8 @@
 class i2c_sb extends uvm_scoreboard;
   `uvm_component_utils(i2c_sb)
 
+  i2c_cfg cfg;
+
   uvm_analysis_imp_m_mon #(i2c_item, i2c_sb) m_mon_imp; // master monitor
   uvm_analysis_imp_s_mon #(i2c_item, i2c_sb) s_mon_imp; // slave monitor
   i2c_coverage cov;
@@ -30,6 +32,9 @@ class i2c_sb extends uvm_scoreboard;
 
     m_mon_imp = new("m_mon_imp", this);
     s_mon_imp = new("s_mon_imp", this);
+    if (!uvm_config_db#(i2c_cfg)::get(this, "", "cfg", cfg)) begin
+      `uvm_fatal("build_phase", "cfg wasn't set through config db");
+  end
   endfunction    
 
   virtual function void write_m_mon(i2c_item data);
