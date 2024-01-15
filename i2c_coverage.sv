@@ -44,6 +44,7 @@ class i2c_coverage extends uvm_component;
         // Ignore bins
         ignore_bins ignore_WAIT_FOR_START = binsof(cp_state) intersect {WAIT_FOR_START} && binsof(cp_stop_condition) intersect {0};
         ignore_bins ignore_DEVICE_ID_WRITE = binsof(cp_state) intersect {DEVICE_ID_WRITE} && binsof(cp_stop_condition) intersect {0};
+        ignore_bins ignore_start_stop = binsof(cp_start_condition) intersect {1} && binsof(cp_stop_condition) intersect {1};
       }
 endgroup
 
@@ -55,7 +56,7 @@ endclass
 
 function i2c_coverage::new(string name = "i2c_coverage", uvm_component parent);
     super.new(name, parent);
-    // i2c_end_state_with_start_stop = new();
+    i2c_end_state_with_start_stop = new();
     i2c_addresses = new();
 endfunction // i2c_coverage::new
 
