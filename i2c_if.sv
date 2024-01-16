@@ -1,8 +1,4 @@
 interface i2c_if (input bit system_clock, input bit reset_n);
-  // `include "uvm_macros.svh"
-  // import uvm_pkg::*;
-    
-  // * * * Add you specific interface logics below * * *
   logic uvc_sda;
   logic uvc_scl;
 
@@ -49,36 +45,27 @@ interface i2c_if (input bit system_clock, input bit reset_n);
     full_counter <= full_counter + 1;
   end
 
-  task wait_n_clocks(int N);
-    // * * * This task is just a blocking function that waits N clock cycles. * * *
-    repeat(N) @(posedge system_clock);
-    #10;
-  endtask
-
-  // * * * You can add assertion checkers bellow * * * 
-
   // *** Immediate Assertions for valid driver signals ***
   always @(uvc_sda) begin
-    assert (uvc_sda !== 1'bx);
-    // ! may need to remove if we actively drive on higher speeds
-    assert (uvc_sda !== 1'b1);
+    assert (uvc_sda !== 'bx);
+    // ! may need to remove if actively driven
+    assert (uvc_sda !== 'b1);
   end
 
   always @(uvc_scl) begin
-    assert (uvc_scl !== 1'bx);
-    // ! may need to remove if we actively drive on higher speeds
-    assert (uvc_sda !== 1'b1);
+    assert (uvc_scl !== 'bx);
+    // ! may need to remove if actively driven
+    assert (uvc_sda !== 'b1);
   end
 
   // *** Immediate Assertions for valid bus signals ***
-  always @(sda) assert (sda!==1'bx);
-  always @(scl) assert (scl!==1'bx);
+  always @(sda) assert (sda!=='bx);
+  always @(scl) assert (scl!=='bx);
 
 
   // *** Protocol Assertions ***
   
   // Approach 1
-  // ! How to monitor the spawned threads?
   task automatic protocol_checker();
     automatic int clock_counter =  -1;
     automatic bit fail = 1;
@@ -98,8 +85,6 @@ interface i2c_if (input bit system_clock, input bit reset_n);
     if (fail) $error("protocol_checker(): Protocol check FAILED");
   endtask
   always @(negedge sda iff scl) fork protocol_checker(); join_none
-
-  
 
   // Approach 2 (uses counter)
   property p_start;

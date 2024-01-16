@@ -12,7 +12,7 @@ class i2c_slave_driver extends uvm_driver #(i2c_item);
     bit                     counter_reset;
     bit                     transfer_done;
 
-    slave_driver_type_enum  slave_driver_type = PERIPHERAL_DEVICE;              // TODO make it change in build_phase via cfg
+    slave_driver_type_enum  slave_driver_type = PERIPHERAL_DEVICE;              // TODO
 
     extern function new (string name, uvm_component parent);
     extern virtual function void build_phase (uvm_phase phase);
@@ -216,7 +216,6 @@ task i2c_slave_driver:: write_data();
 
   // release SDA for Master to ACK/NACK
   release_sda();
-  // `uvm_info("Driver", "Released SDA for ACK", UVM_HIGH)
 
   @(posedge i2c_vif.scl);
 
@@ -265,7 +264,7 @@ task i2c_slave_driver:: clock_stretch(int release_clock = 1);
   // else ...
   `uvm_info("Driver", "Starting Clock Stretch", UVM_DEBUG)
   i2c_vif.uvc_scl = 'b0;
-  #(delay*cfg.get_delay(QUANTUM));                                                                                                             // TODO
+  #(delay*cfg.get_delay(QUANTUM));
   `uvm_info("Driver", "DONE Clock Stretch", UVM_DEBUG)
   if (release_clock) release_scl();
 endtask

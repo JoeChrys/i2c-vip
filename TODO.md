@@ -15,8 +15,8 @@
     - [x] Slave normal and reserved
     - [x] Normal Virtual Seq
     - [x] Reserved Addr Virtual Seq
-    - [ ] Vseq - Avoid reserved address in normal mode
-    - [ ] Sync Vseq else fatal error
+    - [x] Vseq - Avoid reserved address in normal mode
+    - [ ] ~~Sync Vseq else fatal error~~
 
 - [x] Master Driver
     - [x] Bit driving (setting SDA and SCL in the correct order prefferably without using delays)
@@ -26,7 +26,7 @@
     - [x] check while writing
     - [x] read
     - [x] Add self ACK for START Byte
-    - [ ] Configurable delays
+    - [x] Configurable delays
 
 - [x] Slave Driver
     - [x] Sample (and send RSP to seq)
@@ -34,11 +34,12 @@
     - [x] Add clock stretching at data bits
     - [x] Add clock stretching at ack
     - [x] Assign Z for uvc_* in do_init()
-    - [ ] Reset speed at STOP
-    - [ ] Keep speed at START
-    - [ ] Implement START Byte check
+    - [x] Reset speed at STOP
+    - [x] Keep speed at START
+    - [x] Implement START Byte check
     - [ ] ~~Listen only for certain address function (keep reserved in mind)~~
-    - [ ] Configurable delays
+    - [x] Configurable delays
+    - [ ] Implement slow sampling behavior
 
 - [ ] Testbench
     - [x] Create 2 IF for masters and 1 IF for slave

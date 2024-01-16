@@ -1,8 +1,6 @@
-// `timescale 1ns/1ns
 //`ifndef I2C_PKG_SV
 //`define I2C_PKG_SV
 
-//------------------------------------------------------------------------------------------------------------
 `include "uvm_macros.svh"
 `include "i2c_if.sv"
 package i2c_pkg;

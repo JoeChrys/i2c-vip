@@ -5,8 +5,6 @@
 `define W             (1'b0)
 `define R             (1'b1)
 `define rev_put(a)    (7-a)
-// `define START_BYTE    (8'b0000_0001)
-// `define GENERAL_CALL  (8'b0000_0000)
 
 typedef enum {MASTER, SLAVE} agent_type_enum;
 
@@ -24,9 +22,12 @@ typedef enum {
 
 typedef enum {PERIPHERAL_DEVICE, POLLING_CPU} slave_driver_type_enum;
 
+// Speed modes, their periods
 typedef enum {SM, FM, FMP, HSM, UFM} speed_mode_enum;
-typedef enum {FULL, HALF, QUARTER, QUANTUM} period_fraction_enum;
 const time periods[speed_mode_enum] = '{ SM: 10000, FM: 2500, FMP: 1000, HSM: 300, UFM: 200 };
+
+// Period fractions
+typedef enum {FULL, HALF, QUARTER, QUANTUM} period_fraction_enum;
 
 // An array of all I2C addresses that are reserved for special purposes
 // Mainly used to be avoided during randomization

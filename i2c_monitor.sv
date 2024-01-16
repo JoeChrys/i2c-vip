@@ -1,62 +1,47 @@
-
 class i2c_monitor extends uvm_monitor; 
-   
-   `uvm_component_utils(i2c_monitor)
+  `uvm_component_utils(i2c_monitor)
 
-    virtual i2c_if                  i2c_vif;
-   
-    i2c_cfg                         cfg;
-    i2c_item                        i2c_trans;
-    // i2c_coverage                    cov;
+  uvm_analysis_port #(i2c_item)   i2c_mon_analysis_port;
 
-   
-    uvm_analysis_port #(i2c_item)   i2c_mon_analysis_port;
+  virtual i2c_if                  i2c_vif;
+  i2c_cfg                         cfg;
+  i2c_item                        i2c_trans;
+  
+  int                             bit_counter;
+  bit                             start_cond_from_prev_trans;
+  bit                             captured_next_msb;
+  bit                             msb;
 
-    int                             bit_counter;
-    bit                             start_cond_from_prev_trans;
-    bit                             captured_next_msb;
-    bit                             msb;
+  bit                             transfer_done;
+  bit                             bus_active;
+  
+  extern function new (string name, uvm_component parent);
+  extern virtual function void build_phase (uvm_phase phase);
+  extern virtual task  run_phase(uvm_phase phase);  
+  extern virtual task  do_monitor();
 
-    bit                             transfer_done;
-    bit                             bus_active;
-    
-    extern function new (string name, uvm_component parent);
-    extern virtual function void build_phase (uvm_phase phase);
-    extern virtual task  run_phase(uvm_phase phase);  
-    extern virtual task  do_monitor();
-
-    extern virtual task  check_start_cond();
-    extern virtual task  check_stop_cond();
-    extern virtual task  check_data_transfer();
-
+  extern virtual task  check_start_cond();
+  extern virtual task  check_stop_cond();
+  extern virtual task  check_data_transfer();
 endclass // i2c_monitor_class
 
-//-------------------------------------- 
 //-----------------------------------------------------------------------
-function i2c_monitor::new (string name, uvm_component parent);
+function i2c_monitor:: new (string name, uvm_component parent);
   super.new(name, parent);
-endfunction   
+endfunction // i2c_monitor::new
 
 //-------------------------------------------------------------------------------------------------------------
 function void i2c_monitor::build_phase(uvm_phase phase);
   super.build_phase(phase);
   `uvm_info("build_phase","BUILD i2c_MONITOR",UVM_MEDIUM);
   if(!uvm_config_db#(virtual i2c_if)::get(this, "", "i2c_vif", i2c_vif)) 
-      `uvm_fatal("build_phase",{"virtual interface must be set for: ",get_full_name(),".i2c_vif"});
+    `uvm_fatal("build_phase",{"virtual interface must be set for: ",get_full_name(),".i2c_vif"});
 
   if (!uvm_config_db#(i2c_cfg)::get(this, "", "cfg",cfg)) begin
-      `uvm_fatal("build_phase", "cfg wasn't set through config db");
+    `uvm_fatal("build_phase", "cfg wasn't set through config db");
   end
 
   i2c_mon_analysis_port = new("i2c_mon_analysis_port",this);
-
-  // if (cfg.has_coverage) begin
-  //    cov = i2c_coverage::type_id::create("i2c_coverage",this);
-  //    cov.cfg = this.cfg;
-  // end  
-
-  // if (!cfg.has_checks)   
-  //     `uvm_info("build_phase","CHECKERS DISABLED",UVM_LOW);
 endfunction
 
 //-------------------------------------------------------------------------------------------------------------
@@ -70,12 +55,10 @@ task  i2c_monitor::run_phase(uvm_phase phase);
   forever begin
     i2c_trans = new();
     do_monitor();
-  end // of forever
-      
+  end       
 endtask
 
 task i2c_monitor::do_monitor();
-  
   if (start_cond_from_prev_trans) i2c_trans.start_condition = 'b1;
   start_cond_from_prev_trans = 'b0;
 
@@ -86,8 +69,7 @@ task i2c_monitor::do_monitor();
   join_any
   disable fork;
 
-  i2c_mon_analysis_port.write(i2c_trans); // sending sampled data to scoreboard
-  // cov.i2c_cg.sample(i2c_trans); // sampling for coverage
+  i2c_mon_analysis_port.write(i2c_trans);
 
   `uvm_info("Monitor", "do_monitor task executed", UVM_DEBUG)
 endtask
@@ -156,7 +138,6 @@ task i2c_monitor::check_data_transfer();
       continue;
     end
 
-    //
     @(posedge i2c_vif.scl);
     i2c_trans.data[`rev_put(bit_counter)] = i2c_vif.sda;
     `uvm_info("Monitor", $sformatf("(posedge) Bit %1d has value: %b", `rev_put(bit_counter), i2c_vif.sda), UVM_DEBUG)

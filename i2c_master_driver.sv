@@ -1,6 +1,4 @@
-
 class i2c_master_driver extends uvm_driver #(i2c_item);
-  
   `uvm_component_utils(i2c_master_driver)
 
   virtual i2c_if    i2c_vif;
@@ -30,7 +28,6 @@ class i2c_master_driver extends uvm_driver #(i2c_item);
   extern virtual task  do_delay();
   extern virtual task  check_bus_busy();
   extern virtual task  bus_busy_timeout();
-    
 endclass // i2c_master_driver
 
 //-------------------------------------------------------------------------------------------------------------
@@ -59,10 +56,7 @@ task i2c_master_driver::run_phase(uvm_phase phase);
     seq_item_port.get(req);
     rsp = i2c_item::type_id::create("rsp");
     rsp.transaction_type = req.transaction_type;
-
     do_drive(req);
-
-  end   // of forever
 endtask // i2c_master_driver::run_phase
 
 //-------------------------------------------------------------------------------------------------------------
@@ -78,9 +72,9 @@ task i2c_master_driver:: do_drive(i2c_item req);
   transfer_aborted = 'b0;
 
   fork
-      do_delay();
-      check_bus_busy();
-      //bus_busy_timeout();
+    do_delay();
+    check_bus_busy();
+    //bus_busy_timeout();
   join_any
 
   if (bus_busy) `uvm_info("Driver", "Waiting for bus to be released", UVM_LOW)
@@ -94,13 +88,13 @@ task i2c_master_driver:: do_drive(i2c_item req);
   end
 
   case (req.transaction_type)
-  WRITE: begin  // begin-end block redundant (?)
-          fork
-            write_data();
-            check_data();
-          join
-        end
-  READ: read_data();
+    WRITE: begin  // begin-end block redundant (?)
+      fork
+        write_data();
+        check_data();
+      join
+    end
+    READ: read_data();
   endcase
     
   if (req.stop_condition && !transfer_aborted) begin
@@ -127,7 +121,7 @@ task i2c_master_driver:: do_start_cond();
   i2c_vif.uvc_scl = 'b0;
   #(cfg.get_delay());
   if (!uvm_config_db#(i2c_cfg)::get(this, "", "cfg", cfg)) begin
-      `uvm_fatal("run_phase", "cfg wasn't set through config db");
+    `uvm_fatal("run_phase", "cfg wasn't set through config db");
   end
 endtask
 
@@ -227,8 +221,6 @@ task i2c_master_driver:: read_data();
     `ACK:  `uvm_info("Driver", "Sent ACK to slave", UVM_HIGH)
     `NACK: `uvm_info("Driver", "Sent NACK", UVM_LOW)
   endcase
-  // rsp.set_id_info(req);
-  // seq_item_port.put(rsp);
 endtask
 
 task i2c_master_driver:: send_bit(bit data_bit);
@@ -246,7 +238,7 @@ task i2c_master_driver:: capture_bit(int index);
 endtask
 
 task i2c_master_driver:: pulse_clock();
-  i2c_vif.uvc_scl = 'b0;                                                        // TODO Multiply delays by clock percentiles
+  i2c_vif.uvc_scl = 'b0;
   #(cfg.get_delay());
   i2c_vif.uvc_scl = 'bz;
   // wait in case slave is clock stretching
@@ -268,7 +260,7 @@ endtask
  */
 task i2c_master_driver:: do_delay();
     `uvm_info("Driver", $sformatf("Waiting for %03d tu before sending", req.delay), UVM_HIGH)
-    #(req.delay*cfg.get_delay(QUANTUM));                                                             // TODO Multiply by clock percentiles
+    #(req.delay*cfg.get_delay(QUANTUM));
     `uvm_info("Driver", "Done waiting (for item delay)", UVM_DEBUG)
 endtask
 
@@ -301,15 +293,20 @@ endtask
  * It checks whether bus_busy flag has not been reset in a while and manually
  * resets it.
  */
-task i2c_master_driver:: bus_busy_timeout();                                     // TODO define bus_busy timeout according to default period (~100*clock_time)
+task i2c_master_driver:: bus_busy_timeout();
   int i;
+
   wait (bus_busy);
   while(bus_busy) begin
-    @(posedge i2c_vif.system_clock);  // ! change it to multiples of timing period
+    #(cfg.get_delay(FULL));
     i++;
-    if (i > 20) begin   // ! 20->100
+    if (i > 10) begin
       `uvm_info("Driver", "TIMEOUT REACHED", UVM_LOW)
-      bus_busy = 'b0;
+      if (i2c_vif.sda == 'b1 && i2c_vif.scl == 'b1) begin
+        `uvm_info("Driver", "Manually resetting bus_busy flag", UVM_LOW)
+        bus_busy = 'b0;
+        break;
+      end
       bus_busy_timeout();
     end
   end
