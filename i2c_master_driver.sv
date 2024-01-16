@@ -87,7 +87,7 @@ task i2c_master_driver:: do_drive(i2c_item req);
   wait (!bus_busy);
   disable fork;
 
-  #5; // ! OPTIONAL? or race condition?
+  #(cfg.get_delay()); // ! OPTIONAL? or race condition?
 
   if (req.start_condition) begin
     do_start_cond();
@@ -113,19 +113,19 @@ task i2c_master_driver:: do_start_cond();
   if (i2c_vif.scl == 'b0) begin
     `uvm_info("Driver", "Preparing for Repeated START", UVM_HIGH)
     i2c_vif.uvc_sda = 'bz;
-    #5;
+    #(cfg.get_delay());
     if (i2c_vif.sda != 'b1) `uvm_error("Driver", "Expected SDA High but is Low")
     i2c_vif.uvc_scl = 'bz;
     wait(i2c_vif.scl == 'b1);
-    #5;
+    #(cfg.get_delay());
     if (i2c_vif.scl != 'b1) `uvm_error("Driver", "Expected SCL High but is Low")
   end
 
   `uvm_info("Driver", "Sending START", UVM_HIGH)
   i2c_vif.uvc_sda = 'b0;
-  #5;
+  #(cfg.get_delay());
   i2c_vif.uvc_scl = 'b0;
-  #5;
+  #(cfg.get_delay());
   if (!uvm_config_db#(i2c_cfg)::get(this, "", "cfg", cfg)) begin
       `uvm_fatal("run_phase", "cfg wasn't set through config db");
   end
@@ -135,14 +135,14 @@ task i2c_master_driver:: do_stop_cond();
   if (i2c_vif.scl != 'b0) `uvm_error("Driver", "SCL unexpected HIGH")
 
   i2c_vif.uvc_sda = 'b0;
-  #5;
+  #(cfg.get_delay());
 
   `uvm_info("Driver", "Sending STOP", UVM_HIGH)
   i2c_vif.uvc_scl = 'bz;
   wait(i2c_vif.scl == 'b1);
-  #5;
+  #(cfg.get_delay());
   i2c_vif.uvc_sda = 'bz;
-  #5;
+  #(cfg.get_delay());
   if (i2c_vif.sda != 'b1) `uvm_error("Driver", "SDA unexpected LOW")
 endtask
 
@@ -247,13 +247,13 @@ endtask
 
 task i2c_master_driver:: pulse_clock();
   i2c_vif.uvc_scl = 'b0;                                                        // TODO Multiply delays by clock percentiles
-  #5;
+  #(cfg.get_delay());
   i2c_vif.uvc_scl = 'bz;
   // wait in case slave is clock stretching
   wait (i2c_vif.scl == 'b1);
-  #10;
+  #(cfg.get_delay(HALF));
   i2c_vif.uvc_scl = 'b0;
-  #5;
+  #(cfg.get_delay());
 endtask
 
 task i2c_master_driver:: release_sda();
@@ -268,7 +268,7 @@ endtask
  */
 task i2c_master_driver:: do_delay();
     `uvm_info("Driver", $sformatf("Waiting for %03d tu before sending", req.delay), UVM_HIGH)
-    #(req.delay);                                                               // TODO Multiply by clock percentiles
+    #(req.delay*cfg.get_delay(QUANTUM));                                                             // TODO Multiply by clock percentiles
     `uvm_info("Driver", "Done waiting (for item delay)", UVM_DEBUG)
 endtask
 

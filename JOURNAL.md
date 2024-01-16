@@ -78,4 +78,8 @@ a single byte instead of a dynamic byte array
 
 #### 15/1
 - Added coverage
+- Added many QoL changes
+
+#### 16/1
+- Added variable delays through cfg
 

@@ -110,14 +110,14 @@ task i2c_slave_driver:: detect_start_cond();
     // else ... ([init] Start Condition)
     enable = 'b0;
     disable do_drive;
-    #5;
+    #(cfg.get_delay());
 
     fork
       do_drive();
     join_none
 
     // wait for Master to finish Start Cond
-    #5;
+    #(cfg.get_delay());
     enable = 'b1;
   end
 endtask
@@ -181,7 +181,7 @@ task i2c_slave_driver:: read_data();
     fork
       clock_stretch();
     join_none
-    #5;
+    #(cfg.get_delay());
   end
 
   send_bit(req.ack_nack);
@@ -190,7 +190,7 @@ task i2c_slave_driver:: read_data();
   fork
     clock_stretch();
   join_none
-  #5;
+  #(cfg.get_delay());
   release_sda();
   // rsp.set_id_info(req);
   // seq_item_port.put(rsp);
@@ -211,7 +211,7 @@ task i2c_slave_driver:: write_data();
     fork
       clock_stretch();
     join_none
-    #5;
+    #(cfg.get_delay());
   end
 
   // release SDA for Master to ACK/NACK
@@ -228,7 +228,7 @@ task i2c_slave_driver:: write_data();
   fork
     clock_stretch();
   join_none
-  #5;
+  #(cfg.get_delay());
   if (rsp.ack_nack == `NACK) enable = 'b0;
 endtask
 
@@ -265,7 +265,7 @@ task i2c_slave_driver:: clock_stretch(int release_clock = 1);
   // else ...
   `uvm_info("Driver", "Starting Clock Stretch", UVM_DEBUG)
   i2c_vif.uvc_scl = 'b0;
-  #(delay);                                                                                                             // TODO
+  #(delay*cfg.get_delay(QUANTUM));                                                                                                             // TODO
   `uvm_info("Driver", "DONE Clock Stretch", UVM_DEBUG)
   if (release_clock) release_scl();
 endtask
