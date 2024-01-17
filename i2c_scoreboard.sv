@@ -25,6 +25,8 @@ class i2c_scoreboard extends uvm_scoreboard;
   extern function new (string name, uvm_component parent);
   extern virtual function void build_phase (uvm_phase phase);
   extern virtual task run_phase(uvm_phase phase);
+  extern virtual function void write_m_mon(i2c_item item);
+  extern virtual function void write_s_mon(i2c_item item);
   extern virtual function void reset();
   extern virtual function void set_state(scoreboard_state_enum state);
   extern virtual function void check_start();
@@ -32,7 +34,7 @@ class i2c_scoreboard extends uvm_scoreboard;
   extern virtual function void check_ack();
 endclass // i2c_scoreboard
 
-function i2c_scoreboard:: new(string name = "", uvm_component parent);
+function i2c_scoreboard:: new(string name, uvm_component parent);
   super.new(name,parent);
 endfunction // i2c_scoreboard::new
 
@@ -46,14 +48,14 @@ function void i2c_scoreboard:: build_phase(uvm_phase phase);
 end
 endfunction // i2c_scoreboard::build_phase
 
-virtual function void i2c_scoreboard:: write_m_mon(i2c_item data);
+function void i2c_scoreboard:: write_m_mon(i2c_item item);
     `uvm_info("Scoreboard", "Just recieved item from master monitor", UVM_MEDIUM)
 endfunction // i2c_scoreboard::write_m_mon
 
-virtual function void i2c_scoreboard:: write_s_mon(i2c_item data);
+function void i2c_scoreboard:: write_s_mon(i2c_item item);
   `uvm_info("Scoreboard", "Just recieved item from slave monitor", UVM_MEDIUM)
 
-  item_q.push_back(data);
+  item_q.push_back(item);
   write_flag = 1;
 endfunction // i2c_scoreboard::write_s_mon
 

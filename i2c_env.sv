@@ -1,11 +1,3 @@
-/*
-  * * * Environment class, by default creates two agents and scoreboard.
-        One agent is configured as Master, other as Slave.
-        Both agent's monitors are connected to Scoreboards through Analysis ports.
-        Feel free to adapt ENV to meet your specific needs.
- */
-
-
 class i2c_env extends uvm_env;
   `uvm_component_utils(i2c_env)
 
@@ -79,6 +71,7 @@ class i2c_multimaster_env extends i2c_env;
 
   extern function new (string name, uvm_component parent);
   extern virtual function void build_phase (uvm_phase phase);
+  extern virtual function void connect_phase (uvm_phase phase);
   extern virtual function void start_of_simulation_phase (uvm_phase phase);
 endclass // i2c_multimaster_env
 
@@ -94,7 +87,7 @@ function void i2c_multimaster_env:: build_phase (uvm_phase phase);
 endfunction // i2c_multimaster_env::build_phase 
  
 function void i2c_multimaster_env:: connect_phase (uvm_phase phase);
-    super.connect_phase(phase);
+  super.connect_phase(phase);
 endfunction // i2c_multimaster_env::connect_phase
 
 function void i2c_multimaster_env:: start_of_simulation_phase(uvm_phase phase);

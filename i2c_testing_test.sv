@@ -47,8 +47,7 @@ endfunction
 task i2c_testing_test:: run_phase (uvm_phase phase);        
     super.run_phase(phase);
     phase.raise_objection(this);
-    // number_of_transactions = $urandom_range(10,20);
-    // number_of_transactions = 10;
+    #(cfg.get_delay(FULL)*100);
     
     init_virtual_seq(v_seq);
     if (!v_seq.randomize() with {
@@ -73,7 +72,7 @@ task i2c_testing_test:: run_phase (uvm_phase phase);
     }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
     v_seq3.start(null);
 
-    #100;
+    #(cfg.get_delay(FULL)*100);
     phase.drop_objection (this);
 endtask
     

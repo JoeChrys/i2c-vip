@@ -47,7 +47,7 @@ function void i2c_master_driver::build_phase(uvm_phase phase);
 endfunction // i2c_master_driver::build_phase
 
 //-------------------------------------------------------------------------------------------------------------
-task i2c_master_driver::run_phase(uvm_phase phase);
+task i2c_master_driver:: run_phase(uvm_phase phase);
   do_init();
 	@(posedge i2c_vif.reset_n);
 	repeat(3) @(posedge i2c_vif.system_clock);
@@ -57,6 +57,7 @@ task i2c_master_driver::run_phase(uvm_phase phase);
     rsp = i2c_item::type_id::create("rsp");
     rsp.transaction_type = req.transaction_type;
     do_drive(req);
+  end
 endtask // i2c_master_driver::run_phase
 
 //-------------------------------------------------------------------------------------------------------------
@@ -242,8 +243,8 @@ task i2c_master_driver:: read_data();
   pulse_clock();
   release_sda();
   case(req.ack_nack)
-    `ACK:  `uvm_info("Driver", "Sent ACK to slave", UVM_HIGH)
-    `NACK: `uvm_info("Driver", "Sent NACK", UVM_LOW)
+    `ACK:  `uvm_info("Driver", "Sent ACK", UVM_HIGH)
+    `NACK: `uvm_info("Driver", "Sent NACK", UVM_MEDIUM)
   endcase
 endtask
 
