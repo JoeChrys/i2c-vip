@@ -1,0 +1,303 @@
+# SimVision Command Script (Wed Jan 17 03:45:47 PM UTC 2024)
+#
+# Version 22.03.s002
+#
+# You can restore this configuration with:
+#
+#      xrun top.sv -timescale 1ns/1ns -sysv -access +rw -uvm -seed 1 -uvmhome CDNS-1.2 +UVM_TESTNAME=i2c_testing_test -clean -l i2c_random_test.log +DUMPNAME=i2c_random_test.vcd +VERBOSITY=UVM_LOW -s -input restore.tcl
+#
+
+
+#
+# Preferences
+#
+preferences set toolbar-Standard-WatchWindow {
+  usual
+  shown 0
+}
+preferences set toolbar-SimControl-WatchList {
+  usual
+  hide step_in
+  hide step_over
+  hide step_adjacent
+  hide set_break
+  position -row 0 -pos 1
+}
+preferences set toolbar-txe_waveform_navigate-WaveWindow {
+  usual
+  position -row 2
+}
+preferences set toolbar-Uvm-WaveWindow {
+  usual
+  position -row 1 -pos 4 -anchor e
+}
+preferences set toolbar-CursorControl-WatchList {
+  usual
+  hide lock
+  hide usage
+  hide previous_edge
+  hide next_edge
+}
+preferences set plugin-enable-svdatabrowser-new 1
+preferences set toolbar-Standard-WatchList {
+  usual
+  hide open
+  hide opensim
+  shown 0
+  position -pos 2
+}
+preferences set toolbar-SimControl-WaveWindow {
+  usual
+  hide step_in
+  hide step_over
+  hide step_adjacent
+  hide set_break
+  position -row 1 -pos 0
+}
+preferences set toolbar-CursorControl-WaveWindow {
+  usual
+  hide usage
+  hide count_edges
+  position -row 1 -pos 1
+}
+preferences set toolbar-Windows-WatchWindow {
+  usual
+  shown 0
+}
+preferences set toolbar-Uvm-WatchList {
+  usual
+  position -row 0 -pos 0 -anchor w
+}
+preferences set toolbar-TimeSearch-WaveWindow {
+  usual
+  position -pos 2
+}
+preferences set toolbar-Windows-Console {
+  usual
+  hide design_search
+  hide send_to
+  shown 1
+  position -pos 2 -anchor w
+}
+preferences set toolbar-NavSignalList-WatchWindow {
+  usual
+  position -row 0
+}
+preferences set toolbar-Edit-WatchList {
+  usual
+  hide cut
+  hide copy
+  hide paste
+  hide delete
+  hide clear
+  position -pos 3
+}
+preferences set toolbar-Standard-Console {
+  usual
+  hide open
+  hide opensim
+  hide cut
+  hide delete
+}
+preferences set toolbar-NavSignalList-WaveWindow {
+  usual
+  position -row 0 -pos 1
+}
+preferences set toolbar-txe_waveform_toggle-WaveWindow {
+  usual
+  hide txe_waveform_toggle
+  shown 0
+}
+preferences set toolbar-Standard-WaveWindow {
+  usual
+  hide open
+  hide opensim
+  hide delete
+  hide search_toggle
+}
+preferences set plugin-enable-groupscope 0
+preferences set toolbar-txe_waveform_view-WaveWindow {
+  usual
+  position -row 2
+}
+preferences set standard-methodology-filtering 1
+preferences set sb-display-values 1
+preferences set plugin-enable-interleaveandcompare 0
+preferences set plugin-enable-waveformfrequencyplot 0
+preferences set toolbar-SimControl-WatchWindow {
+  usual
+  shown 0
+}
+preferences set toolbar-Windows-WaveWindow {
+  usual
+  hide tools
+  hide add
+  position -pos 10
+}
+preferences set toolbar-Windows-WatchList {
+  usual
+  hide tools
+  hide selectdeep
+  hide add
+  position -pos 4
+}
+preferences set toolbar-Uvm-Console {
+  usual
+  position -anchor e
+}
+preferences set toolbar-Edit-WatchWindow {
+  usual
+  position -pos 0
+}
+preferences set toolbar-WaveZoom-WaveWindow {
+  usual
+  hide label
+  hide link
+  hide time_range
+  position -row 1 -pos 3
+}
+preferences set toolbar-TimeSearch-WatchList {
+  usual
+  shown 0
+  position -row 0 -pos 4
+}
+preferences set toolbar-CursorControl-WatchWindow {
+  usual
+  position -row 1
+}
+preferences set sb-callstack-size 6
+preferences set toolbar-TimeSearch-WatchWindow {
+  usual
+  shown 0
+}
+
+#
+# Simulator
+#
+database require simulator -hints {
+	simulator "xrun top.sv -timescale 1ns/1ns -sysv -access +rw -uvm -seed 1 -uvmhome CDNS-1.2 +UVM_TESTNAME=i2c_testing_test -clean -l i2c_random_test.log +DUMPNAME=i2c_random_test.vcd +VERBOSITY=UVM_LOW -s -gui -input restore.tcl"
+}
+#
+# Groups
+#
+catch {group new -name {Controller 1} -overlay 0}
+catch {group new -name {Common Bus} -overlay 0}
+catch {group new -name {Group 3} -overlay 0}
+catch {group new -name Target -overlay 0}
+catch {group new -name {Controller 2} -overlay 0}
+group using {Controller 1}
+group set -overlay 0
+group set -comment {}
+group clear 0 end
+
+group insert \
+     simulator::top.i2c_vif_master.uvc.uvc_sda  \
+     simulator::top.i2c_vif_master.uvc.uvc_scl 
+group using {Common Bus}
+group set -overlay 0
+group set -comment {}
+group clear 0 end
+
+group insert \
+     simulator::top.i2c_vif_master.uvc.sda  \
+     simulator::top.i2c_vif_master.uvc.scl 
+group using {Group 3}
+group set -overlay 0
+group set -comment {}
+group clear 0 end
+
+group using Target
+group set -overlay 0
+group set -comment {}
+group clear 0 end
+
+group insert \
+     simulator::top.i2c_vif_slave.uvc.uvc_scl  \
+     simulator::top.i2c_vif_slave.uvc.uvc_sda 
+group using {Controller 2}
+group set -overlay 0
+group set -comment {}
+group clear 0 end
+
+group insert \
+     simulator::top.i2c_vif_master_2.uvc.uvc_scl  \
+     simulator::top.i2c_vif_master_2.uvc.uvc_sda 
+
+#
+# Cursors
+#
+set time 2282532ns
+if {[catch {cursor new -name  TimeA -time $time}] != ""} {
+    cursor set -using TimeA -time $time
+}
+
+#
+# Mnemonic Maps
+#
+mmap new  -reuse -name {Boolean as Logic} -radix %b -contents {{%c=FALSE -edgepriority 1 -shape low}
+{%c=TRUE -edgepriority 1 -shape high}}
+mmap new  -reuse -name {Example Map} -radix %x -contents {{%b=11???? -bgcolor orange -label REG:%x -linecolor yellow -shape bus}
+{%x=1F -bgcolor red -label ERROR -linecolor white -shape EVENT}
+{%x=2C -bgcolor red -label ERROR -linecolor white -shape EVENT}
+{%x=* -label %x -linecolor gray -shape bus}}
+
+#
+# Design Browser windows
+#
+if {[catch {window new WatchList -name "Design Browser 1" -geometry 730x500+261+33}] != ""} {
+    window geometry "Design Browser 1" 730x500+261+33
+}
+window target "Design Browser 1" on
+browser using {Design Browser 1}
+browser set -scope  simulator::top.i2c_vif_slave.uvc 
+browser set \
+    -signalsort name
+browser yview see  simulator::top.i2c_vif_slave.uvc 
+browser timecontrol set -lock 0
+
+#
+# Waveform windows
+#
+if {[catch {window new WaveWindow -name "Waveform 1" -geometry 1010x600+218+210}] != ""} {
+    window geometry "Waveform 1" 1010x600+218+210
+}
+window target "Waveform 1" on
+waveform using {Waveform 1}
+waveform sidebar select designbrowser
+waveform set \
+    -primarycursor TimeA \
+    -signalnames name \
+    -signalwidth 175 \
+    -units ns \
+    -valuewidth 75
+waveform baseline set -time 0
+
+
+set groupId0 [waveform add -groups {{Common Bus}}]
+
+
+set groupId0 [waveform add -groups {{Controller 1}}]
+
+
+set groupId0 [waveform add -groups {{Controller 2}}]
+
+
+set groupId0 [waveform add -groups Target]
+
+
+waveform xview limits 2208073.838384ns 2314970ns
+
+#
+# Waveform Window Links
+#
+
+#
+# Console windows
+#
+console set -windowname Console
+window geometry Console 824x608+38+181
+
+#
+# Layout selection
+#
+
