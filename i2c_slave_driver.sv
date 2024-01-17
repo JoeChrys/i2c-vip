@@ -12,7 +12,7 @@ class i2c_slave_driver extends uvm_driver #(i2c_item);
     bit                     counter_reset;
     bit                     transfer_done;
 
-    slave_driver_type_enum  slave_driver_type = PERIPHERAL_DEVICE;              // TODO
+    // slave_driver_type_enum  slave_driver_type = PERIPHERAL_DEVICE;              // TODO
 
     extern function new (string name, uvm_component parent);
     extern virtual function void build_phase (uvm_phase phase);

@@ -8,13 +8,15 @@ class i2c_coverage extends uvm_component;
     scoreboard_state_enum state
     );
     
+    // Coverpoint for scoreboard states
     coverpoint state {
+      // cover all possible states
       bins basic_states[] = {WAIT_FOR_START, ADDRESSING};
       bins all_states[] = {NORMAL_WRITE, NORMAL_READ,
       GENERAL_CALL_STATE, CBUS_STATE, OTHER_BUS_STATE, FUTURE_PURPOSE_STATE,
       DEVICE_ID_WRITE, DEVICE_ID_READ, TEN_BIT_ADDR_WRITE, TEN_BIT_ADDR_READ};
 
-      // bins state_transitions[] = { ADDRESSING -> all_states};
+      // cover all legal transistions
       bins normal_write = (ADDRESSING => NORMAL_WRITE);
       bins normal_read = (ADDRESSING => NORMAL_WRITE => ADDRESSING => NORMAL_READ);
       bins general_call = (ADDRESSING => GENERAL_CALL_STATE);
@@ -26,18 +28,19 @@ class i2c_coverage extends uvm_component;
       bins ten_bit_addr_read = (ADDRESSING => TEN_BIT_ADDR_WRITE => ADDRESSING => TEN_BIT_ADDR_READ);
     }
 
+    // Coverpoint for the address (similar to states but more specific)
     coverpoint item.data[7:1] {
-      // bins ten_bit_addr[4] = {[7'b111_1000:7'b111_1011]};
+      // cover reserved addresses
       bins c_bus = {C_BUS};
       bins other_buses = {OTHER_BUSES};
       bins future_purpose = {FUTURE_PURPOSE};
-
+      // cover reserved addresses (with wildcards)
       bins speed_mode = {[{SPEED_MODE,2'b00}:{SPEED_MODE,2'b11}]};
       bins device_id = {[{DEVICE_ID,2'b00}:{DEVICE_ID,2'b11}]};
-
+      // cover all possible 10-bit reserved addresses
       bins ten_bit_addr[4] = {[{TEN_BIT_TARGET_ADDRESSING,2'b00}:{TEN_BIT_TARGET_ADDRESSING,2'b11}]};
     }
-
+    // Coverpoint for general call (very similar to above coverpoint)
     coverpoint item.data {
       bins general_call = {GENERAL_CALL};
       bins start_byte = {START_BYTE};
@@ -53,8 +56,9 @@ class i2c_coverage extends uvm_component;
     cp_stop_condition: coverpoint item.stop_condition;
     cp_state: coverpoint state;
 
+    // Coverpoint cross that covers ending a transaction with a start or stop condition
     each_state_start_stop: cross cp_start_condition, cp_stop_condition, cp_state {
-      // Ignore bins
+      // Ignore bins, because they are not interesting or are not expected to happen
       ignore_bins ignore_WAIT_FOR_START = binsof(cp_state) intersect {WAIT_FOR_START} && binsof(cp_stop_condition) intersect {0};
       ignore_bins ignore_DEVICE_ID_WRITE = binsof(cp_state) intersect {DEVICE_ID_WRITE} && binsof(cp_stop_condition) intersect {0};
       ignore_bins ignore_start_stop = binsof(cp_start_condition) intersect {1} && binsof(cp_stop_condition) intersect {1};

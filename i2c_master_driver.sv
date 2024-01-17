@@ -63,10 +63,14 @@ endtask // i2c_master_driver::run_phase
 task i2c_master_driver:: do_init();
   i2c_vif.uvc_sda = 'bz;
   i2c_vif.uvc_scl = 'bz;
-  @(posedge i2c_vif.system_clock);
-  `uvm_info("Driver", "do_init task executed", UVM_DEBUG)
+  // @(posedge i2c_vif.system_clock);
+  // `uvm_info("Driver", "do_init task executed", UVM_DEBUG)
 endtask // i2c_master_driver::do_init
 
+/*
+ * This task executes the given item
+ * It is the main task of the driver
+ */
 task i2c_master_driver:: do_drive(i2c_item req);
   bus_busy = (transfer_aborted) ? 'b1 : 'b0;  // check it previous transfer was aborted to toggle bus_busy flag
   transfer_aborted = 'b0;
@@ -77,11 +81,14 @@ task i2c_master_driver:: do_drive(i2c_item req);
     //bus_busy_timeout();
   join_any
 
-  if (bus_busy) `uvm_info("Driver", "Waiting for bus to be released", UVM_LOW)
-  wait (!bus_busy);
+  if (bus_busy) begin
+    `uvm_info("Driver", "Waiting for bus to be released", UVM_LOW)
+    wait (!bus_busy);
+    //delay below could be moved here
+  end
   disable fork;
 
-  #(cfg.get_delay()); // ! OPTIONAL? or race condition?
+  #(cfg.get_delay());
 
   if (req.start_condition) begin
     do_start_cond();
@@ -102,7 +109,11 @@ task i2c_master_driver:: do_drive(i2c_item req);
   end
   `uvm_info("Driver", "do_drive task executed", UVM_DEBUG)
 endtask // i2c_master_driver::do_drive
-                                                                                // TODO refine timings
+
+/*
+ * This task sends a START condition on the bus
+ * If SCL is LOW, it sends a Repeated START condition
+ */
 task i2c_master_driver:: do_start_cond();
   if (i2c_vif.scl == 'b0) begin
     `uvm_info("Driver", "Preparing for Repeated START", UVM_HIGH)
@@ -125,6 +136,10 @@ task i2c_master_driver:: do_start_cond();
   end
 endtask
 
+/*
+ * This task sends a STOP condition on the bus
+ * It also does a preliminary check to see if SCL is HIGH which is unexpected
+ */
 task i2c_master_driver:: do_stop_cond();
   if (i2c_vif.scl != 'b0) `uvm_error("Driver", "SCL unexpected HIGH")
 
@@ -140,6 +155,10 @@ task i2c_master_driver:: do_stop_cond();
   if (i2c_vif.sda != 'b1) `uvm_error("Driver", "SDA unexpected LOW")
 endtask
 
+/*
+ * This task sends data on the bus bit by bit
+ * It runs in parallel with check_data() and is joined at the end
+ */
 task i2c_master_driver:: write_data();
   `uvm_info("Driver", "Master: Starting data transfer", UVM_HIGH)
   
@@ -173,17 +192,19 @@ task i2c_master_driver:: write_data();
   `uvm_info("Driver", "Done sending data", UVM_HIGH)
 endtask
 
+/*
+ * This task checks the data sent by the master itself
+ * It runs in parallel with write_data() and is joined at the end
+ */
 task i2c_master_driver:: check_data();
   @(posedge i2c_vif.scl);
   for (int i=7; i>=0; i--) begin
-    // @(posedge i2c_vif.scl) bit_correct = 'b0;  // in case of data clock stretching feature
-    @(negedge i2c_vif.scl); // could include the following it in a begin-end block
+    @(negedge i2c_vif.scl);
     rsp.data[i] = i2c_vif.sda;
     `uvm_info("Driver", $sformatf("Bit %1d has value: %1b", i, rsp.data[i]), UVM_DEBUG)
     if (rsp.data[i] != req.data[i]) begin
-      `uvm_error("Driver", $sformatf("Bit sent (%1b) does NOT match SDA, aborting sequence...", rsp.data[i]))
+      `uvm_warning("Driver", $sformatf("Bit sent (%1b) does NOT match SDA, aborting sequence...", rsp.data[i]))
       transfer_aborted = 'b1;
-      
       rsp.transfer_failed = 'b1;
       rsp.set_id_info(req);
       seq_item_port.put(rsp);
@@ -199,6 +220,9 @@ task i2c_master_driver:: check_data();
   endcase
 endtask
 
+/*
+ * This task reads data from the bus bit by bit, also does ACK/NACK at the end
+ */
 task i2c_master_driver:: read_data();
   `uvm_info("Driver", "Master: Reading data", UVM_HIGH)
 
@@ -223,6 +247,10 @@ task i2c_master_driver:: read_data();
   endcase
 endtask
 
+/*
+ * This task sends a bit on the bus
+ * It also does a preliminary check to see if SCL is HIGH which is unexpected
+ */
 task i2c_master_driver:: send_bit(bit data_bit);
   if (i2c_vif.scl != 'b0) `uvm_error("Driver", "SCL unexpected HIGH")
   if (data_bit == 1) i2c_vif.uvc_sda = 'bz;
@@ -231,12 +259,20 @@ task i2c_master_driver:: send_bit(bit data_bit);
   else               `uvm_info("Driver", "SDA was driven with 0", UVM_DEBUG)
 endtask
 
+/*
+ * This task captures the bit at the given index and stores it in rsp
+ * I2C controllers are supposed to sample on the bus to compare with the bit sent
+ */
 task i2c_master_driver:: capture_bit(int index);
   @(posedge i2c_vif.scl);  // or use begin-end block to control the order and sent rsp before the next pulse
   rsp.data[index] = i2c_vif.sda;
   `uvm_info("Driver", $sformatf("Got bit %1d with value %1b", bit_index, rsp.data[bit_index]), UVM_DEBUG)
 endtask
 
+/*
+ * This task pulses the clock, it must be executed for the rest of do_drive() to finish since it is the only task that returns, thus joining the fork
+ * "wait (i2c_vif.scl == 'b1);" is used to wait for slave to release clock stretching
+ */
 task i2c_master_driver:: pulse_clock();
   i2c_vif.uvc_scl = 'b0;
   #(cfg.get_delay());
@@ -248,6 +284,9 @@ task i2c_master_driver:: pulse_clock();
   #(cfg.get_delay());
 endtask
 
+/*
+ * This task releases SDA also does a preliminary check to see if SCL is HIGH which is unexpected
+ */
 task i2c_master_driver:: release_sda();
   if (i2c_vif.scl == 'b1) `uvm_error("Driver", "SCL unexpected HIGH when releasing SDA")
   i2c_vif.uvc_sda = 'bz;

@@ -83,3 +83,7 @@ a single byte instead of a dynamic byte array
 #### 16/1
 - Added variable delays through cfg
 
+#### 17/1
+- Code cleanup
+- Added comments to impemented classes
+

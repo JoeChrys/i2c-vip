@@ -1,3 +1,4 @@
+// `timescale 1ns/1ns
 `include "uvm_macros.svh" 
 `include "i2c_pkg.sv"
 

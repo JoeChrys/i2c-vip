@@ -57,6 +57,13 @@ virtual function void i2c_scoreboard:: write_s_mon(i2c_item data);
   write_flag = 1;
 endfunction // i2c_scoreboard::write_s_mon
 
+/*
+ * The scoreboard is implemented as a state machine.
+ * This task is the main task of the scoreboard. It is responsible for
+ * checking the data that is received from the monitors and comparing it
+ * to the expected data. It also checks the start and stop conditions.
+ * Depending on the data received, it will change the state of the scoreboard.
+ */
 task i2c_scoreboard:: run_phase(uvm_phase phase);
   current_state = WAIT_FOR_START;
   next_state = WAIT_FOR_START;
@@ -275,6 +282,11 @@ task i2c_scoreboard:: run_phase(uvm_phase phase);
   end
 endtask // i2c_scoreboard::run_phase
 
+/*
+ * This function resets the scoreboard to its initial state.
+ * Any data that was in the queue is deleted since it no longer affects
+ * the current communication. It is called when a stop condition is detected.
+ */
 function void i2c_scoreboard:: reset();
   item_q.delete();
   expect_start = 0;
@@ -283,6 +295,11 @@ function void i2c_scoreboard:: reset();
   start_index = -1;
 endfunction // i2c_scoreboard::reset
 
+/*
+ * This function sets the state of the scoreboard.
+ * It is called when a start condition is detected and when the whole transaction
+ * item has been processed.
+ */
 function void i2c_scoreboard:: set_state(scoreboard_state_enum state);
   case (state)
     WAIT_FOR_START: begin
@@ -315,6 +332,11 @@ function void i2c_scoreboard:: set_state(scoreboard_state_enum state);
   current_state = state;
 endfunction // i2c_scoreboard::set_state
 
+/*
+ * This function checks if the start condition is correct.
+ * It sets the start_index to the index of the start condition in the queue.
+ * Immediately sets the state to ADDRESSING if start condition is detected.
+ */
 function void i2c_scoreboard:: check_start();
   if (expect_start && !current_item.start_condition) begin
     `uvm_error("Scoreboard", "Expected start condition")
@@ -327,13 +349,15 @@ function void i2c_scoreboard:: check_start();
     start_index = item_q.size()-1;
     set_state(ADDRESSING);
   end
-  else begin
-    if (start_index < 0) begin
-      `uvm_fatal("Scoreboard", "Expected start condition at the beginning")
-    end
+  if (start_index < 0) begin
+    `uvm_fatal("Scoreboard", "Expected start condition at the beginning")
   end
 endfunction // i2c_scoreboard::check_start
 
+/*
+ * This function checks if the stop condition is correct.
+ * It resets the scoreboard if stop condition is detected.
+ */
 function void i2c_scoreboard:: check_stop();
   if (expect_stop && !current_item.stop_condition) begin
     `uvm_error("Scoreboard", "Expected stop condition")
@@ -349,6 +373,9 @@ function void i2c_scoreboard:: check_stop();
   end
 endfunction // i2c_scoreboard::check_stop
 
+/*
+ * This function checks if the ack/nack is correct.
+ */
 function void i2c_scoreboard:: check_ack();
   if (expect_ack && current_item.ack_nack == `NACK) begin
     `uvm_error("Scoreboard", "Expected ack")

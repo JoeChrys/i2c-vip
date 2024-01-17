@@ -1,7 +1,3 @@
-/*
- * * * * *   AGENT CONFIGURATION     * * * * * 
- */
-
 class i2c_cfg extends uvm_object;
   `uvm_object_utils(i2c_cfg)
 

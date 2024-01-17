@@ -46,7 +46,6 @@ endfunction
 
 //-------------------------------------------------------------------------------------------------------------
 task  i2c_monitor::run_phase(uvm_phase phase);
-	//wait for reset
 	@(posedge i2c_vif.reset_n);
 	repeat(3) @(posedge i2c_vif.system_clock);
   
@@ -58,6 +57,16 @@ task  i2c_monitor::run_phase(uvm_phase phase);
   end       
 endtask
 
+/* 
+* This task is responsible for monitoring the I2C bus and capturing the data
+* that is being transferred. It is also responsible for detecting the start
+* and stop conditions. 
+* It is important to note that this task is not
+* responsible for checking the validity of the data being transferred. That
+* is the responsibility of the scoreboard.
+* Another important note is that only check_data_transfer() returns and joins
+* the forked tasks. This is because the other tasks are not expected to return.
+*/
 task i2c_monitor::do_monitor();
   if (start_cond_from_prev_trans) i2c_trans.start_condition = 'b1;
   start_cond_from_prev_trans = 'b0;
@@ -74,6 +83,11 @@ task i2c_monitor::do_monitor();
   `uvm_info("Monitor", "do_monitor task executed", UVM_DEBUG)
 endtask
 
+/*
+* This task is responsible for detecting the start condition. It is also
+* responsible for detecting invalid start conditions (early start conditions)
+* Repeated start conditions break the loop to allow writing the captured data
+*/
 task i2c_monitor::check_start_cond();
   forever begin
     // `uvm_info("Monitor", "checking for start condition", UVM_DEBUG)
@@ -102,6 +116,11 @@ task i2c_monitor::check_start_cond();
   end
 endtask
 
+/*
+ * This task is responsible for detecting the stop condition. It is also
+ * responsible for detecting invalid stop conditions (early stop conditions).
+ * Any stop condition breaks the loop to allow writing the captured data
+ */
 task i2c_monitor::check_stop_cond();
   forever begin
     // `uvm_info("Monitor", "checking for stop condition", UVM_DEBUG)
@@ -123,6 +142,9 @@ task i2c_monitor::check_stop_cond();
   end
 endtask
 
+/*
+ * This task is responsible for capturing the data being transferred.
+ */
 task i2c_monitor::check_data_transfer();
   bit_counter = 0;
   `uvm_info("Monitor", "checking for data transfer", UVM_DEBUG)
@@ -131,7 +153,6 @@ task i2c_monitor::check_data_transfer();
     // if previous task call captured current MSB, retrieve it (only enters at bit_counter == 0)
     if (captured_next_msb) begin
       if (bit_counter != 0) `uvm_fatal("Monitor", "Unexpected behavior")
-
       captured_next_msb = 0;
       i2c_trans.data[`rev_put(bit_counter)] = msb;
       bit_counter++;
@@ -144,7 +165,7 @@ task i2c_monitor::check_data_transfer();
 
     @(negedge i2c_vif.scl);
     `uvm_info("Monitor", $sformatf("(negedge) Bit %1d has value: %b", `rev_put(bit_counter), i2c_vif.sda), UVM_DEBUG)
-    // if ... (first negedge SCL is Start Condition, skip bit)
+    //! below if should be redundant since start/stops kill this task
     if (i2c_vif.sda != i2c_trans.data[`rev_put(bit_counter)]) begin
       // if (bit_counter == 0) continue;
 
@@ -164,6 +185,7 @@ task i2c_monitor::check_data_transfer();
 
   @(negedge i2c_vif.scl);
   `uvm_info("Monitor", $sformatf("(negedge) ACK_NACK: %b", i2c_vif.sda), UVM_DEBUG)
+  //! below if should be redundant since start/stops kill this task
   if (i2c_vif.sda != i2c_trans.ack_nack) begin
     `uvm_error("Monitor", "Detected Start/Stop Condition, not ACK bit")
   end

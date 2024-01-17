@@ -12,7 +12,7 @@ class i2c_env extends uvm_env;
   i2c_env_cfg     cfg_env;
   i2c_agent       master_agent;
   i2c_agent       slave_agent;
-  i2c_sb          sb; 
+  i2c_scoreboard  sb; 
 
   extern function new (string name, uvm_component parent);
   extern virtual function void build_phase (uvm_phase phase);
@@ -38,7 +38,7 @@ function void i2c_env:: build_phase (uvm_phase phase);
   master_agent.cfg = cfg_env.master_config;
   slave_agent.cfg = cfg_env.slave_config;
 
-  sb = i2c_sb::type_id::create("sb",this); 
+  sb = i2c_scoreboard::type_id::create("sb",this); 
 endfunction // i2c_env::build_phase 
  
 function void i2c_env:: connect_phase (uvm_phase phase);

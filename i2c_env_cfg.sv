@@ -19,3 +19,5 @@ function i2c_env_cfg:: new(string name = "i2c_env_cfg");
   master_config = i2c_cfg::type_id::create ("master_config");
   slave_config = i2c_cfg::type_id::create ("slave_config");
 endfunction
+
+//! make a multimaster cfg

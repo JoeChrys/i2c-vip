@@ -41,7 +41,7 @@
     - [x] Configurable delays
     - [ ] Implement slow sampling behavior
 
-- [ ] Testbench
+- [x] Testbench
     - [x] Create 2 IF for masters and 1 IF for slave
     - [x] Connect `sda` and `scl` of all interfaces
     - [ ] [Optional] Use modports
@@ -56,6 +56,7 @@
     - [x] Cover that each stage has been ended with Start(R) or Stop (exclude unexpected eg device id write with stop)
     - [x] Cover all stages and allowed transitions
     - [x] Cover all possible address (single bins eg device id wildcards or full cover 10bit addresses)
+    - [ ] Instatiate cov in env and pass it to scoreboard
 
 - [x] Scoreboard
     - [x] Normal Read-Write
@@ -63,3 +64,16 @@
     - [x] Speed mode (needs NACK)
     - [x] Rest of reserved addresses
     - [x] Add fatal if no start condition
+
+- [ ] Tests
+    - [ ] Make a 2 master base test
+
+- [ ] Env
+    - [ ] Make a multimaster env
+    - [ ] Make a multimaster env config
+    - [ ] Init vseq master 2
+
+- [ ] Cleanup
+    - [ ] Remove UVM_DEBUG prints
+    - [ ] Remove //TODO and //! comments
+    - [ ] [Optional] Remove depedency on system_clock
