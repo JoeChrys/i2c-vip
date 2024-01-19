@@ -13,7 +13,7 @@ class i2c_cfg extends uvm_object;
   rand slave_driver_type_enum slave_driver_type; // peripheral device (0) or polling CPU (1)
     
   //Simulation timeout
-  time test_time_out;
+  rand time test_time_out = 100000000;
 
   constraint c_cfg {
     current_speed_mode == default_speed_mode;
@@ -22,9 +22,9 @@ class i2c_cfg extends uvm_object;
 
   //Default constraints 
   constraint c_cfg_defaults {
-    soft test_time_out = 100000000;       
+    soft test_time_out == 100000000;       
     soft has_coverage == 1;
-    soft default_speed_mode == FM;
+    soft default_speed_mode == SM;
     soft higher_speed_mode == FMP;
     soft slave_driver_type == PERIPHERAL_DEVICE;
   }
