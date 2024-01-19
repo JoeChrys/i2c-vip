@@ -73,9 +73,7 @@ endclass // i2c_slave_base_sequence
     ) `uvm_error(get_type_name(), "Sequence Randomization failed")
     finish_item(req);
 
-    `uvm_info(get_type_name(), "\n\nWAITING FOR RSP", UVM_DEBUG)
     get_response(rsp);
-    `uvm_info(get_type_name(), "GOT RSP", UVM_DEBUG)
     transfer_failed = rsp.transfer_failed;
     if (transaction_type == WRITE) begin
       receiver_response = rsp.ack_nack;

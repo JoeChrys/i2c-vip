@@ -27,6 +27,7 @@
     - [x] read
     - [x] Add self ACK for START Byte
     - [x] Configurable delays
+    - [ ] Update configs on START/STOP
 
 - [x] Slave Driver
     - [x] Sample (and send RSP to seq)
@@ -40,6 +41,7 @@
     - [ ] ~~Listen only for certain address function (keep reserved in mind)~~
     - [x] Configurable delays
     - [x] Implement slow sampling behavior (polling START BYTE)
+    - [ ] Update configs on START/STOP
 
 - [x] Testbench
     - [x] Create 2 IF for masters and 1 IF for slave
@@ -52,7 +54,7 @@
     - [x] Concurrent assertions
     - [x] Task assertions
 
--  [ ] Coverage
+- [x] Coverage
     - [x] Cover that each stage has been ended with Start(R) or Stop (exclude unexpected eg device id write with stop)
     - [x] Cover all stages and allowed transitions
     - [x] Cover all possible address (single bins eg device id wildcards or full cover 10bit addresses)
@@ -74,6 +76,6 @@
     - [ ] Init vseq master 2
 
 - [ ] Cleanup
-    - [ ] Remove UVM_DEBUG prints
+    - [x] Remove UVM_DEBUG prints
     - [ ] Remove //TODO and //! comments
     - [ ] [Optional] Remove depedency on system_clock

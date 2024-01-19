@@ -79,8 +79,6 @@ task i2c_monitor::do_monitor();
   disable fork;
 
   i2c_mon_analysis_port.write(i2c_trans);
-
-  `uvm_info("Monitor", "do_monitor task executed", UVM_DEBUG)
 endtask
 
 /*
@@ -90,7 +88,6 @@ endtask
 */
 task i2c_monitor::check_start_cond();
   forever begin
-    // `uvm_info("Monitor", "checking for start condition", UVM_DEBUG)
     @(negedge i2c_vif.sda);
     if (i2c_vif.scl == 'b0) continue;
 
@@ -123,7 +120,6 @@ endtask
  */
 task i2c_monitor::check_stop_cond();
   forever begin
-    // `uvm_info("Monitor", "checking for stop condition", UVM_DEBUG)
     @(posedge i2c_vif.sda);
     if (i2c_vif.scl == 'b0) continue;
 
@@ -147,7 +143,6 @@ endtask
  */
 task i2c_monitor::check_data_transfer();
   bit_counter = 0;
-  `uvm_info("Monitor", "checking for data transfer", UVM_DEBUG)
 
   while (bit_counter < 8) begin
     // if previous task call captured current MSB, retrieve it (only enters at bit_counter == 0)
@@ -161,46 +156,23 @@ task i2c_monitor::check_data_transfer();
 
     @(posedge i2c_vif.scl);
     i2c_trans.data[`rev_put(bit_counter)] = i2c_vif.sda;
-    `uvm_info("Monitor", $sformatf("(posedge) Bit %1d has value: %b", `rev_put(bit_counter), i2c_vif.sda), UVM_DEBUG)
-
     @(negedge i2c_vif.scl);
-    `uvm_info("Monitor", $sformatf("(negedge) Bit %1d has value: %b", `rev_put(bit_counter), i2c_vif.sda), UVM_DEBUG)
-    //! below if should be redundant since start/stops kill this task
-    if (i2c_vif.sda != i2c_trans.data[`rev_put(bit_counter)]) begin
-      // if (bit_counter == 0) continue;
-
-      // else ...
-      `uvm_error("Monitor", "Detected Start/Stop Condition, not Data bit")
-    end
 
     transfer_done = 'b0; // at this point data transfer has begun
-    i2c_trans.data[`rev_put(bit_counter)] = i2c_vif.sda;
-    `uvm_info("Monitor", $sformatf("Got bit %1d with value %1b", 7-bit_counter, i2c_trans.data[7-bit_counter]), UVM_DEBUG)
     bit_counter++;
   end
 
   @(posedge i2c_vif.scl);   
   i2c_trans.ack_nack = i2c_vif.sda;
-  `uvm_info("Monitor", $sformatf("(posedge) ACK_NACK: %b", i2c_vif.sda), UVM_DEBUG)
-
   @(negedge i2c_vif.scl);
-  `uvm_info("Monitor", $sformatf("(negedge) ACK_NACK: %b", i2c_vif.sda), UVM_DEBUG)
-  //! below if should be redundant since start/stops kill this task
-  if (i2c_vif.sda != i2c_trans.ack_nack) begin
-    `uvm_error("Monitor", "Detected Start/Stop Condition, not ACK bit")
-  end
 
-  transfer_done = 'b1;
   `uvm_info("Monitor", "Detected data transfer (byte)", UVM_HIGH)
-
+  transfer_done = 'b1;
   bit_counter++;
+
   @(posedge i2c_vif.scl);
   msb = i2c_vif.sda;
-  `uvm_info("Monitor", $sformatf("(posedge) Next byte MSB has value: %b", i2c_vif.sda), UVM_DEBUG)
-
   @(negedge i2c_vif.scl);
-  `uvm_info("Monitor", $sformatf("(negedge) Next byte MSB has value: %b", i2c_vif.sda), UVM_DEBUG)
-
   if (i2c_vif.sda != msb) `uvm_fatal("Monitor", "Expected data item to be finished by now")
 
   captured_next_msb = 'b1;
