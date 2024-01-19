@@ -11,7 +11,7 @@
     - [x] check data byte or ACK
     - [x] change ack_nack
     - [x] Master Reserved
-    - [ ] [Optional] Master, stop if NACK/Fail
+    - [ ] ~~Master, stop if NACK/Fail~~
     - [x] Slave normal and reserved
     - [x] Normal Virtual Seq
     - [x] Reserved Addr Virtual Seq
@@ -39,12 +39,12 @@
     - [x] Implement START Byte check
     - [ ] ~~Listen only for certain address function (keep reserved in mind)~~
     - [x] Configurable delays
-    - [ ] Implement slow sampling behavior
+    - [x] Implement slow sampling behavior (polling START BYTE)
 
 - [x] Testbench
     - [x] Create 2 IF for masters and 1 IF for slave
     - [x] Connect `sda` and `scl` of all interfaces
-    - [ ] [Optional] Use modports
+    - [ ] ~~Use modports~~
 
 - [x] Interface
     - [x] Interconnect wire and logic on top.sv
@@ -56,7 +56,7 @@
     - [x] Cover that each stage has been ended with Start(R) or Stop (exclude unexpected eg device id write with stop)
     - [x] Cover all stages and allowed transitions
     - [x] Cover all possible address (single bins eg device id wildcards or full cover 10bit addresses)
-    - [ ] Instatiate cov in env and pass it to scoreboard
+    - [x] Instatiate cov in env and pass it to scoreboard
 
 - [x] Scoreboard
     - [x] Normal Read-Write

@@ -18,7 +18,7 @@ typedef enum {
   TEN_BIT_ADDR_WRITE, TEN_BIT_ADDR_READ
 } scoreboard_state_enum;
 
-// typedef enum {PERIPHERAL_DEVICE, POLLING_CPU} slave_driver_type_enum;
+typedef enum {PERIPHERAL_DEVICE, POLLING_CPU} slave_driver_type_enum;
 
 // Speed modes, their periods
 typedef enum {SM, FM, FMP, HSM, UFM} speed_mode_enum;

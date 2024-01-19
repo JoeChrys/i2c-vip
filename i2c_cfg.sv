@@ -9,16 +9,23 @@ class i2c_cfg extends uvm_object;
   rand speed_mode_enum default_speed_mode;
   rand speed_mode_enum higher_speed_mode;
   rand speed_mode_enum current_speed_mode;
+
+  rand slave_driver_type_enum slave_driver_type; // peripheral device (0) or polling CPU (1)
     
   //Simulation timeout
   time test_time_out = 100000000;
 
+  constraint c_cfg {
+    current_speed_mode == default_speed_mode;
+    periods[default_speed_mode] < periods[higher_speed_mode];
+  }
+
   //Default constraints 
-  constraint i2c_cfg_default_cst {        
+  constraint c_cfg_defaults {        
     soft has_coverage == 1;
     soft default_speed_mode == FM;
     soft higher_speed_mode == FMP;
-    current_speed_mode == default_speed_mode;
+    soft slave_driver_type == PERIPHERAL_DEVICE;
   }
     
   extern function new(string name = "i2c_cfg");
@@ -54,12 +61,14 @@ function void i2c_cfg:: toggle_speed_mode();
   else
     `uvm_fatal("i2c_cfg", "Unknown speed mode");
 
-  uvm_config_db#(i2c_cfg)::set(null, "uvm_test_top.*", "cfg", this);
+  uvm_config_db#(speed_mode_enum)::set(null, "uvm_test_top.*.s_drv.cfg", "current_speed_mode", current_speed_mode);
+  uvm_config_db#(speed_mode_enum)::set(null, "uvm_test_top.*.m_drv.cfg", "current_speed_mode", current_speed_mode);
 endfunction // i2c_cfg::toggle_speed_mode
 
 // Resets the speed mode to default
 // Updates the config_db cfg
 function void i2c_cfg:: reset_speed_mode();
   current_speed_mode = default_speed_mode;
-  uvm_config_db#(i2c_cfg)::set(null, "uvm_test_top.*", "cfg", this);
+  uvm_config_db#(speed_mode_enum)::set(null, "uvm_test_top.*.s_drv.cfg", "current_speed_mode", current_speed_mode);
+  uvm_config_db#(speed_mode_enum)::set(null, "uvm_test_top.*.m_drv.cfg", "current_speed_mode", current_speed_mode);
 endfunction // i2c_cfg::reset_speed_mode

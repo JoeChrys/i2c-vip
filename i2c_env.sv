@@ -4,7 +4,8 @@ class i2c_env extends uvm_env;
   i2c_env_cfg     cfg_env;
   i2c_agent       master_agent;
   i2c_agent       slave_agent;
-  i2c_scoreboard  sb; 
+  i2c_scoreboard  sb;
+  i2c_coverage    cov;
 
   extern function new (string name, uvm_component parent);
   extern virtual function void build_phase (uvm_phase phase);
@@ -24,13 +25,16 @@ function void i2c_env:: build_phase (uvm_phase phase);
     `uvm_fatal (get_type_name(), "Failed to get the configuration file from the config DB!")
   end 
   
+  // Agent build
   master_agent = i2c_agent :: type_id :: create ("master_agent", this);
   slave_agent = i2c_agent :: type_id :: create ("slave_agent", this);
-
   master_agent.cfg = cfg_env.master_config;
   slave_agent.cfg = cfg_env.slave_config;
 
-  sb = i2c_scoreboard::type_id::create("sb",this); 
+  // Scoreboard build
+  sb = i2c_scoreboard::type_id::create("sb",this);
+  cov = i2c_coverage::type_id::create("cov",this);
+  sb.cov = cov;
 endfunction // i2c_env::build_phase 
  
 function void i2c_env:: connect_phase (uvm_phase phase);
