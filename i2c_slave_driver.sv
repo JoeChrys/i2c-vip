@@ -96,17 +96,16 @@ task i2c_slave_driver:: detect_start_cond();
       // check if EARLY Start Condition
       if (!transfer_done) begin
         `uvm_warning("Driver", "Early Start Condition")
-        //? TODO get default speed mode
         break;
-      end
-
-      if (!uvm_config_db#(i2c_cfg)::get(this, "", "cfg", cfg)) begin
-        `uvm_fatal("run_phase", "cfg wasn't set through config db");
       end
     end
     // else ... ([init] Start Condition)
     enable = 'b0;
     disable do_drive;
+
+    if (!uvm_config_db#(i2c_cfg)::get(this, "", "cfg", cfg)) begin
+      `uvm_fatal("run_phase", "cfg wasn't set through config db");
+    end
     #(cfg.get_delay());
 
     fork
