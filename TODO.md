@@ -27,7 +27,7 @@
     - [x] read
     - [x] Add self ACK for START Byte
     - [x] Configurable delays
-    - [ ] Update configs on START/STOP
+    - [x] Update configs on START/STOP
 
 - [x] Slave Driver
     - [x] Sample (and send RSP to seq)
@@ -41,7 +41,7 @@
     - [ ] ~~Listen only for certain address function (keep reserved in mind)~~
     - [x] Configurable delays
     - [x] Implement slow sampling behavior (polling START BYTE)
-    - [ ] Update configs on START/STOP
+    - [x] Update configs on START/STOP
 
 - [x] Testbench
     - [x] Create 2 IF for masters and 1 IF for slave
@@ -71,7 +71,7 @@
     - [ ] Make a 2 master base test
 
 - [ ] Env
-    - [ ] Make a multimaster env
+    - [x] Make a multimaster env
     - [ ] Make a multimaster env config
     - [ ] Init vseq master 2
 

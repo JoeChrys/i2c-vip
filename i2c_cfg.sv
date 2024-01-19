@@ -13,7 +13,7 @@ class i2c_cfg extends uvm_object;
   rand slave_driver_type_enum slave_driver_type; // peripheral device (0) or polling CPU (1)
     
   //Simulation timeout
-  time test_time_out = 100000000;
+  time test_time_out;
 
   constraint c_cfg {
     current_speed_mode == default_speed_mode;
@@ -21,7 +21,8 @@ class i2c_cfg extends uvm_object;
   }
 
   //Default constraints 
-  constraint c_cfg_defaults {        
+  constraint c_cfg_defaults {
+    soft test_time_out = 100000000;       
     soft has_coverage == 1;
     soft default_speed_mode == FM;
     soft higher_speed_mode == FMP;
@@ -29,7 +30,7 @@ class i2c_cfg extends uvm_object;
   }
     
   extern function new(string name = "i2c_cfg");
-  extern function time get_delay(period_fraction_enum period_fraction = QUARTER);
+  extern function time get_delay(period_fraction_enum fraction = QUARTER);
   extern function void toggle_speed_mode();
   extern function void reset_speed_mode();
 endclass // i2c_cfg
@@ -40,10 +41,10 @@ function i2c_cfg:: new(string name = "i2c_cfg");
 endfunction // i2c_cfg::new
 
 // Returns the delay for the current speed mode
-// period_fraction: FULL, HALF, QUARTER, QUANTUM (1/20th of a period)
-function time i2c_cfg:: get_delay(period_fraction_enum period_fraction = QUARTER);
+// fraction: FULL, HALF, QUARTER, QUANTUM (1/20th of a period)
+function time i2c_cfg:: get_delay(period_fraction_enum fraction = QUARTER);
   time period = periods[current_speed_mode];
-  case (period_fraction)
+  case (fraction)
     FULL:     return period;
     HALF:     return period/2;
     QUARTER:  return period/4;

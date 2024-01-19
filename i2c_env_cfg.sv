@@ -9,6 +9,7 @@ class i2c_env_cfg extends uvm_object;
   i2c_cfg slave_config;
   i2c_cfg master_config;    
   int connect_master_to_sb;
+  int connect_master_2_to_sb;
   int connect_slave_to_sb;
   
   extern function new(string name = "i2c_env_cfg");
@@ -19,5 +20,3 @@ function i2c_env_cfg:: new(string name = "i2c_env_cfg");
   master_config = i2c_cfg::type_id::create ("master_config");
   slave_config = i2c_cfg::type_id::create ("slave_config");
 endfunction
-
-//! make a multimaster cfg

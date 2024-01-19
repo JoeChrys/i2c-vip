@@ -4,18 +4,20 @@
 class i2c_base_test extends uvm_test;
   `uvm_component_utils(i2c_base_test)
 
+  i2c_cfg cfg;
+
   i2c_env_cfg cfg_env;
   i2c_env env;
-  i2c_cfg cfg;
+
   virtual i2c_if i2c_vif_master;
   virtual i2c_if i2c_vif_slave;
 
   extern function new(string name = "i2c_base_test", uvm_component parent=null);
   extern virtual function void build_phase(uvm_phase phase);
-  extern virtual function void cfg_randomize(); 
   extern virtual function void end_of_elaboration_phase(uvm_phase phase);
   extern virtual function void start_of_simulation_phase(uvm_phase phase);
   extern virtual function void report_phase(uvm_phase phase);
+  extern virtual function void cfg_randomize(); 
   extern virtual function void set_default_configuration ();
 endclass // i2c_base_test
 
@@ -52,25 +54,8 @@ function void  i2c_base_test:: build_phase(uvm_phase phase);
 endfunction // i2c_base_test::build_phase
 
 //-------------------------------------------------------------------------------------------------------------
-function void i2c_base_test:: cfg_randomize(); 
- 	if (!cfg.randomize() with {
-    //add constraints
-
-    })
-  `uvm_fatal("build_phase","Configuration randomization failed");
-endfunction // i2c_base_test::cfg_randomize
-
-//-------------------------------------------------------------------------------------------------------------
-function void i2c_base_test:: set_default_configuration ();
-  cfg_env.connect_master_to_sb = 0;     
-  cfg_env.connect_slave_to_sb = 1;
-  `uvm_info("config", "Default configuration set.", UVM_HIGH)
-endfunction // i2c_base_test::set_default_configuration
-
-//-------------------------------------------------------------------------------------------------------------
 function void i2c_base_test:: end_of_elaboration_phase(uvm_phase phase);
   uvm_verbosity verbosity = UVM_LOW;
-
   super.end_of_elaboration_phase(phase);
 
   //set verbosity level for env
@@ -89,7 +74,7 @@ function void  i2c_base_test:: start_of_simulation_phase(uvm_phase phase);
 	`uvm_info("start_of_simulation_phase", $sformatf("Printing topology"), UVM_LOW)
 	uvm_top.print_topology();
 	svr = uvm_report_server::get_server();
-	svr.set_max_quit_count(1000); //maximum number of errors 
+	svr.set_max_quit_count(20); //maximum number of errors 
 endfunction // i2c_base_test::start_of_simulation_phase
 
 //-------------------------------------------------------------------------------------------------------------
@@ -97,10 +82,23 @@ function void  i2c_base_test:: report_phase(uvm_phase phase);
   uvm_report_server svr;
   super.report_phase(phase);
   svr = uvm_report_server::get_server();
+  if (svr.get_severity_count(UVM_ERROR) != 0) begin
+    `uvm_fatal("report_phase", "Test failed!")
+  end
 endfunction // i2c_base_test::report_phase
 
+//-------------------------------------------------------------------------------------------------------------
+function void i2c_base_test:: cfg_randomize(); 
+ 	if (!cfg.randomize() with {
+    //add constraints
 
+    })
+  `uvm_fatal("build_phase","Configuration randomization failed");
+endfunction // i2c_base_test::cfg_randomize
 
-//! Make a second base test for 2 Masters
-
-
+//-------------------------------------------------------------------------------------------------------------
+function void i2c_base_test:: set_default_configuration ();
+  cfg_env.connect_master_to_sb = 0;     
+  cfg_env.connect_slave_to_sb = 1;
+  `uvm_info("config", "Default configuration set.", UVM_HIGH)
+endfunction // i2c_base_test::set_default_configuration
