@@ -68,14 +68,14 @@
     - [x] Add fatal if no start condition
 
 - [ ] Tests
-    - [ ] Make a 2 master base test
-
-- [ ] Env
-    - [x] Make a multimaster env
-    - [ ] Make a multimaster env config
+    - [x] Make a 2 master base test
     - [ ] Init vseq master 2
 
-- [ ] Cleanup
+- [x] Env
+    - [x] Make a multimaster env
+    - [ ] ~~Make a multimaster env config~~
+
+- [x] Cleanup
     - [x] Remove UVM_DEBUG prints
-    - [ ] Remove //TODO and //! comments
+    - [x] Remove //TODO and //! comments
     - [ ] [Optional] Remove depedency on system_clock
