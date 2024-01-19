@@ -50,9 +50,9 @@ set vcd_compact_mode 0
 alias . run
 alias quit exit
 stop -create -name Randomize -randomize
-database -open -vcd -into i2c_random_test.vcd _i2c_random_test.vcd1 -timescale fs
-database -open -shm -into waves.shm waves -default
 database -open -vcd -into verilog.dump _verilog.dump1 -timescale fs
+database -open -shm -into waves.shm waves -default
+database -open -vcd -into i2c_random_test.vcd _i2c_random_test.vcd1 -timescale fs
 probe -create -database waves top.i2c_vif_master.uvc.scl top.i2c_vif_master.uvc.sda top.i2c_vif_master.uvc.uvc_scl top.i2c_vif_master.uvc.uvc_sda top.i2c_vif_slave.uvc.scl top.i2c_vif_slave.uvc.sda top.i2c_vif_slave.uvc.uvc_scl top.i2c_vif_slave.uvc.uvc_sda
 probe -create -database waves top.i2c_vif_master_2.uvc.uvc_scl top.i2c_vif_master_2.uvc.uvc_sda
 

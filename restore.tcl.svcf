@@ -1,4 +1,4 @@
-# SimVision Command Script (Wed Jan 17 03:45:47 PM UTC 2024)
+# SimVision Command Script (Fri Jan 19 03:25:31 PM UTC 2024)
 #
 # Version 22.03.s002
 #
@@ -175,7 +175,7 @@ preferences set toolbar-TimeSearch-WatchWindow {
 # Simulator
 #
 database require simulator -hints {
-	simulator "xrun top.sv -timescale 1ns/1ns -sysv -access +rw -uvm -seed 1 -uvmhome CDNS-1.2 +UVM_TESTNAME=i2c_testing_test -clean -l i2c_random_test.log +DUMPNAME=i2c_random_test.vcd +VERBOSITY=UVM_LOW -s -gui -input restore.tcl"
+	simulator "xrun top.sv -timescale 1ns/1ns -sysv -access +rw -uvm -seed 1 -uvmhome CDNS-1.2 +UVM_TESTNAME=i2c_testing_test -clean -l i2c_random_test.log +DUMPNAME=i2c_random_test.vcd +VERBOSITY=UVM_LOW -s -input restore.tcl -input restore.tcl"
 }
 #
 # Groups
@@ -212,21 +212,21 @@ group set -comment {}
 group clear 0 end
 
 group insert \
-     simulator::top.i2c_vif_slave.uvc.uvc_scl  \
-     simulator::top.i2c_vif_slave.uvc.uvc_sda 
+     simulator::top.i2c_vif_slave.uvc.uvc_sda  \
+     simulator::top.i2c_vif_slave.uvc.uvc_scl 
 group using {Controller 2}
 group set -overlay 0
 group set -comment {}
 group clear 0 end
 
 group insert \
-     simulator::top.i2c_vif_master_2.uvc.uvc_scl  \
-     simulator::top.i2c_vif_master_2.uvc.uvc_sda 
+     simulator::top.i2c_vif_master_2.uvc.uvc_sda  \
+     simulator::top.i2c_vif_master_2.uvc.uvc_scl 
 
 #
 # Cursors
 #
-set time 2282532ns
+set time 48255000000fs
 if {[catch {cursor new -name  TimeA -time $time}] != ""} {
     cursor set -using TimeA -time $time
 }
@@ -258,8 +258,8 @@ browser timecontrol set -lock 0
 #
 # Waveform windows
 #
-if {[catch {window new WaveWindow -name "Waveform 1" -geometry 1010x600+218+210}] != ""} {
-    window geometry "Waveform 1" 1010x600+218+210
+if {[catch {window new WaveWindow -name "Waveform 1" -geometry 1010x600+395+206}] != ""} {
+    window geometry "Waveform 1" 1010x600+395+206
 }
 window target "Waveform 1" on
 waveform using {Waveform 1}
@@ -285,7 +285,7 @@ set groupId0 [waveform add -groups {{Controller 2}}]
 set groupId0 [waveform add -groups Target]
 
 
-waveform xview limits 2208073.838384ns 2314970ns
+waveform xview limits 44236.506634ns 49787.084644ns
 
 #
 # Waveform Window Links

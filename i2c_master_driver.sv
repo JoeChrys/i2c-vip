@@ -171,7 +171,7 @@ task i2c_master_driver:: write_data();
   end
   `uvm_info("Driver", 
     $sformatf("Sent byte = %2h",
-      req.data) 
+      req.data),
     UVM_MEDIUM)
 
   // release SDA for Slave to ACK/NACK

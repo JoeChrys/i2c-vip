@@ -215,7 +215,7 @@ task i2c_slave_driver:: write_data();
   release_sda();
   `uvm_info("Driver", 
     $sformatf("Sent byte = %2h",
-      req.data) 
+      req.data),
     UVM_MEDIUM)
   @(posedge i2c_vif.scl);
 
@@ -262,6 +262,7 @@ task i2c_slave_driver:: clock_stretch();
     $sformatf("DONE Clock Stretch Data for %04d tu", 
       delay*cfg.get_delay(QUANTUM)), 
     UVM_HIGH)
+  release_scl();
 endtask
 
 task i2c_slave_driver:: polling();
