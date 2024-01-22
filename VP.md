@@ -1,13 +1,14 @@
 # Verification Plan
 
 #### Notes
-- Data after START is always an Address
-- Data after address is [usually] the register pointer
-- Data (W) means WRITE for the Master and Read for the slave unless specified otherwise
+- Data after START is always an Address.
+- Data after address is [usually] the register pointer.
+- Data (W) means WRITE for the Master and Read for the slave unless specified otherwise.
+- Similarly, Data (R) means READ for the Master and Write for the slave.
 
 ## Single Master
 
-### Base
+### Basic
 ##### Write
 1. __Test UVC reseting__ `[Start - Data* (W) - Stop]*`
     __Send one byte, with Start and Stop, multiple times__

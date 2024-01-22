@@ -48,9 +48,9 @@ endclass
 	  s_seq = i2c_slave_base_sequence :: type_id :: create ("s_seq");
 
     // could also use uvm_config_db
-    // if (!uvm_config_db#(i2c_master_sequencer)::get(null,"","m_seqr", m_seqr) ) 
+    // if (!uvm_config_db#(i2c_master_sequencer)::get(this,"","m_seqr", m_seqr) ) 
     //   `uvm_fatal("NULPTR", "Master Sequencer has not be set")
-    // if (!uvm_config_db#(i2c_slave_sequencer)::get(null,"","s_seqr", s_seqr) ) 
+    // if (!uvm_config_db#(i2c_slave_sequencer)::get(this,"","s_seqr", s_seqr) ) 
     //  `uvm_fatal("NULPTR", "Slave Sequencer has not be set")
     if (m_seqr == null) `uvm_fatal("NULPTR", "Master Sequencer has not be set")
     if (s_seqr == null) `uvm_fatal("NULPTR", "Slave Sequencer has not be set")
