@@ -1,5 +1,5 @@
-`ifndef I2C_PKG_SV
-`define I2C_PKG_SV
+`ifndef I2C_ENV_PKG_SV
+`define I2C_ENV_PKG_SV
 
 `timescale 1ns/1ns
 `include "uvm_macros.svh" 
@@ -16,4 +16,4 @@ package i2c_env_pkg;
   `include "i2c_test_list.sv"
 endpackage 
 
-`endif //I2C_PKG_SV
+`endif //I2C_ENV_PKG_SV

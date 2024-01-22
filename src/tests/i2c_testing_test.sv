@@ -30,13 +30,11 @@ endfunction : build_phase
 //-------------------------------------------------------------------------------------------------------------
 function void i2c_testing_test:: start_of_simulation_phase(uvm_phase phase);    
   super.start_of_simulation_phase(phase);   
-  uvm_config_db#(i2c_master_sequencer)::set(this,"v_seq*","m_seqr", env.master_agent.m_seqr);
-  uvm_config_db#(i2c_slave_sequencer)::set(this,"v_seq*","s_seqr", env.slave_agent.s_seqr); 
 endfunction
 
 //-------------------------------------------------------------------------------------------------------------
 task i2c_testing_test:: run_phase (uvm_phase phase);        
-  super.run_phase(phase);
+  // super.run_phase(phase);
   phase.raise_objection(this);
   #(cfg.get_delay(FULL)*100);
   

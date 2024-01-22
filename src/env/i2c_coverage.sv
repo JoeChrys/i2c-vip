@@ -1,5 +1,5 @@
 class i2c_coverage extends uvm_component;
-	`uvm_object_utils(i2c_coverage)
+	`uvm_component_utils(i2c_coverage)
 	
   i2c_cfg cfg; 
 

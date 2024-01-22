@@ -74,7 +74,10 @@ function void  i2c_base_test:: start_of_simulation_phase(uvm_phase phase);
 	`uvm_info("start_of_simulation_phase", $sformatf("Printing topology"), UVM_LOW)
 	uvm_top.print_topology();
 	svr = uvm_report_server::get_server();
-	svr.set_max_quit_count(20); //maximum number of errors 
+	svr.set_max_quit_count(20); //maximum number of errors
+
+  uvm_config_db#(i2c_master_sequencer)::set(this,"v_seq*","m_seqr", env.master_agent.m_seqr);
+  uvm_config_db#(i2c_slave_sequencer)::set(this,"v_seq*","s_seqr", env.slave_agent.s_seqr); 
 endfunction // i2c_base_test::start_of_simulation_phase
 
 //-------------------------------------------------------------------------------------------------------------
