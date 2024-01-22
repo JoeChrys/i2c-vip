@@ -104,7 +104,12 @@ endclass
   task i2c_virtual_write_with_stop_no_delays_no_cs:: body();
     m_seq = i2c_master_write_with_stop_no_delays::type_id::create("m_seq");
     s_seq = i2c_slave_read_sequence::type_id::create("s_seq");
-
+    
+    if (!uvm_config_db#(i2c_master_sequencer)::get(this,"","m_seqr", m_seqr) ) 
+      `uvm_fatal("NULPTR", "Master Sequencer has not be set")
+    if (!uvm_config_db#(i2c_slave_sequencer)::get(this,"","s_seqr", s_seqr) ) 
+     `uvm_fatal("NULPTR", "Slave Sequencer has not be set")
+     
     fork
       begin
         if(!m_seq.randomize() with {

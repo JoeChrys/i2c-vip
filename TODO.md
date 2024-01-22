@@ -79,3 +79,7 @@
     - [x] Remove UVM_DEBUG prints
     - [x] Remove //TODO and //! comments
     - [ ] [Optional] Remove depedency on system_clock
+
+- [ ] Virtual Sequence
+    - [ ] [Optional] Reduce code by paremeterizing
+    - [ ] Add remaining reserved addresses
