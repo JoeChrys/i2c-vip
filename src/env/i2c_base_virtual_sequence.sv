@@ -36,7 +36,7 @@ class i2c_virtual_base_sequence extends uvm_sequence;
   }
 
   extern function new(string name = "i2c_virtual_base_sequence");
-  // extern virtual task body();
+  extern virtual task body();
 endclass
 
 function i2c_virtual_base_sequence:: new(string name = "i2c_virtual_base_sequence");
@@ -77,7 +77,7 @@ task i2c_virtual_base_sequence:: body();
   join
 endtask
 
-class i2c_virtual_sequence#(type MSEQ, type SSEQ) extends i2c_virtual_base_sequence;
+class i2c_virtual_sequence#(type MSEQ=i2c_master_base_sequence, type SSEQ=i2c_slave_base_sequence) extends i2c_virtual_base_sequence;
   `uvm_object_param_utils(i2c_virtual_sequence#(MSEQ, SSEQ))
 
   MSEQ m_seq;
@@ -87,11 +87,11 @@ class i2c_virtual_sequence#(type MSEQ, type SSEQ) extends i2c_virtual_base_seque
   extern virtual task body();
 endclass
 
-function i2c_virtual_sequence#(type MSEQ, type SSEQ):: new(string name = "i2c_virtual_sequence");
+function i2c_virtual_sequence:: new(string name = "i2c_virtual_sequence");
   super.new(name);
 endfunction // i2c_sequence::new
 
-task i2c_virtual_sequence#(type MSEQ, type SSEQ):: body();
+task i2c_virtual_sequence:: body();
   m_seq = MSEQ :: type_id :: create ("m_seq");
   s_seq = SSEQ :: type_id :: create ("s_seq");
 

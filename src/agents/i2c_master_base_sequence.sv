@@ -1,4 +1,4 @@
-class i2c_master_base_sequence extends uvm_sequence #(i2c_item);
+class i2c_master_base_sequence extends uvm_sequence#(i2c_item);
   `uvm_object_utils(i2c_master_base_sequence)
   `uvm_declare_p_sequencer(i2c_master_sequencer)
   

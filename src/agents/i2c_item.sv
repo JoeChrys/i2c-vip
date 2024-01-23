@@ -1,5 +1,5 @@
-
-class i2c_item extends uvm_sequence_item; 
+class i2c_item extends uvm_sequence_item;
+  `uvm_object_utils(i2c_item)
     
   // Interface fields
   rand bit[7:0]                 data;
