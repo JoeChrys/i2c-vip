@@ -5,11 +5,11 @@
 `include "i2c_if.sv"
 
 package i2c_pkg;
-import uvm_pkg::*;
+  import uvm_pkg::*;
+  
   `include "i2c_defines.sv"
   `include "i2c_cfg.sv"
   `include "i2c_item.sv"
-  `include "i2c_coverage.sv"
   `include "i2c_monitor.sv" 
   `include "i2c_master_sequencer.sv"
   `include "i2c_slave_sequencer.sv"

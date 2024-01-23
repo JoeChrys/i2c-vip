@@ -56,7 +56,7 @@ task i2c_slave_base_sequence:: body();
     
   uvm_config_db#(i2c_cfg)::set(null, "*", "cfg", p_sequencer.cfg);
   if (!uvm_config_db#(i2c_cfg)::get(p_sequencer,"", "cfg",cfg))
-      `uvm_fatal("body", "cfg wasn't set through config db");
+    `uvm_fatal("body", "cfg wasn't set through config db");
 
   req = i2c_item::type_id::create("req");
   start_item(req);

@@ -49,18 +49,6 @@ class i2c_item extends uvm_sequence_item;
     if (transaction_type == READ) {start_condition == 0;}
   }
 
-  `uvm_object_utils_begin(i2c_item) 
-    `uvm_field_int(data, UVM_DEFAULT|UVM_HEX)
-    `uvm_field_int(ack_nack, UVM_DEFAULT|UVM_BIN)
-    `uvm_field_int(start_condition, UVM_DEFAULT|UVM_BIN)
-    `uvm_field_int(stop_condition, UVM_DEFAULT|UVM_BIN)
-    `uvm_field_int(delay, UVM_DEFAULT)
-    `uvm_field_sarray_int(clock_stretch_data, UVM_DEFAULT)
-    `uvm_field_int(clock_stretch_ack, UVM_DEFAULT)
-    `uvm_field_enum(transaction_type_enum, transaction_type, UVM_DEFAULT)
-    `uvm_field_int(transfer_failed, UVM_DEFAULT|UVM_BIN)
-  `uvm_object_utils_end
-
   extern function new(string name = "i2c_item");
 endclass // i2c_item
 

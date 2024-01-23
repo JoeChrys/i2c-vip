@@ -65,11 +65,11 @@ class i2c_coverage extends uvm_component;
     }
   endgroup
 
-  extern function new(string name = "i2c_coverage", uvm_component parent);
+  extern function new(string name, uvm_component parent);
   extern virtual function void build_phase(uvm_phase phase);
 endclass
 
-function i2c_coverage::new(string name = "i2c_coverage", uvm_component parent);
+function i2c_coverage::new(string name, uvm_component parent);
   super.new(name, parent);
   i2c_end_state_with_start_stop = new();
   i2c_addresses = new();

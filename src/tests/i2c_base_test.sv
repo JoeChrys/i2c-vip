@@ -1,5 +1,5 @@
 /*
-    Default configuration is one master and one slave agent for the test. You can set up environment cfg here.
+  Default configuration is one master and one slave agent for the test. You can set up environment cfg here.
 */
 class i2c_base_test extends uvm_test;
   `uvm_component_utils(i2c_base_test)
@@ -17,8 +17,10 @@ class i2c_base_test extends uvm_test;
   extern virtual function void end_of_elaboration_phase(uvm_phase phase);
   extern virtual function void start_of_simulation_phase(uvm_phase phase);
   extern virtual function void report_phase(uvm_phase phase);
+
   extern virtual function void cfg_randomize(); 
   extern virtual function void set_default_configuration ();
+  extern virtual function void init_virtual_seq(i2c_virtual_base_sequence virtual_sequence);
 endclass // i2c_base_test
 
 //-------------------------------------------------------------------------------------------------------------
@@ -67,7 +69,6 @@ endfunction // i2c_base_test::end_of_elaboration_phase
 //-------------------------------------------------------------------------------------------------------------
 function void  i2c_base_test:: start_of_simulation_phase(uvm_phase phase);
 	uvm_report_server svr;
-
 	super.start_of_simulation_phase(phase);
 
 	uvm_top.set_timeout(.timeout(this.cfg.test_time_out), .overridable(1));
@@ -76,14 +77,16 @@ function void  i2c_base_test:: start_of_simulation_phase(uvm_phase phase);
 	svr = uvm_report_server::get_server();
 	svr.set_max_quit_count(20); //maximum number of errors
 
-  uvm_config_db#(i2c_master_sequencer)::set(this,"v_seq*","m_seqr", env.master_agent.m_seqr);
-  uvm_config_db#(i2c_slave_sequencer)::set(this,"v_seq*","s_seqr", env.slave_agent.s_seqr); 
+  // [optional] use ::get(null, "uvm_test_top", "m_seqr", m_seqr) to get sequencer from test
+  uvm_config_db#(i2c_master_sequencer)::set(this,"","m_seqr", env.master_agent.m_seqr);
+  uvm_config_db#(i2c_slave_sequencer)::set(this,"","s_seqr", env.slave_agent.s_seqr); 
 endfunction // i2c_base_test::start_of_simulation_phase
 
 //-------------------------------------------------------------------------------------------------------------
 function void  i2c_base_test:: report_phase(uvm_phase phase);
   uvm_report_server svr;
   super.report_phase(phase);
+
   svr = uvm_report_server::get_server();
   if (svr.get_severity_count(UVM_ERROR) != 0) begin
     `uvm_fatal("report_phase", "Test failed!")
@@ -105,3 +108,10 @@ function void i2c_base_test:: set_default_configuration ();
   cfg_env.connect_slave_to_sb = 1;
   `uvm_info("config", "Default configuration set.", UVM_HIGH)
 endfunction // i2c_base_test::set_default_configuration
+
+function void i2c_base_test:: init_virtual_seq(i2c_virtual_base_sequence virtual_sequence);
+  virtual_sequence.m_seqr = env.master_agent.m_seqr;
+  virtual_sequence.s_seqr = env.slave_agent.s_seqr;
+  if (virtual_sequence.m_seqr == null) `uvm_fatal("NULPTR", "Master Sequencer has not be set")
+  if (virtual_sequence.s_seqr == null) `uvm_fatal("NULPTR", "Slave Sequencer has not be set")
+endfunction

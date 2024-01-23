@@ -87,3 +87,5 @@ a single byte instead of a dynamic byte array
 - Code cleanup
 - Added comments to impemented classes
 
+#### 22/1
+- Initial work on basic test

@@ -83,3 +83,7 @@
 - [ ] Virtual Sequence
     - [ ] [Optional] Reduce code by paremeterizing
     - [ ] Add remaining reserved addresses
+
+- [ ] Scripts
+    - Testlist
+    - args in file
