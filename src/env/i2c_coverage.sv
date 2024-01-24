@@ -77,6 +77,7 @@ endfunction // i2c_coverage::new
 
 function void  i2c_coverage::build_phase(uvm_phase phase);
   super.build_phase(phase);
+  
   if (!uvm_config_db#(i2c_cfg)::get(this, "", "cfg", cfg))   
     `uvm_fatal("build_phase", "cfg wasn't set through config db");
 endfunction // i2c_coverage::build_phase

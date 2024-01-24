@@ -49,7 +49,7 @@ end
 endfunction // i2c_scoreboard::build_phase
 
 function void i2c_scoreboard:: write_m_mon(i2c_item item);
-    `uvm_info("Scoreboard", "Just recieved item from master monitor", UVM_MEDIUM)
+  `uvm_info("Scoreboard", "Just recieved item from master monitor", UVM_MEDIUM)
 endfunction // i2c_scoreboard::write_m_mon
 
 function void i2c_scoreboard:: write_s_mon(i2c_item item);

@@ -37,7 +37,8 @@ endfunction // i2c_master_driver::new
 
 //-------------------------------------------------------------------------------------------------------------
 function void i2c_master_driver::build_phase(uvm_phase phase);
-  super.build_phase(phase); 
+  super.build_phase(phase);
+
   `uvm_info("build_phase","BUILD I2C_MASTER_DRIVER",UVM_HIGH);
   if(!uvm_config_db#(virtual i2c_if)::get(this, "", "i2c_vif", i2c_vif)) 
       `uvm_fatal("build_phase",{"virtual interface must be set for: ", get_full_name(),".i2c_vif"});
@@ -48,6 +49,8 @@ endfunction // i2c_master_driver::build_phase
 
 //-------------------------------------------------------------------------------------------------------------
 task i2c_master_driver:: run_phase(uvm_phase phase);
+  super.run_phase(phase);
+
   do_init();
 	@(posedge i2c_vif.reset_n);
 	repeat(3) @(posedge i2c_vif.system_clock);
