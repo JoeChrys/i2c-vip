@@ -77,11 +77,11 @@
     - [x] Make a multimaster env
     - [ ] ~~Make a multimaster env config~~
 
-- [x] Cleanup
+- [ ] Cleanup
     - [x] Remove UVM_DEBUG prints
     - [x] Remove //TODO and //! comments
     - [ ] [Optional] Remove depedency on system_clock
-    - [ ] [Optional] Change @ continue -> @ iff
+    - [x] [Optional] Change @ continue -> @ iff
     - [x] Change while (1) to forever
     - [ ] May need to remove uvm_config_set/get as every cfg is the same
 
@@ -90,7 +90,7 @@
     - [ ] Add remaining reserved addresses
 
 - [ ] Scripts
-    - Testlist
-    - args in file
+    - [ ] Testlist
+    - [ ] args in file
 
 __IMPORTANT__ How to sync sequences for slave driver when 2 master are involved?
