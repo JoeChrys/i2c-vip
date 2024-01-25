@@ -572,3 +572,43 @@ endclass
       end
     join
   endtask
+
+class i2c_virtual_device_id extends i2c_virtual_base_sequence;
+  `uvm_object_utils(i2c_virtual_device_id)
+
+  i2c_master_device_id      m_seq;
+  i2c_slave_write_sequence   s_seq;
+
+  bit[11:0] manufacturer_id;
+  bit[8:0]  part_number;
+  bit[2:0]  revision;
+
+  extern function new(string name = "i2c_virtual_device_id");
+  extern virtual task body();
+endclass
+
+  function i2c_virtual_device_id:: new(string name = "i2c_virtual_device_id");
+    super.new(name);
+  endfunction
+
+  task i2c_virtual_device_id:: body();
+    m_seq = i2c_master_device_id::type_id::create("m_seq");
+    s_seq = i2c_slave_write_sequence::type_id::create("s_seq");
+
+    fork
+      begin
+        if(!m_seq.randomize() with {
+          stop_condition == local::stop_condition;
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize master sequence")
+        m_seq.start(m_seqr, this);
+      end
+      begin
+        if (!s_seq.randomize() with {
+          number_of_bytes == 3;
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize slave sequence")
+        s_seq.start(s_seqr, this);
+      end
+    join
+  endtask

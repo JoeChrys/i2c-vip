@@ -28,6 +28,8 @@
     - [x] Add self ACK for START Byte
     - [x] Configurable delays
     - [x] Update configs on START/STOP
+    - [ ] Add allow_arbitration which allows transfer failed until end of first byte
+    reallow it on stop
 
 - [x] Slave Driver
     - [x] Sample (and send RSP to seq)
@@ -79,11 +81,16 @@
     - [x] Remove UVM_DEBUG prints
     - [x] Remove //TODO and //! comments
     - [ ] [Optional] Remove depedency on system_clock
+    - [ ] [Optional] Change @ continue -> @ iff
+    - [x] Change while (1) to forever
+    - [ ] May need to remove uvm_config_set/get as every cfg is the same
 
 - [ ] Virtual Sequence
-    - [ ] [Optional] Reduce code by paremeterizing
+    - [x] [Optional] Reduce code by paremeterizing (not really reduced after all)
     - [ ] Add remaining reserved addresses
 
 - [ ] Scripts
     - Testlist
     - args in file
+
+__IMPORTANT__ How to sync sequences for slave driver when 2 master are involved?

@@ -18,10 +18,7 @@ function void i2c_slave_sequencer::build_phase(uvm_phase phase);
   
   if (!uvm_config_db#(i2c_cfg)::get(this, "", "cfg", cfg)) begin
     `uvm_info("build_phase", "CFG is not set through config db", UVM_LOW);    
-  end 
-  else begin
-    `uvm_info("build_phase", "CFG is set through config db", UVM_LOW);
-  end    
+  end  
 endfunction
 
 

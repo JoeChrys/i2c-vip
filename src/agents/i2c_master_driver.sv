@@ -53,7 +53,7 @@ task i2c_master_driver:: run_phase(uvm_phase phase);
 
   do_init();
 	@(posedge i2c_vif.reset_n);
-	repeat(3) @(posedge i2c_vif.system_clock);
+	// repeat(3) @(posedge i2c_vif.system_clock);
 
   forever begin 
     seq_item_port.get(req);
@@ -127,9 +127,9 @@ task i2c_master_driver:: do_start_cond();
     if (i2c_vif.scl != 'b1) `uvm_error("Driver", "Expected SCL High but is Low")
   end
 
-  if (!uvm_config_db#(i2c_cfg)::get(this, "", "cfg", cfg)) begin
-    `uvm_fatal("run_phase", "cfg wasn't set through config db");
-  end
+  // if (!uvm_config_db#(i2c_cfg)::get(this, "", "cfg", cfg)) begin
+  //   `uvm_fatal("run_phase", "cfg wasn't set through config db");
+  // end
   `uvm_info("Driver", "Sending START", UVM_HIGH)
   i2c_vif.uvc_sda = 'b0;
   #(cfg.get_delay());

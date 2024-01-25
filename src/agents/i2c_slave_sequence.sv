@@ -135,7 +135,7 @@ endclass // i2c_slave_read_sequence
 
     seq = i2c_slave_base_sequence::type_id::create("seq");
 
-    while (1) begin
+    forever begin
       exit_flag = 0;
 
       // Get target address
@@ -245,7 +245,7 @@ endclass // i2c_slave_write_sequence
 
     seq = i2c_slave_base_sequence::type_id::create("seq");
 
-    while (1) begin
+    forever begin
       exit_flag = 0;
 
       // Get target address

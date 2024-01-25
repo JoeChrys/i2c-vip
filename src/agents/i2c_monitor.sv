@@ -50,7 +50,7 @@ task  i2c_monitor::run_phase(uvm_phase phase);
   super.run_phase(phase);
 
 	@(posedge i2c_vif.reset_n);
-	repeat(3) @(posedge i2c_vif.system_clock);
+	// repeat(3) @(posedge i2c_vif.system_clock);
   
   transfer_done = 'b1;
 

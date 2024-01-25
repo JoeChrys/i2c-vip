@@ -1,19 +1,22 @@
 class i2c_cfg extends uvm_object;
   `uvm_object_utils(i2c_cfg)
 
-  //Enables coverage  
-  rand bit has_coverage;
-  
+  // *** Environment configuration parameters ***
+  rand bit has_coverage; //Enables coverage  
   rand agent_type_enum agent_type; // master (0) or slave (1)
   
+  // *** Agent configuration parameters ***
+  rand slave_driver_type_enum slave_driver_type; // peripheral device (0) or polling CPU (1)
+
   rand speed_mode_enum default_speed_mode;
   rand speed_mode_enum higher_speed_mode;
-  rand speed_mode_enum current_speed_mode;
 
-  rand slave_driver_type_enum slave_driver_type; // peripheral device (0) or polling CPU (1)
+  // *** Data sharing parameters ***
+  rand speed_mode_enum current_speed_mode;
+  //pairs of seqs
     
   //Simulation timeout
-  rand time test_time_out = 100000000;
+  time test_time_out = 100000000;
 
   constraint c_cfg {
     current_speed_mode == default_speed_mode;
@@ -21,8 +24,7 @@ class i2c_cfg extends uvm_object;
   }
 
   //Default constraints 
-  constraint c_cfg_defaults {
-    soft test_time_out == 100000000;       
+  constraint c_cfg_defaults {      
     soft has_coverage == 1;
     soft default_speed_mode == SM;
     soft higher_speed_mode == FMP;

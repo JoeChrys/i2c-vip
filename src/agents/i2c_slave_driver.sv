@@ -51,7 +51,7 @@ task i2c_slave_driver:: run_phase(uvm_phase phase);
 
   do_init();
 	@(posedge i2c_vif.reset_n);
-	repeat(3) @(posedge i2c_vif.system_clock);
+	// repeat(3) @(posedge i2c_vif.system_clock);
 	
   forever begin 
     
@@ -82,7 +82,7 @@ task i2c_slave_driver:: do_init();
 
   enable = 'b0;
   transfer_done = 'b1;
-  @(posedge i2c_vif.system_clock);
+  // @(posedge i2c_vif.system_clock);
 endtask
 
 
@@ -106,9 +106,9 @@ task i2c_slave_driver:: detect_start_cond();
     enable = 'b0;
     disable do_drive;
 
-    if (!uvm_config_db#(i2c_cfg)::get(this, "", "cfg", cfg)) begin
-      `uvm_fatal("run_phase", "cfg wasn't set through config db");
-    end
+    // if (!uvm_config_db#(i2c_cfg)::get(this, "", "cfg", cfg)) begin
+    //   `uvm_fatal("run_phase", "cfg wasn't set through config db");
+    // end
     #(cfg.get_delay());
 
     fork

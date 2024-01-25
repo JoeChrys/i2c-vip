@@ -13,7 +13,7 @@ package i2c_env_pkg;
   `include "i2c_coverage.sv"
   `include "i2c_scoreboard.sv"
   `include "i2c_env.sv"
-  `include "i2c_base_virtual_sequence.sv"
+  `include "i2c_virtual_base_sequence.sv"
   `include "i2c_virtual_sequence.sv"
   `include "i2c_test_list.sv"
 endpackage 

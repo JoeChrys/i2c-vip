@@ -121,7 +121,7 @@ endclass // i2c_master_write_sequence
 
     seq = i2c_master_base_sequence::type_id::create("seq");
 
-    while (1) begin
+    forever begin
       exit_flag = 0;
       
       // Send target address
@@ -224,7 +224,7 @@ endclass // i2c_master_read_sequence
 
     seq = i2c_master_base_sequence::type_id::create("seq");
 
-    while (1) begin
+    forever begin
       exit_flag = 0;
 
       // Send target address
@@ -425,7 +425,7 @@ endclass
   task i2c_master_general_call_command:: body();
     seq = i2c_master_base_sequence::type_id::create("seq");
 
-    while (1) begin
+    forever begin
       if(!seq.randomize() with {
         start_condition == 'b1;
         data == 8'h00;
@@ -470,7 +470,7 @@ endclass
   task i2c_master_general_call_controller_address:: body();
     seq = i2c_master_base_sequence::type_id::create("seq");
 
-    while (1) begin
+    forever begin
       if(!seq.randomize() with {
         start_condition == 'b1;
         data == 8'h00;
@@ -504,7 +504,7 @@ class i2c_master_start_byte extends i2c_master_base_sequence;
   endfunction
 
   virtual task body();
-    while (1) begin
+    forever begin
       super.body();
       if (!check_exit()) break;
     end
@@ -524,7 +524,7 @@ class i2c_master_high_speed_mode extends i2c_master_base_sequence;
   endfunction
 
   virtual task body();
-    while (1) begin
+    forever begin
       super.body();
       if (rsp.ack_nack == `ACK) `uvm_error("WRNGACK", "Did not expect ACK at Speed Mode Code")
       if (!check_exit()) break;
@@ -552,7 +552,6 @@ class i2c_master_device_id extends i2c_master_base_sequence;
     seq = i2c_master_read_sequence::type_id::create("seq");
 
     if (!seq.randomize() with {
-      stop_condition == 0;
       target_address == device_id_address;
       ignore_register == 'b0;
       register_address == local::target_address;
@@ -580,7 +579,7 @@ class i2c_master_10bit_addr_write extends i2c_master_write_sequence;
     int exit_flag = 0;
     seq = i2c_master_base_sequence::type_id::create("seq");
 
-    while (1) begin
+    forever begin
       exit_flag = 0;
       
       // Send target address (first 2 bits)
@@ -665,7 +664,7 @@ class i2c_master_10bit_addr_read extends i2c_master_read_sequence;
     int exit_flag = 0;
     seq = i2c_master_base_sequence::type_id::create("seq");
 
-    while (1) begin
+    forever begin
       exit_flag = 0;
 
       // Send target address (first 2 bits)

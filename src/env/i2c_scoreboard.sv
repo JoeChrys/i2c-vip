@@ -217,7 +217,7 @@ task i2c_scoreboard:: run_phase(uvm_phase phase);
 
       if (item_q.size() == (start_index+1)+3) begin
         `uvm_info("Scoreboard", 
-          $sformatf("Manufactured ID %12b, \n Part Num %9b, Die Revision %3b",
+          $sformatf("Manufacturer ID %12b, \n Part Num %9b, Die Revision %3b",
           {item_q[start_index+1].data, item_q[start_index+2].data[7:4]},
           {item_q[start_index+2].data[3:0], item_q[start_index+3].data[7:3]},
           item_q[start_index+3].data[3:0]),
