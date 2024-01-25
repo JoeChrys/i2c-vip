@@ -91,8 +91,7 @@ endtask
 */
 task i2c_monitor::check_start_cond();
   forever begin
-    @(negedge i2c_vif.sda);
-    if (i2c_vif.scl == 'b0) continue;
+    @(negedge i2c_vif.sda iff i2c_vif.scl);
 
     `uvm_info("Monitor", "detected start condition", UVM_HIGH)
 
@@ -123,8 +122,7 @@ endtask
  */
 task i2c_monitor::check_stop_cond();
   forever begin
-    @(posedge i2c_vif.sda);
-    if (i2c_vif.scl == 'b0) continue;
+    @(posedge i2c_vif.sda iff i2c_vif.scl);
 
     // else if... 
       // if... (early/invalid stop condition)

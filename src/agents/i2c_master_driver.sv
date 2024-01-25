@@ -320,14 +320,12 @@ endtask
 task i2c_master_driver:: check_bus_busy();
   fork
     forever begin : DETECT_START
-      @(negedge i2c_vif.sda);
-      if (i2c_vif.scl == 'b0) continue;
+      @(negedge i2c_vif.sda iff i2c_vif.scl);
       bus_busy = 1;
       `uvm_warning("Driver", "External START condition detected, bus is busy, waiting...")
     end
     forever begin
-      @(posedge i2c_vif.sda);
-      if (i2c_vif.scl == 'b0) continue;
+      @(posedge i2c_vif.sda iff i2c_vif.scl);
       bus_busy = 0;
       `uvm_info("Driver", "External STOP condition detected, bus is now free", UVM_LOW)
     end

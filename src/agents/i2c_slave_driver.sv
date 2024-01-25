@@ -88,8 +88,7 @@ endtask
 
 task i2c_slave_driver:: detect_start_cond();
   forever begin
-    @(negedge i2c_vif.sda);
-    if (i2c_vif.scl == 'b0) continue;
+    @(negedge i2c_vif.sda iff i2c_vif.scl);
 
     `uvm_info("Driver", "detected Start Condition", UVM_HIGH)
 
@@ -123,8 +122,7 @@ endtask
 
 task i2c_slave_driver:: detect_stopt_cond();
   forever begin
-    @(posedge i2c_vif.sda);
-    if (i2c_vif.scl == 'b0) continue;
+    @(posedge i2c_vif.sda iff i2c_vif.scl)
 
     `uvm_info("Driver", "Detected Stop Condition", UVM_HIGH)
     disable do_drive;
