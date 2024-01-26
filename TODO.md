@@ -32,6 +32,7 @@
   reallow it on stop
   - [ ] May need to disable check_bus_busy process so master can send silmutaneously
   @(negedge sda iff scl); if (allow_concurrent_start) { (@negedge scl); } -> bus_busy
+  - [ ] Needs to track first byte to avoid false START_BYTE detection
 
 - [x] Slave Driver
   - [x] Sample (and send RSP to seq)
