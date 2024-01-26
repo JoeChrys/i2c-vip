@@ -1,4 +1,3 @@
-
 class i2c_slave_driver extends uvm_driver #(i2c_item);
   `uvm_component_utils(i2c_slave_driver)
 
@@ -37,7 +36,7 @@ endfunction // i2c_slave_driver::new
 function void i2c_slave_driver:: build_phase(uvm_phase phase);
   super.build_phase(phase);
 
-  `uvm_info("build_phase","BUILD i2c_slave_DRIVER",UVM_HIGH);
+  `uvm_info("build_phase","BUILD I2C_SLAVE_DRIVER", UVM_HIGH);
   if(!uvm_config_db#(virtual i2c_if)::get(this, "", "i2c_vif", i2c_vif)) 
     `uvm_fatal("build_phase",{"virtual interface must be set for: ", get_full_name(),".i2c_vif"});
   if (!uvm_config_db#(i2c_cfg)::get(this, "", "cfg", cfg)) begin
@@ -71,6 +70,7 @@ task i2c_slave_driver:: run_phase(uvm_phase phase);
 
     // release lines
     i2c_vif.uvc_sda = 'bz;
+    cfg.get_delay();
     i2c_vif.uvc_scl = 'bz;
   end   // of forever
 endtask// i2c_slave_driver::run_phase

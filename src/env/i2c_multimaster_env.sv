@@ -29,8 +29,6 @@ endfunction // i2c_multimaster_env::connect_phase
 function void i2c_multimaster_env:: start_of_simulation_phase(uvm_phase phase);
   super.start_of_simulation_phase(phase);
 
-  // Disable verbosity of unconnected monitors
-  if (!cfg_env.connect_master_to_sb) begin
-    master_agent_2.m_mon.set_report_verbosity_level_hier(UVM_NONE);
-  end
+  // Disable verbosity
+  master_agent_2.m_mon.set_report_verbosity_level_hier(UVM_NONE);
 endfunction // i2c_multimaster_env::start_of_simulation_phase

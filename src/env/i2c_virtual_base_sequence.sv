@@ -1,10 +1,10 @@
 class i2c_virtual_base_sequence extends uvm_sequence;
   `uvm_object_utils(i2c_virtual_base_sequence)
-
-  i2c_master_sequencer m_seqr;
-  i2c_slave_sequencer s_seqr;
+  `uvm_declare_p_sequencer(i2c_virtual_sequencer)
 
   i2c_cfg cfg;
+
+  i2c_virtual_sequencer v_seqr;
 
   i2c_master_base_sequence m_seq;
   i2c_slave_base_sequence  s_seq;
@@ -58,7 +58,7 @@ task i2c_virtual_base_sequence:: body();
         delay == local::delay;
       })
       `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-      m_seq.start(m_seqr, this);
+      m_seq.start(v_seqr.m_seqr, this);
     end
     begin
       if (!s_seq.randomize() with {
@@ -72,7 +72,7 @@ task i2c_virtual_base_sequence:: body();
         }
       })
       `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-      s_seq.start(s_seqr, this);
+      s_seq.start(v_seqr.s_seqr, this);
     end
   join
 endtask
@@ -101,14 +101,14 @@ task i2c_virtual_sequence:: body();
         number_of_bytes == local::number_of_bytes;
       })
       `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-      m_seq.start(m_seqr, this);
+      m_seq.start(v_seqr.m_seqr, this);
     end
     begin
       if (!s_seq.randomize() with {
         number_of_bytes == local::number_of_bytes;
       })
       `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-      s_seq.start(s_seqr, this);
+      s_seq.start(v_seqr.s_seqr, this);
     end
   join
 endtask

@@ -20,7 +20,7 @@ class i2c_base_test extends uvm_test;
 
   extern virtual function void cfg_randomize(); 
   extern virtual function void set_default_configuration ();
-  extern virtual function void init_virtual_seq(i2c_virtual_base_sequence virtual_sequence);
+  // extern virtual function void init_virtual_seq(i2c_virtual_base_sequence virtual_sequence);
 endclass // i2c_base_test
 
 //-------------------------------------------------------------------------------------------------------------
@@ -109,9 +109,9 @@ function void i2c_base_test:: set_default_configuration ();
   `uvm_info("config", "Default configuration set.", UVM_HIGH)
 endfunction // i2c_base_test::set_default_configuration
 
-function void i2c_base_test:: init_virtual_seq(i2c_virtual_base_sequence virtual_sequence);
-  virtual_sequence.m_seqr = env.master_agent.m_seqr;
-  virtual_sequence.s_seqr = env.slave_agent.s_seqr;
-  if (virtual_sequence.m_seqr == null) `uvm_fatal("NULPTR", "Master Sequencer has not be set")
-  if (virtual_sequence.s_seqr == null) `uvm_fatal("NULPTR", "Slave Sequencer has not be set")
-endfunction
+// function void i2c_base_test:: init_virtual_seq(i2c_virtual_base_sequence virtual_sequence);
+//   virtual_sequence.m_seqr = env.master_agent.m_seqr;
+//   virtual_sequence.s_seqr = env.slave_agent.s_seqr;
+//   if (virtual_sequence.m_seqr == null) `uvm_fatal("NULPTR", "Master Sequencer has not be set")
+//   if (virtual_sequence.s_seqr == null) `uvm_fatal("NULPTR", "Slave Sequencer has not be set")
+// endfunction
