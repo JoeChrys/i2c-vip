@@ -1,17 +1,14 @@
 class i2c_basic_test extends i2c_base_test;
   `uvm_component_utils(i2c_basic_test)
 
-  i2c_virtual_write_with_stop_no_delays_no_cs v_seq;
-  i2c_virtual_write_no_stop_with_delays_with_cs_all v_seq1;
-  i2c_virtual_read_with_stop_no_delays_no_cs v_seq2;
-  i2c_virtual_read_with_stop_with_delays_with_cs_all v_seq3;
+  i2c_virtual_base_sequence v_seq0;
+  i2c_virtual_sequence#(i2c_master_write_sequence, i2c_slave_read_sequence) v_seq1;
       
   extern function new(string name = "i2c_basic_test", uvm_component parent=null);
   extern virtual function void build_phase(uvm_phase phase);
   extern virtual function void start_of_simulation_phase(uvm_phase phase);
   extern virtual task run_phase (uvm_phase phase);
   extern virtual function void report_phase(uvm_phase phase);
-  extern virtual function void init_virtual_seq(i2c_virtual_base_sequence virtual_sequence);
 endclass 
 
 //-------------------------------------------------------------------------------------------------------------
@@ -23,40 +20,69 @@ endfunction // new
 function void i2c_basic_test:: build_phase(uvm_phase phase);
   super.build_phase(phase);
   
-  v_seq = i2c_virtual_write_with_stop_no_delays_no_cs :: type_id :: create ("v_seq");
-  v_seq1 = i2c_virtual_write_no_stop_with_delays_with_cs_all :: type_id :: create ("v_seq1");
-  v_seq2 = i2c_virtual_read_with_stop_no_delays_no_cs :: type_id :: create ("v_seq2");
-  v_seq3 = i2c_virtual_read_with_stop_with_delays_with_cs_all :: type_id :: create ("v_seq3");
+  v_seq0 = i2c_virtual_base_sequence :: type_id :: create ("v_seq0");
+  v_seq1 = i2c_virtual_sequence#(i2c_master_write_sequence, i2c_slave_read_sequence) :: type_id :: create ("v_seq1");
 endfunction // build_phase
 
 //-------------------------------------------------------------------------------------------------------------
-task i2c_basic_test:: run_phase (uvm_phase phase);        
+task i2c_basic_test:: run_phase (uvm_phase phase);
+  unsigned int N = 100;   
+
   super.run_phase(phase);
   phase.raise_objection(this);
   #(cfg.get_delay(FULL)*100);
   
-  init_virtual_seq(v_seq);
-  if (!v_seq.randomize() with {
-    // start_condition;
-    // stop_condition;
-  }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-  v_seq.start(null);
+  // *** Basic test ***
 
-  init_virtual_seq(v_seq1);
-  if (!v_seq1.randomize() with {
-  }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-  v_seq1.start(null);
+  // * Test basic Addressing *
+  // Start - Address (Write) - Reg/Data - Stop
+  for (int i=0; i<N; i++) begin
+  
+    if (!v_seq0.randomize() with {
+      !data[7:1] inside {RESERVED_ADDRESSES}; //!
+      data[0] == `W; //!
+      transaction_type == WRITE;
+      start_condition;
+      ack_nack == `ACK; //!
+    }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
+    v_seq.start(env.v_seqr);
+    if (!v_seq0.randomize() with {
+      transaction_type == WRITE; //!
+      stop_condition; //!
+      ack_nack == `ACK; //!
+    }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
+    v_seq.start(env.v_seqr);
 
-  init_virtual_seq(v_seq2);
-  if (!v_seq2.randomize() with {
-  }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-  v_seq2.start(null);
+  end
 
+  // Repeat above without stop condition (should yield similar results)
+  for (int i=0; i<N; i++) begin
+  
+    if (!v_seq0.randomize() with {
+      !data[7:1] inside {RESERVED_ADDRESSES}; //!
+      data[0] == `W; //!
+      transaction_type == WRITE;
+      start_condition;
+      ack_nack == `ACK; //!
+    }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
+    v_seq.start(env.v_seqr);
+    if (!v_seq0.randomize() with {
+      transaction_type == WRITE; //!
+      ack_nack == `ACK; //!
+    }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
+    v_seq.start(env.v_seqr);
 
-  init_virtual_seq(v_seq3);
-  if (!v_seq3.randomize() with {
-  }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-  v_seq3.start(null);
+  end
+
+  // * Test basic Write *
+  // for (int i=0; i<N; i++) begin
+  
+  //   if (!v_seq1.randomize() with {
+  //     // num_of_bytes
+  //   }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
+  //   v_seq.start(env.v_seqr);
+
+  // end
 
   #(cfg.get_delay(FULL)*100);
   phase.drop_objection (this);
@@ -66,11 +92,4 @@ endtask // run_phase
 function void i2c_basic_test:: report_phase(uvm_phase phase);
   super.report_phase(phase);
 endfunction // report_phase
-
-function void i2c_basic_test:: init_virtual_seq(i2c_virtual_base_sequence virtual_sequence);
-  virtual_sequence.m_seqr = env.master_agent.m_seqr;
-  virtual_sequence.s_seqr = env.slave_agent.s_seqr;
-  if (virtual_sequence.m_seqr == null) `uvm_fatal("NULPTR", "Master Sequencer has not be set")
-  if (virtual_sequence.s_seqr == null) `uvm_fatal("NULPTR", "Slave Sequencer has not be set")
-endfunction // init_virtual_seq
 

@@ -87,6 +87,7 @@
   - [x] [Optional] Change @ continue -> @ iff
   - [x] Change while (1) to forever
   - [ ] May need to remove uvm_config_set/get as every cfg is the same
+  - [ ] [Optional] ~~Set default values before randomize~~
 
 - [ ] Virtual Sequence
   - [x] [Optional] Reduce code by paremeterizing (not really reduced after all)

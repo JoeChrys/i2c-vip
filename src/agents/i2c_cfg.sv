@@ -13,7 +13,6 @@ class i2c_cfg extends uvm_object;
 
   // *** Data sharing parameters ***
   rand speed_mode_enum current_speed_mode;
-  //pairs of seqs
     
   //Simulation timeout
   time test_time_out = 100000000;
