@@ -18,10 +18,10 @@ endclass
     m_seq = i2c_master_write_with_stop_no_delays::type_id::create("m_seq");
     s_seq = i2c_slave_read_sequence::type_id::create("s_seq");
     
-    if (!uvm_config_db#(i2c_master_sequencer)::get(null,"uvm_test_top.v_seq*","m_seqr", m_seqr) ) 
-      `uvm_fatal("NULPTR", "Master Sequencer has not be set")
-    if (!uvm_config_db#(i2c_slave_sequencer)::get(null,"uvm_test_top.v_seq*","v_seqr.s_seqr", v_seqr.s_seqr) ) 
-     `uvm_fatal("NULPTR", "Slave Sequencer has not be set")
+    // if (!uvm_config_db#(i2c_master_sequencer)::get(null,"uvm_test_top.v_seq*","m_seqr", m_seqr) ) 
+    //   `uvm_fatal("NULPTR", "Master Sequencer has not be set")
+    // if (!uvm_config_db#(i2c_slave_sequencer)::get(null,"uvm_test_top.v_seq*","p_sequencer.s_seqr", p_sequencer.s_seqr) ) 
+    //  `uvm_fatal("NULPTR", "Slave Sequencer has not be set")
 
     fork
       begin
@@ -29,14 +29,14 @@ endclass
           number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-        m_seq.start(v_seqr.m_seqr, this);
+        m_seq.start(p_sequencer.m_seqr, this);
       end
       begin
         if (!s_seq.randomize() with {
           number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-        s_seq.start(v_seqr.v_seqr.s_seqr, this);
+        s_seq.start(p_sequencer.s_seqr, this);
       end
     join
   endtask
@@ -65,14 +65,14 @@ endclass
           number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-        m_seq.start(v_seqr.m_seqr, this);
+        m_seq.start(p_sequencer.m_seqr, this);
       end
       begin
         if (!s_seq.randomize() with {
           number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-        s_seq.start(v_seqr.s_seqr, this);
+        s_seq.start(p_sequencer.s_seqr, this);
       end
     join
   endtask
@@ -101,14 +101,14 @@ endclass
           number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-        m_seq.start(v_seqr.m_seqr, this);
+        m_seq.start(p_sequencer.m_seqr, this);
       end
       begin
         if (!s_seq.randomize() with {
           number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-        s_seq.start(v_seqr.s_seqr, this);
+        s_seq.start(p_sequencer.s_seqr, this);
       end
     join
   endtask
@@ -137,14 +137,14 @@ endclass
           number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-        m_seq.start(v_seqr.m_seqr, this);
+        m_seq.start(p_sequencer.m_seqr, this);
       end
       begin
         if (!s_seq.randomize() with {
           number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-        s_seq.start(v_seqr.s_seqr, this);
+        s_seq.start(p_sequencer.s_seqr, this);
       end
     join
   endtask
@@ -176,14 +176,14 @@ endclass
           number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-        m_seq.start(v_seqr.m_seqr, this);
+        m_seq.start(p_sequencer.m_seqr, this);
       end
       begin
         if (!s_seq.randomize() with {
           number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-        s_seq.start(v_seqr.s_seqr, this);
+        s_seq.start(p_sequencer.s_seqr, this);
       end
     join
   endtask
@@ -212,14 +212,14 @@ endclass
           number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-        m_seq.start(v_seqr.m_seqr, this);
+        m_seq.start(p_sequencer.m_seqr, this);
       end
       begin
         if (!s_seq.randomize() with {
           number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-        s_seq.start(v_seqr.s_seqr, this);
+        s_seq.start(p_sequencer.s_seqr, this);
       end
     join
   endtask
@@ -248,14 +248,14 @@ endclass
           number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-        m_seq.start(v_seqr.m_seqr, this);
+        m_seq.start(p_sequencer.m_seqr, this);
       end
       begin
         if (!s_seq.randomize() with {
           number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-        s_seq.start(v_seqr.s_seqr, this);
+        s_seq.start(p_sequencer.s_seqr, this);
       end
     join
   endtask
@@ -284,14 +284,14 @@ endclass
           number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-        m_seq.start(v_seqr.m_seqr, this);
+        m_seq.start(p_sequencer.m_seqr, this);
       end
       begin
         if (!s_seq.randomize() with {
           number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-        s_seq.start(v_seqr.s_seqr, this);
+        s_seq.start(p_sequencer.s_seqr, this);
       end
     join
   endtask
@@ -321,14 +321,14 @@ endclass
           number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-        m_seq.start(v_seqr.m_seqr, this);
+        m_seq.start(p_sequencer.m_seqr, this);
       end
       begin
         if (!s_seq.randomize() with {
           number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-        s_seq.start(v_seqr.s_seqr, this);
+        s_seq.start(p_sequencer.s_seqr, this);
       end
     join
   endtask
@@ -357,14 +357,14 @@ endclass
           number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-        m_seq.start(v_seqr.m_seqr, this);
+        m_seq.start(p_sequencer.m_seqr, this);
       end
       begin
         if (!s_seq.randomize() with {
           number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-        s_seq.start(v_seqr.s_seqr, this);
+        s_seq.start(p_sequencer.s_seqr, this);
       end
     join
   endtask
@@ -393,14 +393,14 @@ endclass
           number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-        m_seq.start(v_seqr.m_seqr, this);
+        m_seq.start(p_sequencer.m_seqr, this);
       end
       begin
         if (!s_seq.randomize() with {
           number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-        s_seq.start(v_seqr.s_seqr, this);
+        s_seq.start(p_sequencer.s_seqr, this);
       end
     join
   endtask
@@ -429,14 +429,14 @@ endclass
           number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-        m_seq.start(v_seqr.m_seqr, this);
+        m_seq.start(p_sequencer.m_seqr, this);
       end
       begin
         if (!s_seq.randomize() with {
           number_of_bytes == local::number_of_bytes;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-        s_seq.start(v_seqr.s_seqr, this);
+        s_seq.start(p_sequencer.s_seqr, this);
       end
     join
   endtask
@@ -491,7 +491,7 @@ endclass
           delay[1] == local::delay[1];
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-        m_seq.start(v_seqr.m_seqr, this);
+        m_seq.start(p_sequencer.m_seqr, this);
       end
       begin
         foreach (clock_stretch_ack[i]) begin
@@ -502,7 +502,7 @@ endclass
             }
           })
           `uvm_fatal("RNDERR", "Failed to randomize slave sequence")
-          s_seq.start(v_seqr.s_seqr, this);
+          s_seq.start(p_sequencer.s_seqr, this);
         end
       end
     join
@@ -556,7 +556,7 @@ endclass
           delay[1] == local::delay[1];
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-        m_seq.start(v_seqr.m_seqr, this);
+        m_seq.start(p_sequencer.m_seqr, this);
       end
       begin
         foreach (clock_stretch_ack[i]) begin
@@ -567,7 +567,7 @@ endclass
             }
           })
           `uvm_fatal("RNDERR", "Failed to randomize slave sequence")
-          s_seq.start(v_seqr.s_seqr, this);
+          s_seq.start(p_sequencer.s_seqr, this);
         end
       end
     join
@@ -601,14 +601,14 @@ endclass
           stop_condition == local::stop_condition;
         })
         `uvm_fatal("RNDERR", "Failed to randomize master sequence")
-        m_seq.start(v_seqr.m_seqr, this);
+        m_seq.start(p_sequencer.m_seqr, this);
       end
       begin
         if (!s_seq.randomize() with {
           number_of_bytes == 3;
         })
         `uvm_fatal("RNDERR", "Failed to randomize slave sequence")
-        s_seq.start(v_seqr.s_seqr, this);
+        s_seq.start(p_sequencer.s_seqr, this);
       end
     join
   endtask

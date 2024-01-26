@@ -104,8 +104,6 @@ endfunction // i2c_base_test::cfg_randomize
 
 //-------------------------------------------------------------------------------------------------------------
 function void i2c_base_test:: set_default_configuration ();
-  cfg_env.connect_master_to_sb = 0;     
-  cfg_env.connect_slave_to_sb = 1;
   `uvm_info("config", "Default configuration set.", UVM_HIGH)
 endfunction // i2c_base_test::set_default_configuration
 

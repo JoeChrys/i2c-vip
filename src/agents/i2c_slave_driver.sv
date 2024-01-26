@@ -70,7 +70,7 @@ task i2c_slave_driver:: run_phase(uvm_phase phase);
 
     // release lines
     i2c_vif.uvc_sda = 'bz;
-    cfg.get_delay();
+    #(cfg.get_delay());
     i2c_vif.uvc_scl = 'bz;
   end   // of forever
 endtask// i2c_slave_driver::run_phase

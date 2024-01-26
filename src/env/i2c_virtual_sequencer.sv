@@ -1,4 +1,4 @@
-class i2c_virtual_sequencer extends uvm_component;
+class i2c_virtual_sequencer extends uvm_sequencer;
   `uvm_component_utils(i2c_virtual_sequencer)
 
   i2c_cfg cfg;

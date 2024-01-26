@@ -44,6 +44,10 @@ endfunction // i2c_env::build_phase
 function void i2c_env:: connect_phase (uvm_phase phase);
   super.connect_phase(phase);
 
+  // Assign Agent Sequencers to Virtual Sequencer
+  v_seqr.m_seqr = master_agent.m_seqr;
+  v_seqr.s_seqr = slave_agent.s_seqr;
+
   // Connect monitors to scoreboard
   master_agent.m_mon.i2c_mon_analysis_port.connect(sb.m_mon_imp);
   slave_agent.m_mon.i2c_mon_analysis_port.connect(sb.s_mon_imp); 

@@ -32,11 +32,11 @@ task i2c_testing_test:: run_phase (uvm_phase phase);
   phase.raise_objection(this);
   #(cfg.get_delay(FULL)*10);
   
-  init_virtual_seq(v_seq);
+  // init_virtual_seq(v_seq);
   if (!v_seq.randomize() with {
     //constraints
   }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-  v_seq.start(null);
+  v_seq.start(env.v_seqr);
 
   #(cfg.get_delay(FULL)*10);
   phase.drop_objection (this);
