@@ -274,7 +274,7 @@ task i2c_scoreboard:: run_phase(uvm_phase phase);
     end
 
     default: begin
-      `uvm_fatal("Scoreboard", "Invalid state")
+      `uvm_error("Scoreboard", "Invalid state")
     end
     endcase
 
@@ -328,7 +328,7 @@ function void i2c_scoreboard:: set_state(scoreboard_state_enum state);
       expect_ack = 0;
     end
     default: begin
-      `uvm_fatal("Scoreboard", "Invalid state")
+      `uvm_error("Scoreboard", "Invalid state")
     end
   endcase
   current_state = state;

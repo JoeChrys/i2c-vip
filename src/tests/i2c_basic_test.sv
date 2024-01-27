@@ -6,9 +6,8 @@ class i2c_basic_test extends i2c_base_test;
       
   extern function new(string name = "i2c_basic_test", uvm_component parent=null);
   extern virtual function void build_phase(uvm_phase phase);
-  extern virtual function void start_of_simulation_phase(uvm_phase phase);
   extern virtual task run_phase (uvm_phase phase);
-  extern virtual function void report_phase(uvm_phase phase);
+  // extern virtual function void report_phase(uvm_phase phase);
 endclass 
 
 //-------------------------------------------------------------------------------------------------------------
@@ -26,7 +25,7 @@ endfunction // build_phase
 
 //-------------------------------------------------------------------------------------------------------------
 task i2c_basic_test:: run_phase (uvm_phase phase);
-  unsigned int N = 100;   
+  int N = 100;   
 
   super.run_phase(phase);
   phase.raise_objection(this);
@@ -39,19 +38,19 @@ task i2c_basic_test:: run_phase (uvm_phase phase);
   for (int i=0; i<N; i++) begin
   
     if (!v_seq0.randomize() with {
-      !data[7:1] inside {RESERVED_ADDRESSES}; //!
+      !(data[7:1] inside {RESERVED_ADDRESSES}); //!
       data[0] == `W; //!
       transaction_type == WRITE;
       start_condition;
       ack_nack == `ACK; //!
     }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-    v_seq.start(env.v_seqr);
+    v_seq0.start(env.v_seqr);
     if (!v_seq0.randomize() with {
       transaction_type == WRITE; //!
       stop_condition; //!
       ack_nack == `ACK; //!
     }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-    v_seq.start(env.v_seqr);
+    v_seq0.start(env.v_seqr);
 
   end
 
@@ -59,18 +58,18 @@ task i2c_basic_test:: run_phase (uvm_phase phase);
   for (int i=0; i<N; i++) begin
   
     if (!v_seq0.randomize() with {
-      !data[7:1] inside {RESERVED_ADDRESSES}; //!
+      !(data[7:1] inside {RESERVED_ADDRESSES}); //!
       data[0] == `W; //!
       transaction_type == WRITE;
       start_condition;
       ack_nack == `ACK; //!
     }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-    v_seq.start(env.v_seqr);
+    v_seq0.start(env.v_seqr);
     if (!v_seq0.randomize() with {
       transaction_type == WRITE; //!
       ack_nack == `ACK; //!
     }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-    v_seq.start(env.v_seqr);
+    v_seq0.start(env.v_seqr);
 
   end
 
@@ -80,7 +79,7 @@ task i2c_basic_test:: run_phase (uvm_phase phase);
     if (!v_seq1.randomize() with {
       // num_of_bytes
     }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-    v_seq.start(env.v_seqr);
+    v_seq1.start(env.v_seqr);
 
   end
 
@@ -89,7 +88,7 @@ task i2c_basic_test:: run_phase (uvm_phase phase);
 endtask // run_phase
   
 //---------------------------------------------------------------------------------------------------------------------
-function void i2c_basic_test:: report_phase(uvm_phase phase);
-  super.report_phase(phase);
-endfunction // report_phase
+// function void i2c_basic_test:: report_phase(uvm_phase phase);
+//   super.report_phase(phase);
+// endfunction // report_phase
 

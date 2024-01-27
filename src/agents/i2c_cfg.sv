@@ -15,11 +15,11 @@ class i2c_cfg extends uvm_object;
   rand speed_mode_enum current_speed_mode;
     
   //Simulation timeout
-  time test_time_out = 100000000;
+  time test_time_out = 10_000_000_000;
 
   constraint c_cfg {
     current_speed_mode == default_speed_mode;
-    periods[default_speed_mode] < periods[higher_speed_mode];
+    periods[default_speed_mode] > periods[higher_speed_mode];
   }
 
   //Default constraints 
