@@ -96,8 +96,12 @@
 
 - [ ] Scripts
   - [ ] Testlist
-  - [ ] args in file
+  - [x] args in file
 
+- [ ] Config
+  - [ ] move stop_on_nack and stop_on_fail to cfg?
+
+<!--
 __IMPORTANT__ How to sync sequences for slave driver when 2 master are involved?
   1. make a slave driver that has a specific address
   2. make a slave driver that does not require sequence_items for addressing
@@ -106,3 +110,4 @@ __IMPORTANT__ How to sync sequences for slave driver when 2 master are involved?
       - 10-bit address (address1-address2-register)
       - 10-bit DeviceID (devID-addr1-addr2)
     - Master READ (1 byte, for all addresses, it has been addressed from before)
+-->

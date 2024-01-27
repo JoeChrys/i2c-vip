@@ -1,8 +1,9 @@
 class i2c_basic_test extends i2c_base_test;
   `uvm_component_utils(i2c_basic_test)
 
-  i2c_virtual_base_sequence v_seq0;
-  i2c_virtual_write_with_stop_no_delays_no_cs v_seq1;
+  i2c_virtual_base_sequence v_seq00;
+  i2c_virtual_multibyte_sequence v_seq01;
+  i2c_virtual_write_with_stop_no_delays_no_cs v_seq10;
       
   extern function new(string name = "i2c_basic_test", uvm_component parent=null);
   extern virtual function void build_phase(uvm_phase phase);
@@ -19,8 +20,9 @@ endfunction // new
 function void i2c_basic_test:: build_phase(uvm_phase phase);
   super.build_phase(phase);
   
-  v_seq0 = i2c_virtual_base_sequence::type_id::create ("v_seq0");
-  v_seq1 = i2c_virtual_write_with_stop_no_delays_no_cs::type_id::create ("v_seq1");
+  v_seq00 = i2c_virtual_base_sequence::type_id::create ("v_seq00");
+  v_seq01 = i2c_virtual_multibyte_sequence::type_id::create ("v_seq01");
+  v_seq10 = i2c_virtual_write_with_stop_no_delays_no_cs::type_id::create ("v_seq10");
 endfunction // build_phase
 
 //-------------------------------------------------------------------------------------------------------------
@@ -37,49 +39,67 @@ task i2c_basic_test:: run_phase (uvm_phase phase);
   // Start - Address (Write) - Reg/Data - Stop
   for (int i=0; i<N; i++) begin
   
-    if (!v_seq0.randomize() with {
+    if (!v_seq00.randomize() with {
       !(data[7:1] inside {RESERVED_ADDRESSES}); //!
       data[0] == `W; //!
       transaction_type == WRITE;
       start_condition;
       ack_nack == `ACK; //!
     }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-    v_seq0.start(env.v_seqr);
-    if (!v_seq0.randomize() with {
+    v_seq00.start(env.v_seqr);
+    if (!v_seq00.randomize() with {
       transaction_type == WRITE; //!
       stop_condition; //!
       ack_nack == `ACK; //!
     }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-    v_seq0.start(env.v_seqr);
+    v_seq00.start(env.v_seqr);
 
   end
 
   // Repeat above without stop condition (should yield similar results)
   for (int i=0; i<N; i++) begin
   
-    if (!v_seq0.randomize() with {
+    if (!v_seq00.randomize() with {
       !(data[7:1] inside {RESERVED_ADDRESSES}); //!
       data[0] == `W; //!
       transaction_type == WRITE;
       start_condition;
       ack_nack == `ACK; //!
     }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-    v_seq0.start(env.v_seqr);
-    if (!v_seq0.randomize() with {
+    v_seq00.start(env.v_seqr);
+    if (!v_seq00.randomize() with {
       transaction_type == WRITE; //!
       ack_nack == `ACK; //!
     }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-    v_seq0.start(env.v_seqr);
+    v_seq00.start(env.v_seqr);
 
   end
 
-  // * Test basic Write *
+  // for (int i=0; i<N; i++) begin
+  
+  //   if (!v_seq00.randomize() with {
+  //     !(data[7:1] inside {RESERVED_ADDRESSES}); //!
+  //     data[0] == `W; //!
+  //     transaction_type == WRITE;
+  //     start_condition;
+  //     ack_nack == `ACK; //!
+  //   }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
+  //   v_seq00.start(env.v_seqr);
+  //   if (!v_seq00.randomize() with {
+  //     transaction_type == WRITE; //!
+  //     ack_nack == `ACK; //!
+  //   }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
+  //   v_seq00.start(env.v_seqr);
+
+  // end
+
+  // * Test Write *
   for (int i=0; i<N; i++) begin
   
-    if (!v_seq1.randomize() with {
+    if (!v_seq10.randomize() with {
       // num_of_bytes
     }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-    v_seq1.start(env.v_seqr);
+    v_seq10.start(env.v_seqr);
 
   end
 

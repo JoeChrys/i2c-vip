@@ -1,3 +1,92 @@
+class i2c_virtual_multibyte_sequence extends i2c_virtual_base_sequence;
+  `uvm_object_utils(i2c_virtual_multibyte_sequence)
+
+  i2c_master_multibyte_sequence  m_seq;
+  i2c_slave_multibyte_sequence   s_seq;
+
+  rand bit[7:0]         data[];
+  rand bit              ack_nack[];
+  rand int              delay[];
+  rand int              clock_stretch_data[][8];
+  rand int              clock_stretch_ack[];
+
+  constraint c_virtual_mb_nob {
+    num_of_bytes > 0;
+    soft (num_of_bytes < 8);
+  }
+  constraint c_virtual_mb_start_stop {
+    soft (start_condition == 1);
+    soft (stop_condition == 1);
+  }
+  constraint c_virtual_mb_array_size {
+    data.size() == num_of_bytes;
+    ack_nack.size() == num_of_bytes;
+    delay.size() == num_of_bytes;
+    clock_stretch_ack.size() == num_of_bytes;
+    clock_stretch_data.size() == num_of_bytes;
+  }
+  constraint c_virtual_mb_defaults {
+    foreach (delay[i]) {
+      delay[i] >= 0; 
+      soft (delay[i] == 0);
+    }
+    foreach (clock_stretch_ack[i]) {
+      clock_stretch_ack[i] >= 0;
+      soft (clock_stretch_ack[i] == 0);
+    }
+    foreach (clock_stretch_data[i,j]) {
+      clock_stretch_data[i][j] >= 0;
+      soft (clock_stretch_data[i][j] == 0);
+    }
+  }
+  constraint c_virtual_mb_ack_nack {
+    foreach (ack_nack[i]) {
+      soft (ack_nack[i] == `ACK);
+    }
+  }
+
+  extern function new(string name = "i2c_virtual_multibyte_sequence");
+  extern virtual task body();
+endclass
+
+  function i2c_virtual_multibyte_sequence:: new(string name = "i2c_virtual_multibyte_sequence");
+    super.new(name);
+  endfunction
+
+  task i2c_virtual_multibyte_sequence:: body();
+    m_seq = i2c_master_multibyte_sequence::type_id::create("m_seq");
+    s_seq = i2c_slave_multibyte_sequence::type_id::create("s_seq");
+
+    fork
+      begin
+        if (!m_seq.randomize() with {
+          transaction_type == local::transaction_type;
+          data == local::data;
+          ack_nack == local::ack_nack;
+          start_condition == local::start_condition;
+          stop_condition == local::stop_condition;
+          delay == local::delay;
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize master sequence")
+        m_seq.start(p_sequencer.m_seqr, this);
+      end
+      begin
+        if (!s_seq.randomize() with {
+          if (transaction_type == WRITE) transaction_type == READ;
+          else if (transaction_type == READ) transaction_type == WRITE;
+          data == local::data;
+          ack_nack == local::ack_nack;
+          clock_stretch_ack[i] == local::clock_stretch_ack[i];
+          foreach (clock_stretch_data[i][j]) {
+            clock_stretch_data[i][j] == local::clock_stretch_data[i][j];
+          }
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize slave sequence")
+        s_seq.start(p_sequencer.s_seqr, this);
+      end
+    join
+  endtask
+
 // *** No delays / Clock Stretch
 
 class i2c_virtual_write_with_stop_no_delays_no_cs extends i2c_virtual_base_sequence;
