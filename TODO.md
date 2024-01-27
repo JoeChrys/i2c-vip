@@ -30,8 +30,9 @@
   - [x] Update configs on START/STOP
   - [ ] Add allow_arbitration which allows transfer failed until end of first byte
   reallow it on stop
-  - [ ] May need to disable check_bus_busy process so master can send silmutaneously
-  @(negedge sda iff scl); if (allow_concurrent_start) { (@negedge scl); } -> bus_busy
+  - [x] ~~May need to disable check_bus_busy process so master can send silmutaneously~~
+  @(negedge sda iff scl); ~~if (allow_concurrent_start)~~ { (@negedge scl); } -> bus_busy
+  - [x] Add first_byte flag to avoid self-ack on every data == START_BYTE
 
 - [x] Slave Driver
   - [x] Sample (and send RSP to seq)
@@ -74,7 +75,7 @@
 
 - [ ] Tests
   - [x] Make a 2 master base test
-  - [ ] Init vseq master 2
+  - [ ] ~~Init vseq master 2~~
 
 - [x] Env
   - [x] Make a multimaster env
@@ -83,10 +84,10 @@
 - [ ] Cleanup
   - [x] Remove UVM_DEBUG prints
   - [x] Remove //TODO and //! comments
-  - [ ] [Optional] Remove depedency on system_clock
+  - [x] [Optional] Remove depedency on system_clock
   - [x] [Optional] Change @ continue -> @ iff
   - [x] Change while (1) to forever
-  - [ ] May need to remove uvm_config_set/get as every cfg is the same
+  - [x] ~~May~~ need to remove uvm_config_set/get as every cfg is the same
   - [ ] [Optional] ~~Set default values before randomize~~
 
 - [ ] Virtual Sequence

@@ -30,7 +30,7 @@ class i2c_virtual_base_sequence extends uvm_sequence;
       soft (clock_stretch_data[i] == 0);
     }
     number_of_bytes > 0;
-    soft (number_of_bytes < 30);
+    soft (number_of_bytes < 8);
   }
 
   extern function new(string name = "i2c_virtual_base_sequence");

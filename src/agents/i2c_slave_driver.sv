@@ -90,14 +90,14 @@ task i2c_slave_driver:: detect_start_cond();
   forever begin
     @(negedge i2c_vif.sda iff i2c_vif.scl);
 
-    `uvm_info("Driver", "detected Start Condition", UVM_HIGH)
+    `uvm_info("I2C Slave Driver", "detected Start Condition", UVM_HIGH)
 
     // else if ... (Repeated Start Condition)
     if (enable) begin
 
       // check if EARLY Start Condition
       if (!transfer_done) begin
-        `uvm_warning("Driver", "Early Start Condition")
+        `uvm_error("I2C Slave Driver", "Early Start Condition")
         break;
       end
     end
@@ -124,7 +124,7 @@ task i2c_slave_driver:: detect_stopt_cond();
   forever begin
     @(posedge i2c_vif.sda iff i2c_vif.scl)
 
-    `uvm_info("Driver", "Detected Stop Condition", UVM_HIGH)
+    `uvm_info("I2C Slave Driver", "Detected Stop Condition", UVM_HIGH)
     disable do_drive;
     if (cfg.slave_driver_type == POLLING_CPU) begin
       disable detect_start_cond;
@@ -133,7 +133,7 @@ task i2c_slave_driver:: detect_stopt_cond();
     enable = 'b0;
 
     if (!transfer_done) begin
-      `uvm_warning("Driver", "Early Stop Condition")
+      `uvm_error("I2C Slave Driver", "Early Stop Condition")
       break;
     end
 
@@ -170,7 +170,7 @@ task i2c_slave_driver:: read_data();
       rsp.set_id_info(req);
       seq_item_port.put(rsp);
     end
-    `uvm_info("Driver", 
+    `uvm_info("I2C Slave Driver", 
       $sformatf("Got bit[%1d] = %1b", 
         bit_index, rsp.data[bit_index]), 
       UVM_HIGH)
@@ -201,7 +201,7 @@ task i2c_slave_driver:: write_data();
       seq_item_port.get(req);
       transfer_done = 'b0;
     end
-    `uvm_info("Driver", 
+    `uvm_info("I2C Slave Driver", 
       $sformatf("Sent bit[%1d] = %b", 
         bit_index, req.data[bit_index]), 
       UVM_HIGH)
@@ -214,7 +214,7 @@ task i2c_slave_driver:: write_data();
 
   // release SDA for Master to ACK/NACK
   release_sda();
-  `uvm_info("Driver", 
+  `uvm_info("I2C Slave Driver", 
     $sformatf("Sent byte = %2h",
       req.data),
     UVM_MEDIUM)
@@ -233,24 +233,24 @@ task i2c_slave_driver:: write_data();
 endtask
 
 task i2c_slave_driver:: send_bit(bit data_bit);
-  if (i2c_vif.scl != 'b0) `uvm_error("Driver", "SCL unexpected HIGH")
+  if (i2c_vif.scl != 'b0) `uvm_error("I2C Slave Driver", "SCL unexpected HIGH")
   if (data_bit == 0) i2c_vif.uvc_sda = data_bit;
   else               i2c_vif.uvc_sda = 'bz;
 endtask
 
 task i2c_slave_driver:: release_sda();
-  if (i2c_vif.scl == 'b1) `uvm_error("Driver", "SCL unexpected HIGH when releasing SDA")
+  if (i2c_vif.scl == 'b1) `uvm_error("I2C Slave Driver", "SCL unexpected HIGH when releasing SDA")
   i2c_vif.uvc_sda = 'bz;
 endtask
 
 task i2c_slave_driver:: release_scl();
-  if (i2c_vif.scl == 'b1) `uvm_error("Driver", "SCL unexpected HIGH, call this task only after 'clock_stretch()'")
+  if (i2c_vif.scl == 'b1) `uvm_error("I2C Slave Driver", "SCL unexpected HIGH, call this task only after 'clock_stretch()'")
   i2c_vif.uvc_scl = 'bz;
 endtask
 
 task i2c_slave_driver:: clock_stretch();
   int delay = 0;
-  if (i2c_vif.scl == 'b1) `uvm_error("Driver", "SCL unexpected HIGH when clock stretching")
+  if (i2c_vif.scl == 'b1) `uvm_error("I2C Slave Driver", "SCL unexpected HIGH when clock stretching")
   if (bit_index < 0) delay = req.clock_stretch_ack;
   else               delay = req.clock_stretch_data[bit_index];
 
@@ -259,7 +259,7 @@ task i2c_slave_driver:: clock_stretch();
   // else ...
   i2c_vif.uvc_scl = 'b0;
   #(delay*cfg.get_delay(QUANTUM));
-  `uvm_info("Driver",
+  `uvm_info("I2C Slave Driver",
     $sformatf("DONE Clock Stretch Data for %04d tu", 
       delay*cfg.get_delay(QUANTUM)), 
     UVM_HIGH)
@@ -279,6 +279,7 @@ task i2c_slave_driver:: polling();
     end
 
     if (temp_data == START_BYTE) begin
+      `uvm_info("I2C Slave Driver", "Detected Start Byte", UVM_HIGH)
       fork
         detect_start_cond();
       join

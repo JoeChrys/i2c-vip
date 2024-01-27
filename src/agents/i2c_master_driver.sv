@@ -6,6 +6,7 @@ class i2c_master_driver extends uvm_driver #(i2c_item);
   i2c_cfg           cfg;
 
   bit               bus_busy;
+  bit               first_byte_flag;
   bit               transfer_aborted;
   int               bit_index;
 
@@ -84,7 +85,7 @@ task i2c_master_driver:: do_drive(i2c_item req);
   join_any
 
   if (bus_busy) begin
-    `uvm_info("Driver", "Waiting for bus to be released", UVM_LOW)
+    `uvm_info("I2C Master Driver", "Waiting for bus to be released", UVM_LOW)
     wait (!bus_busy);
     //delay below could be moved here
   end
@@ -117,24 +118,26 @@ endtask // i2c_master_driver::do_drive
  */
 task i2c_master_driver:: do_start_cond();
   if (i2c_vif.scl == 'b0) begin
-    `uvm_info("Driver", "Preparing for Repeated START", UVM_HIGH)
+    `uvm_info("I2C Master Driver", "Preparing for Repeated START", UVM_HIGH)
     i2c_vif.uvc_sda = 'bz;
     #(cfg.get_delay());
-    if (i2c_vif.sda != 'b1) `uvm_error("Driver", "Expected SDA High but is Low")
+    if (i2c_vif.sda != 'b1) `uvm_error("I2C Master Driver", "Expected SDA High but is Low")
     i2c_vif.uvc_scl = 'bz;
     wait(i2c_vif.scl == 'b1);
     #(cfg.get_delay());
-    if (i2c_vif.scl != 'b1) `uvm_error("Driver", "Expected SCL High but is Low")
+    if (i2c_vif.scl != 'b1) `uvm_error("I2C Master Driver", "Expected SCL High but is Low")
   end
 
   // if (!uvm_config_db#(i2c_cfg)::get(this, "", "cfg", cfg)) begin
   //   `uvm_fatal("run_phase", "cfg wasn't set through config db");
   // end
-  `uvm_info("Driver", "Sending START", UVM_HIGH)
+  `uvm_info("I2C Master Driver", "Sending START", UVM_HIGH)
   i2c_vif.uvc_sda = 'b0;
   #(cfg.get_delay());
   i2c_vif.uvc_scl = 'b0;
   #(cfg.get_delay());
+
+  first_byte_flag = 'b1;
 endtask
 
 /*
@@ -142,18 +145,18 @@ endtask
  * It also does a preliminary check to see if SCL is HIGH which is unexpected
  */
 task i2c_master_driver:: do_stop_cond();
-  if (i2c_vif.scl != 'b0) `uvm_error("Driver", "SCL unexpected HIGH")
+  if (i2c_vif.scl != 'b0) `uvm_error("I2C Master Driver", "SCL unexpected HIGH")
 
   i2c_vif.uvc_sda = 'b0;
   #(cfg.get_delay());
 
-  `uvm_info("Driver", "Sending STOP", UVM_HIGH)
+  `uvm_info("I2C Master Driver", "Sending STOP", UVM_HIGH)
   i2c_vif.uvc_scl = 'bz;
   wait(i2c_vif.scl == 'b1);
   #(cfg.get_delay());
   i2c_vif.uvc_sda = 'bz;
   #(cfg.get_delay());
-  if (i2c_vif.sda != 'b1) `uvm_error("Driver", "SDA unexpected LOW")
+  if (i2c_vif.sda != 'b1) `uvm_error("I2C Master Driver", "SDA unexpected LOW")
 endtask
 
 /*
@@ -161,30 +164,30 @@ endtask
  * It runs in parallel with check_data() and is joined at the end
  */
 task i2c_master_driver:: write_data();
-  `uvm_info("Driver", "Master: Starting data transfer", UVM_HIGH)
+  `uvm_info("I2C Master Driver", "Master: Starting data transfer", UVM_HIGH)
   
   for (bit_index = 7; bit_index >= 0; bit_index--) begin
     if (transfer_aborted) return;
     send_bit(req.data[bit_index]);
     pulse_clock();
-    `uvm_info("Driver", 
+    `uvm_info("I2C Master Driver", 
       $sformatf("Sent bit[%1d] = %b", 
         bit_index, req.data[bit_index]), 
       UVM_HIGH)
   end
-  `uvm_info("Driver", 
+  `uvm_info("I2C Master Driver", 
     $sformatf("Sent byte = %2h",
       req.data),
     UVM_MEDIUM)
 
   // release SDA for Slave to ACK/NACK
   release_sda();
-  `uvm_info("Driver", "Released SDA for ACK", UVM_HIGH)
+  `uvm_info("I2C Master Driver", "Released SDA for ACK", UVM_HIGH)
 
   // pulse for ack/nack
   fork
-    if (req.data == START_BYTE) begin
-      `uvm_info(get_type_name(), "Sent START BYTE, doing self-ACK", UVM_LOW)
+    if (req.data == START_BYTE && first_byte_flag) begin
+      `uvm_info("I2C Master Driver", "Sent START BYTE, doing self-ACK", UVM_LOW)
       send_bit(`ACK);
     end
     pulse_clock();
@@ -195,7 +198,9 @@ task i2c_master_driver:: write_data();
       seq_item_port.put(rsp);
     end
   join
-  `uvm_info("Driver", "Done sending data", UVM_HIGH)
+  `uvm_info("I2C Master Driver", "Done sending data", UVM_HIGH)
+
+  first_byte_flag = 'b0;
 endtask
 
 /*
@@ -208,7 +213,7 @@ task i2c_master_driver:: check_data();
     @(negedge i2c_vif.scl);
     rsp.data[i] = i2c_vif.sda;
     if (rsp.data[i] != req.data[i]) begin
-      `uvm_warning("Driver", 
+      `uvm_warning("I2C Master Driver", 
         $sformatf("Bit sent (%1b) does NOT match SDA, aborting sequence...", rsp.data[i]))
       transfer_aborted = 'b1;
       rsp.transfer_failed = 'b1;
@@ -221,8 +226,8 @@ task i2c_master_driver:: check_data();
 
   @(negedge i2c_vif.scl);
   case(rsp.ack_nack)
-    `ACK:  `uvm_info("Driver", "Got ACK from slave", UVM_HIGH)
-    `NACK: `uvm_info("Driver", "Got NACK", UVM_LOW)
+    `ACK:  `uvm_info("I2C Master Driver", "Got ACK from slave", UVM_HIGH)
+    `NACK: `uvm_info("I2C Master Driver", "Got NACK", UVM_LOW)
   endcase
 endtask
 
@@ -230,14 +235,14 @@ endtask
  * This task reads data from the bus bit by bit, also does ACK/NACK at the end
  */
 task i2c_master_driver:: read_data();
-  `uvm_info("Driver", "Master: Reading data", UVM_HIGH)
+  `uvm_info("I2C Master Driver", "Master: Reading data", UVM_HIGH)
 
   for (bit_index = 7; bit_index >= 0; bit_index--) begin
     fork
       pulse_clock();
       capture_bit(bit_index);
     join
-    `uvm_info("Driver", 
+    `uvm_info("I2C Master Driver", 
       $sformatf("Got bit[%1d] = %1b", 
         bit_index, rsp.data[bit_index]), 
       UVM_HIGH)
@@ -252,8 +257,8 @@ task i2c_master_driver:: read_data();
   pulse_clock();
   release_sda();
   case(req.ack_nack)
-    `ACK:  `uvm_info("Driver", "Sent ACK", UVM_HIGH)
-    `NACK: `uvm_info("Driver", "Sent NACK", UVM_MEDIUM)
+    `ACK:  `uvm_info("I2C Master Driver", "Sent ACK", UVM_HIGH)
+    `NACK: `uvm_info("I2C Master Driver", "Sent NACK", UVM_MEDIUM)
   endcase
 endtask
 
@@ -262,7 +267,7 @@ endtask
  * It also does a preliminary check to see if SCL is HIGH which is unexpected
  */
 task i2c_master_driver:: send_bit(bit data_bit);
-  if (i2c_vif.scl != 'b0) `uvm_error("Driver", "SCL unexpected HIGH")
+  if (i2c_vif.scl != 'b0) `uvm_error("I2C Master Driver", "SCL unexpected HIGH")
   if (data_bit == 1) i2c_vif.uvc_sda = 'bz;
   else               i2c_vif.uvc_sda = data_bit;
 endtask
@@ -295,7 +300,7 @@ endtask
  * This task releases SDA also does a preliminary check to see if SCL is HIGH which is unexpected
  */
 task i2c_master_driver:: release_sda();
-  if (i2c_vif.scl == 'b1) `uvm_error("Driver", "SCL unexpected HIGH when releasing SDA")
+  if (i2c_vif.scl == 'b1) `uvm_error("I2C Master Driver", "SCL unexpected HIGH when releasing SDA")
   i2c_vif.uvc_sda = 'bz;
 endtask
 
@@ -305,7 +310,7 @@ endtask
  * the fork
  */
 task i2c_master_driver:: do_delay();
-    `uvm_info("Driver", 
+    `uvm_info("I2C Master Driver", 
       $sformatf("Waiting for %03d tu before sending", 
         req.delay*cfg.get_delay(QUANTUM)), 
       UVM_HIGH)
@@ -321,16 +326,17 @@ task i2c_master_driver:: check_bus_busy();
   fork
     forever begin : DETECT_START
       @(negedge i2c_vif.sda iff i2c_vif.scl);
+      @(negedge i2c_vif.scl);
       bus_busy = 1;
-      `uvm_warning("Driver", "External START condition detected, bus is busy, waiting...")
+      `uvm_warning("I2C Master Driver", "External START condition detected, bus is busy, waiting...")
     end
-    forever begin
+    forever begin : DETECT_STOP
       @(posedge i2c_vif.sda iff i2c_vif.scl);
       bus_busy = 0;
-      `uvm_info("Driver", "External STOP condition detected, bus is now free", UVM_LOW)
+      `uvm_info("I2C Master Driver", "External STOP condition detected, bus is now free", UVM_LOW)
     end
   join_any
-  `uvm_error("Driver", "Execution should not reach this point")
+  `uvm_error("I2C Master Driver", "Execution should not reach this point")
 endtask
 
 /*
@@ -347,9 +353,9 @@ task i2c_master_driver:: bus_busy_timeout();
     #(cfg.get_delay(FULL));
     i++;
     if (i > 10) begin
-      `uvm_info("Driver", "TIMEOUT REACHED", UVM_LOW)
+      `uvm_info("I2C Master Driver", "TIMEOUT REACHED", UVM_LOW)
       if (i2c_vif.sda == 'b1 && i2c_vif.scl == 'b1) begin
-        `uvm_info("Driver", "Manually resetting bus_busy flag", UVM_LOW)
+        `uvm_info("I2C Master Driver", "Manually resetting bus_busy flag", UVM_LOW)
         bus_busy = 'b0;
         break;
       end
