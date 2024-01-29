@@ -11,19 +11,19 @@ class i2c_virtual_multibyte_sequence extends i2c_virtual_base_sequence;
   rand int              clock_stretch_ack[];
 
   constraint c_virtual_mb_nob {
-    num_of_bytes > 0;
-    soft (num_of_bytes < 8);
+    number_of_bytes > 0;
+    soft (number_of_bytes < 8);
   }
   constraint c_virtual_mb_start_stop {
     soft (start_condition == 1);
     soft (stop_condition == 1);
   }
   constraint c_virtual_mb_array_size {
-    data.size() == num_of_bytes;
-    ack_nack.size() == num_of_bytes;
-    delay.size() == num_of_bytes;
-    clock_stretch_ack.size() == num_of_bytes;
-    clock_stretch_data.size() == num_of_bytes;
+    data.size() == number_of_bytes;
+    ack_nack.size() == number_of_bytes;
+    delay.size() == number_of_bytes;
+    clock_stretch_ack.size() == number_of_bytes;
+    clock_stretch_data.size() == number_of_bytes;
   }
   constraint c_virtual_mb_defaults {
     foreach (delay[i]) {
@@ -76,8 +76,8 @@ endclass
           else if (transaction_type == READ) transaction_type == WRITE;
           data == local::data;
           ack_nack == local::ack_nack;
-          clock_stretch_ack[i] == local::clock_stretch_ack[i];
-          foreach (clock_stretch_data[i][j]) {
+          foreach (clock_stretch_ack[i]) {clock_stretch_ack[i] == local::clock_stretch_ack[i]};
+          foreach (clock_stretch_data[i,j]) {
             clock_stretch_data[i][j] == local::clock_stretch_data[i][j];
           }
         })

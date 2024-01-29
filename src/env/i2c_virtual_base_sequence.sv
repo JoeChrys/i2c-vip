@@ -13,7 +13,7 @@ class i2c_virtual_base_sequence extends uvm_sequence;
 
   rand bit      start_condition;
   rand bit      stop_condition;
-  rand bit      delay;
+  rand int      delay;
 
   rand int      clock_stretch_data[7:0];
   rand int      clock_stretch_ack;

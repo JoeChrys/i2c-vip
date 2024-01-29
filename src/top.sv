@@ -64,9 +64,14 @@ module top;
   end
   // Waves
   initial begin
-    $value$plusargs("DUMPNAME=%s", logfile);
+    if (!$value$plusargs("DUMPNAME=%s", logfile))
+      $warning("DUMPNAME not specified");
     $dumpfile(logfile); 
     $dumpvars;
   end
+
+  // assert that slave will not overlap with masters
+  always @(negedge i2c_vif_master.uvc_scl) assert (i2c_vif_slave.uvc_scl !== 0);
+  always @(negedge i2c_vif_master_2.uvc_scl) assert (i2c_vif_slave.uvc_scl !== 0);
 endmodule 
 

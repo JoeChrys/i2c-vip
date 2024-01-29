@@ -1,10 +1,10 @@
-# SimVision Command Script (Fri Jan 19 03:25:31 PM UTC 2024)
+# SimVision Command Script (Mon Jan 29 12:57:30 PM UTC 2024)
 #
 # Version 22.03.s002
 #
 # You can restore this configuration with:
 #
-#      xrun top.sv -timescale 1ns/1ns -sysv -access +rw -uvm -seed 1 -uvmhome CDNS-1.2 +UVM_TESTNAME=i2c_testing_test -clean -l i2c_random_test.log +DUMPNAME=i2c_random_test.vcd +VERBOSITY=UVM_LOW -s -input restore.tcl
+#      xrun src/top.sv -incdir src/ -incdir src/agents -incdir src/env -incdir src/tests -s -sysv -access +rw -uvm -uvmhome CDNS-1.2 -clean -l i2c_basic_test.log -seed 1 -timescale 1ns/1ns +UVM_TESTNAME=i2c_basic_test +DUMPNAME=i2c_basic_test.vcd +VERBOSITY=UVM_LOW -input restore.tcl
 #
 
 
@@ -175,7 +175,7 @@ preferences set toolbar-TimeSearch-WatchWindow {
 # Simulator
 #
 database require simulator -hints {
-	simulator "xrun top.sv -timescale 1ns/1ns -sysv -access +rw -uvm -seed 1 -uvmhome CDNS-1.2 +UVM_TESTNAME=i2c_testing_test -clean -l i2c_random_test.log +DUMPNAME=i2c_random_test.vcd +VERBOSITY=UVM_LOW -s -input restore.tcl -input restore.tcl"
+	simulator "xrun src/top.sv -incdir src/ -incdir src/agents -incdir src/env -incdir src/tests -s -sysv -access +rw -uvm -uvmhome CDNS-1.2 -clean -l i2c_basic_test.log -seed 1 -timescale 1ns/1ns +UVM_TESTNAME=i2c_basic_test +DUMPNAME=i2c_basic_test.vcd +VERBOSITY=UVM_LOW -input restore.tcl"
 }
 #
 # Groups
@@ -199,8 +199,8 @@ group set -comment {}
 group clear 0 end
 
 group insert \
-     simulator::top.i2c_vif_master.uvc.sda  \
-     simulator::top.i2c_vif_master.uvc.scl 
+     simulator::top.sda  \
+     simulator::top.scl 
 group using {Group 3}
 group set -overlay 0
 group set -comment {}
@@ -226,7 +226,7 @@ group insert \
 #
 # Cursors
 #
-set time 48255000000fs
+set time 2167500000000fs
 if {[catch {cursor new -name  TimeA -time $time}] != ""} {
     cursor set -using TimeA -time $time
 }
@@ -242,24 +242,10 @@ mmap new  -reuse -name {Example Map} -radix %x -contents {{%b=11???? -bgcolor or
 {%x=* -label %x -linecolor gray -shape bus}}
 
 #
-# Design Browser windows
-#
-if {[catch {window new WatchList -name "Design Browser 1" -geometry 730x500+261+33}] != ""} {
-    window geometry "Design Browser 1" 730x500+261+33
-}
-window target "Design Browser 1" on
-browser using {Design Browser 1}
-browser set -scope  simulator::top.i2c_vif_slave.uvc 
-browser set \
-    -signalsort name
-browser yview see  simulator::top.i2c_vif_slave.uvc 
-browser timecontrol set -lock 0
-
-#
 # Waveform windows
 #
-if {[catch {window new WaveWindow -name "Waveform 1" -geometry 1010x600+395+206}] != ""} {
-    window geometry "Waveform 1" 1010x600+395+206
+if {[catch {window new WaveWindow -name "Waveform 1" -geometry 1842x499+48+59}] != ""} {
+    window geometry "Waveform 1" 1842x499+48+59
 }
 window target "Waveform 1" on
 waveform using {Waveform 1}
@@ -267,9 +253,9 @@ waveform sidebar select designbrowser
 waveform set \
     -primarycursor TimeA \
     -signalnames name \
-    -signalwidth 175 \
+    -signalwidth 134 \
     -units ns \
-    -valuewidth 75
+    -valuewidth 35
 waveform baseline set -time 0
 
 
@@ -280,12 +266,13 @@ set groupId0 [waveform add -groups {{Controller 1}}]
 
 
 set groupId0 [waveform add -groups {{Controller 2}}]
+waveform hierarchy collapse $groupId0
 
 
 set groupId0 [waveform add -groups Target]
 
 
-waveform xview limits 44236.506634ns 49787.084644ns
+waveform xview limits 853500ns 2276000ns
 
 #
 # Waveform Window Links
@@ -295,7 +282,7 @@ waveform xview limits 44236.506634ns 49787.084644ns
 # Console windows
 #
 console set -windowname Console
-window geometry Console 824x608+38+181
+window geometry Console 824x608+18+322
 
 #
 # Layout selection

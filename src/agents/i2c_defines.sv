@@ -29,7 +29,6 @@ typedef enum {FULL, HALF, QUARTER, QUANTUM} period_fraction_enum;
 
 // Functionality test struct
 typedef struct {
-  bit       start_condition;
   bit       stop_condition;
   bit       data0;
   bit       ack_nack;

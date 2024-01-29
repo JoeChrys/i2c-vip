@@ -11,7 +11,4 @@ src/top.sv \
 -clean \
 -timescale 1ns/1ns \
 -seed 1 \
--l i2c_basic_test.log \
-+UVM_TESTNAME=i2c_basic_test \
-+DUMPNAME="i2c_basic_test.vcd" \
 +VERBOSITY=UVM_LOW

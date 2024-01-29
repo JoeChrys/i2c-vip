@@ -5,7 +5,7 @@
 #
 # You can restore this configuration with:
 #
-#      xrun top.sv -timescale 1ns/1ns -sysv -access +rw -uvm -seed 1 -uvmhome CDNS-1.2 +UVM_TESTNAME=i2c_testing_test -clean -l i2c_random_test.log +DUMPNAME=i2c_random_test.vcd +VERBOSITY=UVM_LOW -s -input restore.tcl
+#      xrun src/top.sv -incdir src/ -incdir src/agents -incdir src/env -incdir src/tests -s -sysv -access +rw -uvm -uvmhome CDNS-1.2 -clean -l i2c_basic_test.log -seed 1 -timescale 1ns/1ns +UVM_TESTNAME=i2c_basic_test +DUMPNAME=i2c_basic_test.vcd +VERBOSITY=UVM_LOW -input restore.tcl
 #
 
 set tcl_prompt1 {puts -nonewline "xcelium> "}
@@ -50,10 +50,28 @@ set vcd_compact_mode 0
 alias . run
 alias quit exit
 stop -create -name Randomize -randomize
-database -open -vcd -into verilog.dump _verilog.dump1 -timescale fs
-database -open -shm -into waves.shm waves -default
+database -open -vcd -into i2c_basic_test.vcd _i2c_basic_test.vcd1 -timescale fs
 database -open -vcd -into i2c_random_test.vcd _i2c_random_test.vcd1 -timescale fs
+database -open -shm -into waves.shm waves -default
+database -open -vcd -into verilog.dump _verilog.dump1 -timescale fs
 probe -create -database waves top.i2c_vif_master.uvc.scl top.i2c_vif_master.uvc.sda top.i2c_vif_master.uvc.uvc_scl top.i2c_vif_master.uvc.uvc_sda top.i2c_vif_slave.uvc.scl top.i2c_vif_slave.uvc.sda top.i2c_vif_slave.uvc.uvc_scl top.i2c_vif_slave.uvc.uvc_sda
 probe -create -database waves top.i2c_vif_master_2.uvc.uvc_scl top.i2c_vif_master_2.uvc.uvc_sda
+probe -create -database waves top.i2c_vif_master.uvc.scl top.i2c_vif_master.uvc.sda top.i2c_vif_master.uvc.uvc_scl top.i2c_vif_master.uvc.uvc_sda top.i2c_vif_slave.uvc.scl top.i2c_vif_slave.uvc.sda top.i2c_vif_slave.uvc.uvc_scl top.i2c_vif_slave.uvc.uvc_sda
+probe -create -database waves top.i2c_vif_master_2.uvc.uvc_scl top.i2c_vif_master_2.uvc.uvc_sda
+probe -create -database waves top.i2c_vif_master.uvc.scl top.i2c_vif_master.uvc.sda top.i2c_vif_master.uvc.uvc_scl top.i2c_vif_master.uvc.uvc_sda top.i2c_vif_slave.uvc.scl top.i2c_vif_slave.uvc.sda top.i2c_vif_slave.uvc.uvc_scl top.i2c_vif_slave.uvc.uvc_sda
+probe -create -database waves top.i2c_vif_master_2.uvc.uvc_scl top.i2c_vif_master_2.uvc.uvc_sda
+probe -create -database waves top.i2c_vif_master.uvc.scl top.i2c_vif_master.uvc.sda top.i2c_vif_master.uvc.uvc_scl top.i2c_vif_master.uvc.uvc_sda top.i2c_vif_slave.uvc.scl top.i2c_vif_slave.uvc.sda top.i2c_vif_slave.uvc.uvc_scl top.i2c_vif_slave.uvc.uvc_sda
+probe -create -database waves top.i2c_vif_master_2.uvc.uvc_scl top.i2c_vif_master_2.uvc.uvc_sda
+probe -create -database waves top.i2c_vif_master.uvc.scl top.i2c_vif_master.uvc.sda top.i2c_vif_master.uvc.uvc_scl top.i2c_vif_master.uvc.uvc_sda top.i2c_vif_slave.uvc.scl top.i2c_vif_slave.uvc.sda top.i2c_vif_slave.uvc.uvc_scl top.i2c_vif_slave.uvc.uvc_sda
+probe -create -database waves top.i2c_vif_master_2.uvc.uvc_scl top.i2c_vif_master_2.uvc.uvc_sda
+probe -create -database waves top.i2c_vif_master.uvc.scl top.i2c_vif_master.uvc.sda top.i2c_vif_master.uvc.uvc_scl top.i2c_vif_master.uvc.uvc_sda top.i2c_vif_slave.uvc.scl top.i2c_vif_slave.uvc.sda top.i2c_vif_slave.uvc.uvc_scl top.i2c_vif_slave.uvc.uvc_sda
+probe -create -database waves top.i2c_vif_master_2.uvc.uvc_scl top.i2c_vif_master_2.uvc.uvc_sda
+probe -create -database waves top.i2c_vif_master.uvc.scl top.i2c_vif_master.uvc.sda top.i2c_vif_master.uvc.uvc_scl top.i2c_vif_master.uvc.uvc_sda top.i2c_vif_slave.uvc.scl top.i2c_vif_slave.uvc.sda top.i2c_vif_slave.uvc.uvc_scl top.i2c_vif_slave.uvc.uvc_sda
+probe -create -database waves top.i2c_vif_master_2.uvc.uvc_scl top.i2c_vif_master_2.uvc.uvc_sda
+probe -create -database waves top.i2c_vif_master.uvc.scl top.i2c_vif_master.uvc.sda top.i2c_vif_master.uvc.uvc_scl top.i2c_vif_master.uvc.uvc_sda top.i2c_vif_slave.uvc.scl top.i2c_vif_slave.uvc.sda top.i2c_vif_slave.uvc.uvc_scl top.i2c_vif_slave.uvc.uvc_sda
+probe -create -database waves top.i2c_vif_master_2.uvc.uvc_scl top.i2c_vif_master_2.uvc.uvc_sda
+probe -create -database waves top.i2c_vif_master.uvc.scl top.i2c_vif_master.uvc.sda top.i2c_vif_master.uvc.uvc_scl top.i2c_vif_master.uvc.uvc_sda top.i2c_vif_slave.uvc.scl top.i2c_vif_slave.uvc.sda top.i2c_vif_slave.uvc.uvc_scl top.i2c_vif_slave.uvc.uvc_sda
+probe -create -database waves top.i2c_vif_master_2.uvc.uvc_scl top.i2c_vif_master_2.uvc.uvc_sda
+probe -create -database waves top.sda top.scl
 
 simvision -input restore.tcl.svcf

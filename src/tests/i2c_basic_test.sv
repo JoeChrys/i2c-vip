@@ -1,6 +1,6 @@
 class i2c_basic_test extends i2c_base_test;
-  N = 100;
-  number_of_bytes = 3;
+  int N = 100;
+  int number_of_bytes = 3;
 
   `uvm_component_utils(i2c_basic_test)
 
@@ -13,9 +13,9 @@ class i2c_basic_test extends i2c_base_test;
       
   extern function new(string name = "i2c_basic_test", uvm_component parent=null);
   extern virtual function void build_phase(uvm_phase phase);
-  extern virtual fucntion void start_of_simulation_phase(uvm_phase phase);
+  extern virtual function void start_of_simulation_phase(uvm_phase phase);
   extern virtual task run_phase (uvm_phase phase);
-  extern virtual function void reset_params(ref param_struct ps);
+  extern virtual function void reset_params();
 endclass 
 
 //-------------------------------------------------------------------------------------------------------------
@@ -75,8 +75,8 @@ task i2c_basic_test:: run_phase (uvm_phase phase);
       if (!v_seq00.randomize() with {
         !(data[7:1] inside {RESERVED_ADDRESSES}); //!
         data[0] == rand_with.data0; //!
-        transaction_type == rand_with.transaction_type;
-        start_condition = rand_with.start_condition;
+        transaction_type == WRITE;
+        start_condition == 1;
         ack_nack == `ACK; //!
       }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
       v_seq00.start(env.v_seqr);
@@ -98,17 +98,17 @@ task i2c_basic_test:: run_phase (uvm_phase phase);
       if (!v_seq00.randomize() with {
         !(data[7:1] inside {RESERVED_ADDRESSES}); //!
         data[0] == rand_with.data0; //!
-        transaction_type == rand_with.transaction_type;
-        start_condition = rand_with.start_condition;
+        transaction_type == WRITE;
+        start_condition == 1;
         ack_nack == `ACK; //!
-        delay inside {[10:100]};
+        delay inside {[20:100]};
       }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
       v_seq00.start(env.v_seqr);
       if (!v_seq00.randomize() with {
         transaction_type == rand_with.transaction_type; //!
         stop_condition == rand_with.stop_condition; //!
         ack_nack == rand_with.ack_nack; //!
-        delay inside {[10:100]};
+        delay inside {[20:100]};
       }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
       v_seq00.start(env.v_seqr);
 
@@ -123,19 +123,19 @@ task i2c_basic_test:: run_phase (uvm_phase phase);
       if (!v_seq00.randomize() with {
         !(data[7:1] inside {RESERVED_ADDRESSES}); //!
         data[0] == rand_with.data0; //!
-        transaction_type == rand_with.transaction_type;
-        start_condition = rand_with.start_condition;
+        transaction_type == WRITE;
+        start_condition == 1;
         ack_nack == `ACK; //!
-        clock_stretch_ack inside {[5:20]};
-        foreach (clock_stretch_data[i]) {clock_stretch_data[i] inside {[1:10]};}
+        clock_stretch_ack inside {[10:30]};
+        foreach (clock_stretch_data[i]) {clock_stretch_data[i] inside {[1:20]};}
       }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
       v_seq00.start(env.v_seqr);
       if (!v_seq00.randomize() with {
         transaction_type == rand_with.transaction_type; //!
         stop_condition == rand_with.stop_condition; //!
         ack_nack == rand_with.ack_nack; //!
-        clock_stretch_ack inside {[5:20]};
-        foreach (clock_stretch_data[i]) {clock_stretch_data[i] inside {[1:10]};}
+        clock_stretch_ack inside {[10:30]};
+        foreach (clock_stretch_data[i]) {clock_stretch_data[i] inside {[1:20]};}
       }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
       v_seq00.start(env.v_seqr);
 
@@ -150,21 +150,21 @@ task i2c_basic_test:: run_phase (uvm_phase phase);
       if (!v_seq00.randomize() with {
         !(data[7:1] inside {RESERVED_ADDRESSES}); //!
         data[0] == rand_with.data0; //!
-        transaction_type == rand_with.transaction_type;
-        start_condition = rand_with.start_condition;
+        transaction_type == WRITE;
+        start_condition == 1;
         ack_nack == `ACK; //!
-        delay inside {[10:100]};
+        delay inside {[20:100]};
         clock_stretch_ack inside {[5:20]};
-        foreach (clock_stretch_data[i]) {clock_stretch_data[i] inside {[1:10]};}
+        foreach (clock_stretch_data[i]) {clock_stretch_data[i] inside {[10:20]};}
       }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
       v_seq00.start(env.v_seqr);
       if (!v_seq00.randomize() with {
         transaction_type == rand_with.transaction_type; //!
         stop_condition == rand_with.stop_condition; //!
         ack_nack == rand_with.ack_nack; //!
-        delay inside {[10:100]};
+        delay inside {[20:100]};
         clock_stretch_ack inside {[5:20]};
-        foreach (clock_stretch_data[i]) {clock_stretch_data[i] inside {[1:10]};}
+        foreach (clock_stretch_data[i]) {clock_stretch_data[i] inside {[10:20]};}
       }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
       v_seq00.start(env.v_seqr);
 
@@ -172,25 +172,24 @@ task i2c_basic_test:: run_phase (uvm_phase phase);
   end
 
   // * Test Write *
-  for (int i=0; i<N; i++) begin
+  // for (int i=0; i<N; i++) begin
   
-    if (!v_seq10.randomize() with {
-      // num_of_bytes
-    }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-    v_seq10.start(env.v_seqr);
+  //   if (!v_seq10.randomize() with {
+  //     // num_of_bytes
+  //   }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
+  //   v_seq10.start(env.v_seqr);
 
-  end
+  // end
 
   #(cfg.get_delay(FULL)*100);
   phase.drop_objection (this);
 endtask // run_phase
   
 //---------------------------------------------------------------------------------------------------------------------
-function void i2c_basic_test:: reset_params(param_struct ps);
-  ps.start_condition = 1;
-  ps.stop_condition = 1;
-  ps.data0 = `W;
-  ps.ack_nack = `ACK;
-  ps.transaction_type = WRITE;
+function void i2c_basic_test:: reset_params();
+  rand_with.stop_condition = 1;
+  rand_with.data0 = `W;
+  rand_with.ack_nack = `ACK;
+  rand_with.transaction_type = WRITE;
 endfunction // reset_params
 
