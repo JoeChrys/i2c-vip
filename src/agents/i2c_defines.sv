@@ -27,6 +27,15 @@ const time periods[speed_mode_enum] = '{ SM: 10000, FM: 2500, FMP: 1000, HSM: 30
 // Period fractions
 typedef enum {FULL, HALF, QUARTER, QUANTUM} period_fraction_enum;
 
+// Functionality test struct
+typedef struct {
+  bit       start_condition;
+  bit       stop_condition;
+  bit       data0;
+  bit       ack_nack;
+  transaction_type_enum transaction_type;
+} param_struct;
+
 // An array of all I2C addresses that are reserved for special purposes
 // Mainly used to be avoided during randomization
 parameter bit[7:1] RESERVED_ADDRESSES[16] = {

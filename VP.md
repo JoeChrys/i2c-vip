@@ -8,17 +8,30 @@
 
 ## Single Master
 
-### Basic
-##### Write
+##### Functionality
 1. __Test UVC reseting__ `[Start - Data* (W) - Stop]*`
     __Send one byte, with Start and Stop, multiple times__
     - Random Data Bytes[1:2], Byte[0] = Address, [Byte[1] = Register]
-1. __Test basic Write functionality__ `Start - Data[2] (W) - Data* (W) - Stop`
-    __Send 2 bytes (for addressing) and a random amound of data bytes, with Start and Stop__
-    - (Default) Address certain device and register and Write (avoid reserved address)
 1. __Test Repeated Start functionality__ `[Start - Data[2] (W)]* - Stop`
     __Send multiple Start and addresses, send Stop only at the end__
     - Address certain device and register, reset, repeat
+1. __Test read from standby bus__ `Start - Data (R) - Stop`
+    __Read without addressing a target device__
+    - Special 'error' case, it is not detectable on the interface
+    - Data will be `'hFF` which is a reserved address for Device ID
+    - Note: can be avoided with a hard constraint
+<!--
+1. __Test Read without selecting register__ `Start - Data (W) - Data* (R) - Stop`
+    __Adress target to read directly, read bytes sent__
+    - Not used but technically it should work and does not violate the protocol
+    - Should expect unexpected behavior from a DUT or in a real application
+-->
+
+### Basic
+##### Write
+1. __Test basic Write functionality__ `Start - Data[2] (W) - Data* (W) - Stop`
+    __Send 2 bytes (for addressing) and a random amound of data bytes, with Start and Stop__
+    - (Default) Address certain device and register and Write (avoid reserved address)
 1. __Test Repeated Start functionality with Data__ `[Start - Data[2] (W) - Data* (W)]* - Stop`
     __Send multiple Start, addresses and random data, send Stop only at the end__
     - Address certain device and register, write, reset, repeat
@@ -28,15 +41,9 @@
     __Address target, switch to Reading Mode, read random data__
     - (Default) Address certain device and register, address device again to read, read bytes
     - The functionality before `Data* (R)` has been verified in __Write__
-1. __Test read from standby bus__ `Start - Data (R) - Stop`
-    __Read without addressing a target device__
-    - Special 'error' case, it is not detectable on the interface
-    - Data will be `'hFF` which is a reserved address for Device ID
-    - Note: can be avoided with a hard constraint
-1. __Test Read without selecting register__ `Start - Data (W) - Data* (R) - Stop`
-    __Adress target to read directly, read bytes sent__
-    - Not used but technically it should work and does not violate the protocol
-    - Should expect unexpected behavior from a DUT or in a real application
+1. __Test Repeated Start functionality with Data__ `[Start - Data[2] (W) - Start - Data (W) - Data* (R)]* - Stop`
+    __Send START, Address target, switch to Reading Mode, read random data, repeat__
+    - Address certain device and register, write, reset, repeat
 
 ##### Reserved Addresses
 1. __Test Start Byte__ `Start - 'b0000_0001 - Start - Data* - Stop`
