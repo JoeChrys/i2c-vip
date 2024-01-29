@@ -2,6 +2,7 @@ class i2c_cfg extends uvm_object;
   `uvm_object_utils(i2c_cfg)
 
   // *** Environment configuration parameters ***
+  rand bit high_speed_only; //Enables high speed mode only
   rand bit has_coverage; //Enables coverage  
   rand agent_type_enum agent_type; // master (0) or slave (1)
   

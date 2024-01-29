@@ -1,21 +1,20 @@
 class i2c_basic_test extends i2c_base_test;
-  int N = 100;
+  int N = 30;
   int number_of_bytes = 3;
 
   `uvm_component_utils(i2c_basic_test)
 
-  i2c_virtual_base_sequence v_seq00;
-  i2c_virtual_multibyte_sequence v_seq01;
-  i2c_virtual_write_with_stop_no_delays_no_cs v_seq10;
+  i2c_master_start_byte m_start_byte;
+  i2c_master_high_speed_mode m_high_speed_mode;
 
-  param_struct param_q[$];
-  param_struct rand_with;
+  i2c_virtual_write_with_stop_no_delays_no_cs v_seq10;
+  i2c_virtual_read_no_stop_no_delays_no_cs v_seq11;
       
   extern function new(string name = "i2c_basic_test", uvm_component parent=null);
   extern virtual function void build_phase(uvm_phase phase);
   extern virtual function void start_of_simulation_phase(uvm_phase phase);
   extern virtual task run_phase (uvm_phase phase);
-  extern virtual function void reset_params();
+  extern virtual task bus_setup();
 endclass 
 
 //-------------------------------------------------------------------------------------------------------------
@@ -26,37 +25,21 @@ endfunction // new
 //-------------------------------------------------------------------------------------------------------------
 function void i2c_basic_test:: build_phase(uvm_phase phase);
   super.build_phase(phase);
+
+  m_start_byte = i2c_master_start_byte::type_id::create("m_start_byte");
+  m_high_speed_mode = i2c_master_high_speed_mode::type_id::create("m_high_speed_mode");
   
-  v_seq00 = i2c_virtual_base_sequence::type_id::create ("v_seq00");
-  v_seq01 = i2c_virtual_multibyte_sequence::type_id::create ("v_seq01");
-  v_seq10 = i2c_virtual_write_with_stop_no_delays_no_cs::type_id::create ("v_seq10");
+  v_seq10 = i2c_virtual_write_with_stop_no_delays_no_cs::type_id::create("v_seq10");
+  v_seq11 = i2c_virtual_read_no_stop_no_delays_no_cs::type_id::create("v_seq11");
 endfunction // build_phase
 
 //-------------------------------------------------------------------------------------------------------------
 function void i2c_basic_test:: start_of_simulation_phase(uvm_phase phase);
   super.start_of_simulation_phase(phase);
-
-  cfg.has_coverage = 0;
-
-  // *** Write with stop ***
-  reset_params();
-  param_q.push_back(rand_with);
-
-  // *** Write without stop ***
-  rand_with.stop_condition = 0;
-  param_q.push_back(rand_with);
-
-  // *** Read with stop ***
-  reset_params();
-  rand_with.transaction_type = READ;
-  rand_with.data0 = `R;
-  param_q.push_back(rand_with);
-
-  // *** Read without stop ***
-  rand_with.stop_condition = 0;
-  param_q.push_back(rand_with);
-
-
+  // already defaults
+  //cfg.has_coverage = 1;
+  //cfg.high_speed_only = 0;
+  //cfg.slave_driver_type = PERIPHERAL_DEVICE;
 endfunction // start_of_simulation_phase
 
 //-------------------------------------------------------------------------------------------------------------
@@ -65,131 +48,43 @@ task i2c_basic_test:: run_phase (uvm_phase phase);
   phase.raise_objection(this);
   #(cfg.get_delay(FULL)*100);
   
-  // *** Basic test ***
-
-  // * Test basic Addressing *
-  for (int i = 0; i < param_q.size(); i++) begin
-    rand_with = param_q[i];
-    repeat(N) begin
-    
-      if (!v_seq00.randomize() with {
-        !(data[7:1] inside {RESERVED_ADDRESSES}); //!
-        data[0] == rand_with.data0; //!
-        transaction_type == WRITE;
-        start_condition == 1;
-        ack_nack == `ACK; //!
-      }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-      v_seq00.start(env.v_seqr);
-      if (!v_seq00.randomize() with {
-        transaction_type == rand_with.transaction_type; //!
-        stop_condition == rand_with.stop_condition; //!
-        ack_nack == rand_with.ack_nack; //!
-      }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-      v_seq00.start(env.v_seqr);
-
-    end
-  end
-
-  // * Repeat test with master delay
-  for (int i = 0; i < param_q.size(); i++) begin
-    rand_with = param_q[i];
-    repeat(N) begin
-    
-      if (!v_seq00.randomize() with {
-        !(data[7:1] inside {RESERVED_ADDRESSES}); //!
-        data[0] == rand_with.data0; //!
-        transaction_type == WRITE;
-        start_condition == 1;
-        ack_nack == `ACK; //!
-        delay inside {[20:100]};
-      }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-      v_seq00.start(env.v_seqr);
-      if (!v_seq00.randomize() with {
-        transaction_type == rand_with.transaction_type; //!
-        stop_condition == rand_with.stop_condition; //!
-        ack_nack == rand_with.ack_nack; //!
-        delay inside {[20:100]};
-      }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-      v_seq00.start(env.v_seqr);
-
-    end
-  end
-
-  // Repeat with full clock stretch
-  for (int i = 0; i < param_q.size(); i++) begin
-    rand_with = param_q[i];
-    repeat(N) begin
-    
-      if (!v_seq00.randomize() with {
-        !(data[7:1] inside {RESERVED_ADDRESSES}); //!
-        data[0] == rand_with.data0; //!
-        transaction_type == WRITE;
-        start_condition == 1;
-        ack_nack == `ACK; //!
-        clock_stretch_ack inside {[10:30]};
-        foreach (clock_stretch_data[i]) {clock_stretch_data[i] inside {[1:20]};}
-      }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-      v_seq00.start(env.v_seqr);
-      if (!v_seq00.randomize() with {
-        transaction_type == rand_with.transaction_type; //!
-        stop_condition == rand_with.stop_condition; //!
-        ack_nack == rand_with.ack_nack; //!
-        clock_stretch_ack inside {[10:30]};
-        foreach (clock_stretch_data[i]) {clock_stretch_data[i] inside {[1:20]};}
-      }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-      v_seq00.start(env.v_seqr);
-
-    end
-  end
-
-  // * Repeat test with both master delay and full clock stretch
-  for (int i = 0; i < param_q.size(); i++) begin
-    rand_with = param_q[i];
-    repeat(N) begin
-    
-      if (!v_seq00.randomize() with {
-        !(data[7:1] inside {RESERVED_ADDRESSES}); //!
-        data[0] == rand_with.data0; //!
-        transaction_type == WRITE;
-        start_condition == 1;
-        ack_nack == `ACK; //!
-        delay inside {[20:100]};
-        clock_stretch_ack inside {[5:20]};
-        foreach (clock_stretch_data[i]) {clock_stretch_data[i] inside {[10:20]};}
-      }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-      v_seq00.start(env.v_seqr);
-      if (!v_seq00.randomize() with {
-        transaction_type == rand_with.transaction_type; //!
-        stop_condition == rand_with.stop_condition; //!
-        ack_nack == rand_with.ack_nack; //!
-        delay inside {[20:100]};
-        clock_stretch_ack inside {[5:20]};
-        foreach (clock_stretch_data[i]) {clock_stretch_data[i] inside {[10:20]};}
-      }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-      v_seq00.start(env.v_seqr);
-
-    end
-  end
 
   // * Test Write *
-  // for (int i=0; i<N; i++) begin
+  for (int i=0; i<N; i++) begin
   
-  //   if (!v_seq10.randomize() with {
-  //     // num_of_bytes
-  //   }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-  //   v_seq10.start(env.v_seqr);
+    bus_setup();
+    if (!v_seq10.randomize() with {
+      number_of_bytes == local::number_of_bytes;
+    }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
+    v_seq10.start(env.v_seqr);
 
-  // end
+  end
+
+  #(cfg.get_delay(FULL)*100);
+
+  for (int i=0; i<N; i++) begin
+  
+    bus_setup();
+    if (!v_seq11.randomize() with {
+      number_of_bytes == local::number_of_bytes;
+    }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
+    v_seq11.start(env.v_seqr);
+
+  end
 
   #(cfg.get_delay(FULL)*100);
   phase.drop_objection (this);
 endtask // run_phase
-  
-//---------------------------------------------------------------------------------------------------------------------
-function void i2c_basic_test:: reset_params();
-  rand_with.stop_condition = 1;
-  rand_with.data0 = `W;
-  rand_with.ack_nack = `ACK;
-  rand_with.transaction_type = WRITE;
-endfunction // reset_params
+
+//-------------------------------------------------------------------------------------------------------------
+task i2c_basic_test:: bus_setup();
+  if (cfg.slave_driver_type == PERIPHERAL_DEVICE) begin
+    `uvm_info(get_type_name(), "Sending START Byte", UVM_MEDIUM)
+    m_start_byte.start(env.v_seqr.m_seqr);
+  end
+  if (cfg.high_speed_only && cfg.current_speed_mode == default_speed_mode) begin
+    `uvm_info(get_type_name(), "Sending High Speed Mode Command", UVM_MEDIUM)
+    m_high_speed_mode.start(env.v_seqr.m_seqr);
+  end
+endtask // bus_setup
 

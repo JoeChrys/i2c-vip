@@ -73,5 +73,7 @@ module top;
   // assert that slave will not overlap with masters
   always @(negedge i2c_vif_master.uvc_scl) assert (i2c_vif_slave.uvc_scl !== 0);
   always @(negedge i2c_vif_master_2.uvc_scl) assert (i2c_vif_slave.uvc_scl !== 0);
+  always @(negedge i2c_vif_master.uvc_sda) assert (i2c_vif_slave.uvc_sda !== 0);
+  always @(negedge i2c_vif_master_2.uvc_sda) assert (i2c_vif_slave.uvc_sda !== 0);
 endmodule 
 
