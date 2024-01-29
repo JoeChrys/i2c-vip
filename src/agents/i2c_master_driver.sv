@@ -61,6 +61,8 @@ task i2c_master_driver:: run_phase(uvm_phase phase);
     rsp = i2c_item::type_id::create("rsp");
     rsp.transaction_type = req.transaction_type;
     do_drive(req);
+    //! event trigger
+    cfg.master_finish.trigger();
   end
 endtask // i2c_master_driver::run_phase
 
@@ -187,7 +189,7 @@ task i2c_master_driver:: write_data();
   // pulse for ack/nack
   fork
     if (req.data == START_BYTE && first_byte_flag) begin
-      `uvm_info("I2C Master Driver", "Sent START BYTE, doing self-ACK", UVM_LOW)
+      `uvm_info("I2C Master Driver", "Sent START BYTE, doing self-ACK", UVM_MEDIUM)
       send_bit(`ACK);
     end
     pulse_clock();
@@ -227,7 +229,7 @@ task i2c_master_driver:: check_data();
   @(negedge i2c_vif.scl);
   case(rsp.ack_nack)
     `ACK:  `uvm_info("I2C Master Driver", "Got ACK from slave", UVM_HIGH)
-    `NACK: `uvm_info("I2C Master Driver", "Got NACK", UVM_LOW)
+    `NACK: `uvm_info("I2C Master Driver", "Got NACK", UVM_MEDIUM)
   endcase
 endtask
 

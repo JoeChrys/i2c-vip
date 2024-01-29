@@ -502,13 +502,6 @@ class i2c_master_start_byte extends i2c_master_base_sequence;
   function new(string name = "i2c_master_start_byte");
     super.new(name);
   endfunction
-
-  virtual task body();
-    forever begin
-      super.body();
-      if (!check_exit()) break;
-    end
-  endtask
 endclass
 
 class i2c_master_high_speed_mode extends i2c_master_base_sequence;

@@ -14,6 +14,7 @@ class i2c_cfg extends uvm_object;
 
   // *** Data sharing parameters ***
   rand speed_mode_enum current_speed_mode;
+  uvm_event master_finish;
     
   //Simulation timeout
   time test_time_out = 64'd0000000000;
@@ -24,7 +25,8 @@ class i2c_cfg extends uvm_object;
   }
 
   //Default constraints 
-  constraint c_cfg_defaults {      
+  constraint c_cfg_defaults {    
+    soft high_speed_only == 0;  
     soft has_coverage == 1;
     soft default_speed_mode == SM;
     soft higher_speed_mode == FMP;
@@ -40,6 +42,7 @@ endclass // i2c_cfg
 //-------------------------------------------------------------------------------------------------------------
 function i2c_cfg:: new(string name = "i2c_cfg");
   super.new(name);
+  master_finish = new("master_finish");
 endfunction // i2c_cfg::new
 
 // Returns the delay for the current speed mode

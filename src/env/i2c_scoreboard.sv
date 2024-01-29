@@ -340,7 +340,7 @@ endfunction // i2c_scoreboard::set_state
  * Immediately sets the state to ADDRESSING if start condition is detected.
  */
 function void i2c_scoreboard:: check_start();
-  if (expect_start && !current_item.start_condition) begin
+  if (expect_start == 1 && !current_item.start_condition) begin
     `uvm_error("Scoreboard", "Expected start condition")
   end
   if (expect_start == -1 && current_item.start_condition) begin
@@ -361,7 +361,7 @@ endfunction // i2c_scoreboard::check_start
  * It resets the scoreboard if stop condition is detected.
  */
 function void i2c_scoreboard:: check_stop();
-  if (expect_stop && !current_item.stop_condition) begin
+  if (expect_stop == 1 && !current_item.stop_condition) begin
     `uvm_error("Scoreboard", "Expected stop condition")
   end
   if (expect_stop == -1 && current_item.stop_condition) begin
@@ -379,7 +379,7 @@ endfunction // i2c_scoreboard::check_stop
  * This function checks if the ack/nack is correct.
  */
 function void i2c_scoreboard:: check_ack();
-  if (expect_ack && current_item.ack_nack == `NACK) begin
+  if (expect_ack == 1 && current_item.ack_nack == `NACK) begin
     `uvm_error("Scoreboard", "Expected ack")
   end
   if (expect_ack == -1 && current_item.ack_nack == `ACK) begin

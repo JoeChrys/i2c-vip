@@ -38,8 +38,11 @@ function void i2c_basic_test:: start_of_simulation_phase(uvm_phase phase);
   super.start_of_simulation_phase(phase);
   // already defaults
   //cfg.has_coverage = 1;
-  //cfg.high_speed_only = 0;
+  // cfg.high_speed_only = 0;
   //cfg.slave_driver_type = PERIPHERAL_DEVICE;
+
+  cfg.high_speed_only = 1;
+  // cfg.slave_driver_type = POLLING_CPU;
 endfunction // start_of_simulation_phase
 
 //-------------------------------------------------------------------------------------------------------------
@@ -57,6 +60,7 @@ task i2c_basic_test:: run_phase (uvm_phase phase);
       number_of_bytes == local::number_of_bytes;
     }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
     v_seq10.start(env.v_seqr);
+    cfg.master_finish.wait_trigger();
 
   end
 
@@ -69,6 +73,7 @@ task i2c_basic_test:: run_phase (uvm_phase phase);
       number_of_bytes == local::number_of_bytes;
     }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
     v_seq11.start(env.v_seqr);
+    cfg.master_finish.wait_trigger();
 
   end
 
@@ -78,13 +83,13 @@ endtask // run_phase
 
 //-------------------------------------------------------------------------------------------------------------
 task i2c_basic_test:: bus_setup();
-  if (cfg.slave_driver_type == PERIPHERAL_DEVICE) begin
-    `uvm_info(get_type_name(), "Sending START Byte", UVM_MEDIUM)
-    m_start_byte.start(env.v_seqr.m_seqr);
+  if (cfg.slave_driver_type == POLLING_CPU && !env.slave_agent.m_mon.bus_active) begin
+    if (!m_start_byte.randomize()) `uvm_error("RNDERR", "Start Byte Sequence Randomization failed")
+    m_start_byte.start(env.master_agent.m_seqr);
   end
-  if (cfg.high_speed_only && cfg.current_speed_mode == default_speed_mode) begin
-    `uvm_info(get_type_name(), "Sending High Speed Mode Command", UVM_MEDIUM)
-    m_high_speed_mode.start(env.v_seqr.m_seqr);
+  if (cfg.high_speed_only && cfg.current_speed_mode == cfg.default_speed_mode) begin
+    if (!m_high_speed_mode.randomize()) `uvm_error("RNDERR", "High Speed Mode Sequence Randomization failed")
+    m_high_speed_mode.start(env.master_agent.m_seqr);
   end
 endtask // bus_setup
 

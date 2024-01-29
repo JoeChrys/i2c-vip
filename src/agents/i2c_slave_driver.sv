@@ -267,7 +267,7 @@ task i2c_slave_driver:: clock_stretch();
 endtask
 
 task i2c_slave_driver:: polling();
-  bit[7:1] temp_data;
+  bit[7:0] temp_data;
 
   forever begin
     @(negedge i2c_vif.sda iff i2c_vif.scl);
