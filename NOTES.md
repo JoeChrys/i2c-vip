@@ -203,3 +203,6 @@ __A: use seperate interface for each driver, each interface has 2 logic and 2 tr
 - [ ] How to continue the simulation even if assertion fails
 - [ ] In `/tools/cdnc/xcelium` what is each folder? UVM versions?
 - [ ] Detailed xcelium documentation?
+
+#### Possible improvements
+- auto STOP condition process after delay (disabled when do_drive() is called)

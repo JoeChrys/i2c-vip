@@ -72,10 +72,10 @@ task i2c_basic_test:: run_phase (uvm_phase phase);
   for (int i=0; i<N; i++) begin
   
     bus_setup();
-    if (!v_seq11.randomize() with {
+    if (!v_seq20.randomize() with {
       number_of_bytes == local::number_of_bytes;
     }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-    v_seq11.start(env.v_seqr);
+    v_seq20.start(env.v_seqr);
     cfg.master_finish.wait_trigger();
 
   end
@@ -87,10 +87,10 @@ task i2c_basic_test:: run_phase (uvm_phase phase);
   for (int i=0; i<N; i++) begin
   
     bus_setup();
-    if (!v_seq20.randomize() with {
+    if (!v_seq11.randomize() with {
       number_of_bytes == local::number_of_bytes;
     }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-    v_seq20.start(env.v_seqr);
+    v_seq11.start(env.v_seqr);
     cfg.master_finish.wait_trigger();
 
   end
