@@ -83,7 +83,9 @@
     - No target address after repeated Start
 
 ### Extended
+<!--
 1. Base with __NACKS__
+-->
 1. Base with __Master delay__
 1. Base with __Slave clock stretching at ACK__
 1. Base with __Slave clock stretching Data__ and __at ACK__
