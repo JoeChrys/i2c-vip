@@ -58,28 +58,24 @@ task i2c_basic_test:: run_phase (uvm_phase phase);
 
     randcase
       1:  begin
-            `uvm_info("TEST", "Test Write With Stop", UVM_LOW)
             if (!v_seq10.randomize() with {
               number_of_bytes == local::number_of_bytes;
             }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
             v_seq10.start(env.v_seqr);
           end
       1:  begin
-            `uvm_info("TEST", "Test Read With Stop", UVM_LOW)
             if (!v_seq11.randomize() with {
               number_of_bytes == local::number_of_bytes;
             }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
             v_seq11.start(env.v_seqr);
           end
       1:  begin
-            `uvm_info("TEST", "Test Write Without Stop", UVM_LOW)
             if (!v_seq20.randomize() with {
               number_of_bytes == local::number_of_bytes;
             }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
             v_seq20.start(env.v_seqr);
           end
       1:  begin
-            `uvm_info("TEST", "Test Read Without Stop", UVM_LOW)
             if (!v_seq21.randomize() with {
               number_of_bytes == local::number_of_bytes;
             }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
@@ -92,63 +88,6 @@ task i2c_basic_test:: run_phase (uvm_phase phase);
 
   #(cfg.get_delay(FULL)*100);
 
-  // // * Test Write *
-  // `uvm_info("TEST", "Test Write With Stop", UVM_LOW)
-  // for (int i=0; i<N; i++) begin
-  
-  //   bus_setup();
-  //   if (!v_seq10.randomize() with {
-  //     number_of_bytes == local::number_of_bytes;
-  //   }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-  //   v_seq10.start(env.v_seqr);
-  //   cfg.master_finish.wait_trigger();
-
-  // end
-
-  // #(cfg.get_delay(FULL)*100);
-
-  // `uvm_info("TEST", "Test Write Without Stop", UVM_LOW)
-  // for (int i=0; i<N; i++) begin
-  
-  //   bus_setup();
-  //   if (!v_seq11.randomize() with {
-  //     number_of_bytes == local::number_of_bytes;
-  //   }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-  //   v_seq11.start(env.v_seqr);
-  //   cfg.master_finish.wait_trigger();
-
-  // end
-
-  // #(cfg.get_delay(FULL)*100);
-
-  // // * Test Read *
-  // `uvm_info("TEST", "Test Read With Stop", UVM_LOW)
-  // for (int i=0; i<N; i++) begin
-  
-  //   bus_setup();
-  //   if (!v_seq20.randomize() with {
-  //     number_of_bytes == local::number_of_bytes;
-  //   }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-  //   v_seq20.start(env.v_seqr);
-  //   cfg.master_finish.wait_trigger();
-
-  // end
-
-  // #(cfg.get_delay(FULL)*100);
-
-  // `uvm_info("TEST", "Test Read Without Stop", UVM_LOW)
-  // for (int i=0; i<N; i++) begin
-  
-  //   bus_setup();
-  //   if (!v_seq21.randomize() with {
-  //     number_of_bytes == local::number_of_bytes;
-  //   }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-  //   v_seq21.start(env.v_seqr);
-  //   cfg.master_finish.wait_trigger();
-
-  // end
-
-  // #(cfg.get_delay(FULL)*100);
   phase.drop_objection (this);
 endtask // run_phase
 
