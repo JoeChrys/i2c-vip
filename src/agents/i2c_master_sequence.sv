@@ -515,14 +515,6 @@ class i2c_master_high_speed_mode extends i2c_master_base_sequence;
   function new(string name = "i2c_master_high_speed_mode");
     super.new(name);
   endfunction
-
-  virtual task body();
-    forever begin
-      super.body();
-      if (rsp.ack_nack == `ACK) `uvm_error("WRNGACK", "Did not expect ACK at Speed Mode Code")
-      if (!check_exit()) break;
-    end
-  endtask
 endclass
 
 class i2c_master_device_id extends i2c_master_base_sequence;

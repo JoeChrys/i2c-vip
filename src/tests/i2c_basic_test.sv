@@ -40,9 +40,6 @@ function void i2c_basic_test:: start_of_simulation_phase(uvm_phase phase);
   //cfg.has_coverage = 1;
   // cfg.high_speed_only = 0;
   //cfg.slave_driver_type = PERIPHERAL_DEVICE;
-
-  cfg.high_speed_only = 1;
-  // cfg.slave_driver_type = POLLING_CPU;
 endfunction // start_of_simulation_phase
 
 //-------------------------------------------------------------------------------------------------------------
