@@ -16,16 +16,13 @@ endfunction // new
 
 //-------------------------------------------------------------------------------------------------------------
 function void i2c_delay_and_clock_stretch_test:: build_phase(uvm_phase phase);
-  super.build_phase(phase);
   
-  set_type_override_by_type(i2c_virtual_write_with_stop_no_delays_no_cs::get_type(),
-    i2c_virtual_write_with_stop_with_delays_with_cs_all::get_type());
-  set_type_override_by_type(i2c_virtual_read_with_stop_no_delays_no_cs::get_type(),
-    i2c_virtual_read_with_stop_with_delays_with_cs_all::get_type());
-  set_type_override_by_type(i2c_virtual_write_no_stop_no_delays_no_cs::get_type(),
-    i2c_virtual_write_no_stop_with_delays_with_cs_all::get_type());
-  set_type_override_by_type(i2c_virtual_read_no_stop_no_delays_no_cs::get_type(),
-    i2c_virtual_read_no_stop_with_delays_with_cs_all::get_type());
+  set_type_override_by_type(i2c_virtual_write_with_stop_no_delays_no_cs::get_type(), i2c_virtual_write_with_stop_with_delays_with_cs_all::get_type());
+  set_type_override_by_type(i2c_virtual_read_with_stop_no_delays_no_cs::get_type(), i2c_virtual_read_with_stop_with_delays_with_cs_all::get_type());
+  set_type_override_by_type(i2c_virtual_write_no_stop_no_delays_no_cs::get_type(), i2c_virtual_write_no_stop_with_delays_with_cs_all::get_type());
+  set_type_override_by_type(i2c_virtual_read_no_stop_no_delays_no_cs::get_type(), i2c_virtual_read_no_stop_with_delays_with_cs_all::get_type());
+    
+  super.build_phase(phase);
 endfunction // build_phase
 
 function void i2c_delay_and_clock_stretch_test:: start_of_simulation_phase(uvm_phase phase);
