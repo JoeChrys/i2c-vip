@@ -668,9 +668,9 @@ class i2c_virtual_device_id extends i2c_virtual_base_sequence;
   i2c_master_device_id      m_seq;
   i2c_slave_write_sequence   s_seq;
 
-  bit[11:0] manufacturer_id;
-  bit[8:0]  part_number;
-  bit[2:0]  revision;
+  rand bit[11:0] manufacturer_id;
+  rand bit[8:0]  part_number;
+  rand bit[2:0]  revision;
 
   extern function new(string name = "i2c_virtual_device_id");
   extern virtual task body();
@@ -695,6 +695,62 @@ endclass
       begin
         if (!s_seq.randomize() with {
           number_of_bytes == 3;
+          data[0] == local::manufacturer_id[11:4];
+          data[1] == {local::manufacturer_id[3:0],local::part_number[8:5]};
+          data[2] == {local::part_number[4:0],local::revision};
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize slave sequence")
+        s_seq.start(p_sequencer.s_seqr, this);
+      end
+    join
+  endtask
+
+class i2c_virtual_cbus extends i2c_virtual_base_sequence;
+  `uvm_object_utils(i2c_virtual_cbus)
+
+  i2c_master_multibyte_sequence  m_seq;
+  i2c_slave_multibyte_sequence   s_seq;
+
+  bit[7:0] data[];
+  bit[7:0] ack_nack[];
+  bit     stop_condition;
+
+  constraint c_virtual_cbus_defaults {
+    data[0][7:1] == C_BUS;
+    ack_nack[0] == `ACK;
+    ack_nack[1:$] dist {`NACK: 1, `ACK: 1};
+  }
+
+  extern function new(string name = "i2c_virtual_cbus");
+  extern virtual task body();
+endclass
+
+  function i2c_virtual_cbus:: new(string name = "i2c_virtual_cbus");
+    super.new(name);
+  endfunction
+
+  task i2c_virtual_cbus:: body();
+    m_seq = i2c_master_multibyte_sequence::type_id::create("m_seq");
+    s_seq = i2c_slave_multibyte_sequence::type_id::create("s_seq");
+
+    fork
+      begin
+        if(!m_seq.randomize() with {
+          data == local::data;
+          delay == local::delay;
+          number_of_bytes == local::number_of_bytes+2;
+          start_condition;
+          stop_condition == local::stop_condition;
+          transaction_type == WRITE;
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize master sequence")
+        m_seq.start(p_sequencer.m_seqr, this);
+      end
+      begin
+        if (!s_seq.randomize() with {
+          number_of_bytes == local::number_of_bytes+2;
+          ack_nack == local::ack_nack;
+          transaction_type == READ;
         })
         `uvm_fatal("RNDERR", "Failed to randomize slave sequence")
         s_seq.start(p_sequencer.s_seqr, this);

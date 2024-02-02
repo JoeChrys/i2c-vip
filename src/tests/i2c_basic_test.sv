@@ -1,11 +1,5 @@
 class i2c_basic_test extends i2c_base_test;
-  int N = 30;
-  int number_of_bytes = 3;
-
   `uvm_component_utils(i2c_basic_test)
-
-  i2c_master_start_byte m_start_byte;
-  i2c_master_high_speed_mode m_high_speed_mode;
 
   i2c_virtual_write_with_stop_no_delays_no_cs v_seq10;
   i2c_virtual_read_with_stop_no_delays_no_cs v_seq11;
@@ -16,7 +10,6 @@ class i2c_basic_test extends i2c_base_test;
   extern virtual function void build_phase(uvm_phase phase);
   extern virtual function void start_of_simulation_phase(uvm_phase phase);
   extern virtual task run_phase (uvm_phase phase);
-  extern virtual task bus_setup();
 endclass 
 
 //-------------------------------------------------------------------------------------------------------------
@@ -27,9 +20,6 @@ endfunction // new
 //-------------------------------------------------------------------------------------------------------------
 function void i2c_basic_test:: build_phase(uvm_phase phase);
   super.build_phase(phase);
-
-  m_start_byte = i2c_master_start_byte::type_id::create("m_start_byte");
-  m_high_speed_mode = i2c_master_high_speed_mode::type_id::create("m_high_speed_mode");
   
   v_seq10 = i2c_virtual_write_with_stop_no_delays_no_cs::type_id::create("v_seq10");
   v_seq11 = i2c_virtual_read_with_stop_no_delays_no_cs::type_id::create("v_seq11");
@@ -53,7 +43,7 @@ task i2c_basic_test:: run_phase (uvm_phase phase);
 
   #(cfg.get_delay(FULL)*100);
 
-  for (int i=0; i<N; i++) begin
+  for (int i=0; i<iterations; i++) begin
     bus_setup();
 
     randcase
@@ -90,16 +80,4 @@ task i2c_basic_test:: run_phase (uvm_phase phase);
 
   phase.drop_objection (this);
 endtask // run_phase
-
-//-------------------------------------------------------------------------------------------------------------
-task i2c_basic_test:: bus_setup();
-  if (cfg.slave_driver_type == POLLING_CPU && !env.slave_agent.m_mon.bus_active) begin
-    if (!m_start_byte.randomize()) `uvm_error("RNDERR", "Start Byte Sequence Randomization failed")
-    m_start_byte.start(env.master_agent.m_seqr);
-  end
-  if (cfg.high_speed_only && cfg.current_speed_mode == cfg.default_speed_mode) begin
-    if (!m_high_speed_mode.randomize()) `uvm_error("RNDERR", "High Speed Mode Sequence Randomization failed")
-    m_high_speed_mode.start(env.master_agent.m_seqr);
-  end
-endtask // bus_setup
 

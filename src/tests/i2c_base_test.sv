@@ -2,6 +2,10 @@
   Default configuration is one master and one slave agent for the test. You can set up environment cfg here.
 */
 class i2c_base_test extends uvm_test;
+  
+  int iterations = 30;
+  int number_of_bytes = 3;
+
   `uvm_component_utils(i2c_base_test)
 
   i2c_cfg cfg;
@@ -11,6 +15,9 @@ class i2c_base_test extends uvm_test;
 
   virtual i2c_if i2c_vif_master;
   virtual i2c_if i2c_vif_slave;
+  
+  i2c_master_start_byte m_start_byte;
+  i2c_master_high_speed_mode m_high_speed_mode;
 
   extern function new(string name = "i2c_base_test", uvm_component parent=null);
   extern virtual function void build_phase(uvm_phase phase);
@@ -20,7 +27,7 @@ class i2c_base_test extends uvm_test;
 
   extern virtual function void cfg_randomize(); 
   extern virtual function void set_default_configuration ();
-  // extern virtual function void init_virtual_seq(i2c_virtual_base_sequence virtual_sequence);
+  extern virtual task bus_setup();
 endclass // i2c_base_test
 
 //-------------------------------------------------------------------------------------------------------------
@@ -53,6 +60,9 @@ function void  i2c_base_test:: build_phase(uvm_phase phase);
 
   uvm_config_db#(i2c_env_cfg)::set(this,"env","cfg_env", cfg_env);
   uvm_config_db#(i2c_cfg)::set(this, "*", "cfg", cfg);
+
+  m_start_byte = i2c_master_start_byte::type_id::create("m_start_byte");
+  m_high_speed_mode = i2c_master_high_speed_mode::type_id::create("m_high_speed_mode");
 endfunction // i2c_base_test::build_phase
 
 //-------------------------------------------------------------------------------------------------------------
@@ -107,9 +117,14 @@ function void i2c_base_test:: set_default_configuration ();
   `uvm_info("config", "Default configuration set.", UVM_HIGH)
 endfunction // i2c_base_test::set_default_configuration
 
-// function void i2c_base_test:: init_virtual_seq(i2c_virtual_base_sequence virtual_sequence);
-//   virtual_sequence.m_seqr = env.master_agent.m_seqr;
-//   virtual_sequence.s_seqr = env.slave_agent.s_seqr;
-//   if (virtual_sequence.m_seqr == null) `uvm_fatal("NULPTR", "Master Sequencer has not be set")
-//   if (virtual_sequence.s_seqr == null) `uvm_fatal("NULPTR", "Slave Sequencer has not be set")
-// endfunction
+//-------------------------------------------------------------------------------------------------------------
+task i2c_base_test:: bus_setup();
+  if (cfg.slave_driver_type == POLLING_CPU && !env.slave_agent.m_mon.bus_active) begin
+    if (!m_start_byte.randomize()) `uvm_error("RNDERR", "Start Byte Sequence Randomization failed")
+    m_start_byte.start(env.master_agent.m_seqr);
+  end
+  if (cfg.high_speed_only && cfg.current_speed_mode == cfg.default_speed_mode) begin
+    if (!m_high_speed_mode.randomize()) `uvm_error("RNDERR", "High Speed Mode Sequence Randomization failed")
+    m_high_speed_mode.start(env.master_agent.m_seqr);
+  end
+endtask // bus_setup
