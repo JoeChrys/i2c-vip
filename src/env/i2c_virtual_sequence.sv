@@ -712,13 +712,13 @@ class i2c_virtual_cbus extends i2c_virtual_base_sequence;
   i2c_slave_read_sequence   s_seq;
 
   bit[7:0] data[];
-  bit[7:0] ack_nack[];
+  bit ack_nack[];
   bit     stop_condition;
 
-  constraint c_virtual_cbus {
-    data.size() == number_of_bytes;
-    ack_nack.size() == number_of_bytes;
-  }
+  // constraint c_virtual_cbus {
+  //   data.size() == number_of_bytes;
+  //   ack_nack.size() == number_of_bytes;
+  // }
 
   extern function new(string name = "i2c_virtual_cbus");
   extern virtual task body();
@@ -729,14 +729,14 @@ endclass
   endfunction
 
   task i2c_virtual_cbus:: body();
-    m_seq = i2c_master_multibyte_sequence::type_id::create("m_seq");
-    s_seq = i2c_slave_multibyte_sequence::type_id::create("s_seq");
+    m_seq = i2c_master_write_sequence::type_id::create("m_seq");
+    s_seq = i2c_slave_read_sequence::type_id::create("s_seq");
 
+    for (int i = 0; i<20; i++) begin
     fork
       begin
         if(!m_seq.randomize() with {
-          address == C_BUS;
-          data == local::data;
+          target_address == C_BUS;
           number_of_bytes == local::number_of_bytes;
           stop_condition == local::stop_condition;
         })
@@ -746,12 +746,13 @@ endclass
       begin
         if (!s_seq.randomize() with {
           number_of_bytes == local::number_of_bytes;
-          foreach (ack_nack[i]) {
-            ack_nack[i] dist {`ACK:=1, `NACK:=1};
+          foreach (local::ack_nack[i]) {
+            data_ack_nack[i] dist {`ACK:=1, `NACK:=1};
           }
         })
         `uvm_fatal("RNDERR", "Failed to randomize slave sequence")
         s_seq.start(p_sequencer.s_seqr, this);
       end
     join
+    end
   endtask

@@ -9,6 +9,7 @@ class i2c_testing_test extends i2c_base_test;
   i2c_virtual_write_with_stop_with_delays_with_cs_all v_seq1;
   i2c_master_write_with_stop_with_delays m_seq;
   i2c_slave_read_with_clock_stretch_all s_seq;
+  i2c_virtual_cbus v_seq2;
       
   extern function new(string name = "i2c_testing_test", uvm_component parent=null);
   extern virtual function void build_phase(uvm_phase phase);
@@ -28,6 +29,7 @@ function void i2c_testing_test:: build_phase(uvm_phase phase);
   v_seq1 = i2c_virtual_write_with_stop_with_delays_with_cs_all::type_id::create("v_seq1");
   m_seq = i2c_master_write_with_stop_with_delays :: type_id :: create ("m_seq");
   s_seq = i2c_slave_read_with_clock_stretch_all :: type_id :: create ("s_seq");
+  v_seq2 = i2c_virtual_cbus::type_id::create("v_seq2");
 endfunction
 
 //-------------------------------------------------------------------------------------------------------------
@@ -37,10 +39,10 @@ task i2c_testing_test:: run_phase (uvm_phase phase);
   phase.raise_objection(this);
   #(cfg.get_delay(FULL)*10);
   
-  if (!v_seq1.randomize() with {
+  if (!v_seq2.randomize() with {
     number_of_bytes == 5;
   }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-  v_seq1.start(env.v_seqr);
+  v_seq2.start(env.v_seqr);
 
   #(cfg.get_delay(FULL)*10);
   
