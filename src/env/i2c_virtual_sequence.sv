@@ -873,3 +873,48 @@ endclass
       end
     join
   endtask
+
+class i2c_virtual_10bit_addr_read extends i2c_virtual_base_sequence;
+  `uvm_object_utils(i2c_virtual_10bit_addr_read)
+
+  i2c_master_10bit_addr_read  m_seq;
+  i2c_slave_write_sequence   s_seq;
+  i2c_slave_base_sequence    s_seq_base;
+
+  extern function new(string name = "i2c_virtual_10bit_addr_read");
+  extern virtual task body();
+endclass
+
+  function i2c_virtual_10bit_addr_read:: new(string name = "i2c_virtual_10bit_addr_read");
+    super.new(name);
+  endfunction
+
+  task i2c_virtual_10bit_addr_read:: body();
+    m_seq = i2c_master_10bit_addr_read::type_id::create("m_seq");
+    s_seq = i2c_slave_write_sequence::type_id::create("s_seq");
+    s_seq_base = i2c_slave_base_sequence::type_id::create("s_seq_base");
+
+    fork
+      begin
+        if(!m_seq.randomize() with {
+          number_of_bytes == local::number_of_bytes;
+          stop_condition == local::stop_condition;
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize master sequence")
+        m_seq.start(p_sequencer.m_seqr, this);
+      end
+      begin
+        if (!s_seq_base.randomize() with {
+          transaction_type == READ;
+          ack_nack == `ACK;
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize slave sequence")
+        s_seq_base.start(p_sequencer.s_seqr, this);
+        if (!s_seq.randomize() with {
+          number_of_bytes == local::number_of_bytes;
+        })
+        `uvm_fatal("RNDERR", "Failed to randomize slave sequence")
+        s_seq.start(p_sequencer.s_seqr, this);
+      end
+    join
+  endtask
