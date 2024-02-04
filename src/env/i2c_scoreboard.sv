@@ -145,7 +145,7 @@ task i2c_scoreboard:: run_phase(uvm_phase phase);
           end
           else if (current_item.data[0] == `R) begin
             `uvm_info("Scoreboard", "10-BIT TARGET Reserved Address READ", UVM_LOW)
-            if (current_item.data[7:1] != item_q[start_index-2].data[7:1]) begin
+            if (current_item.data[7:1] != item_q[start_index-3].data[7:1]) begin
               `uvm_error("Scoreboard", "10-bit first 7 bits do not match")
             end 
             next_state = TEN_BIT_ADDR_READ;
