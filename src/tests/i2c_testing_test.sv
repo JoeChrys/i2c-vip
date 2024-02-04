@@ -43,11 +43,11 @@ task i2c_testing_test:: run_phase (uvm_phase phase);
   #(cfg.get_delay(FULL)*10);
   
   for (int i=0; i<20; i++) begin
-    if (!v_seq2.randomize() with {
+    if (!v_seq3.randomize() with {
       number_of_bytes == 5;
       stop_condition dist {0:=1, 1:=1};
     }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
-    v_seq2.start(env.v_seqr);
+    v_seq3.start(env.v_seqr);
   end
 
   #(cfg.get_delay(FULL)*10);

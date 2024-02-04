@@ -711,9 +711,9 @@ class i2c_virtual_cbus extends i2c_virtual_base_sequence;
   i2c_master_write_sequence  m_seq;
   i2c_slave_read_sequence   s_seq;
 
-  bit[7:0] data[];
-  bit ack_nack[];
-  bit     stop_condition;
+  rand bit[7:0] data[];
+  rand bit ack_nack[];
+  rand bit     stop_condition;
 
   extern function new(string name = "i2c_virtual_cbus");
   extern virtual task body();
@@ -727,7 +727,6 @@ endclass
     m_seq = i2c_master_write_sequence::type_id::create("m_seq");
     s_seq = i2c_slave_read_sequence::type_id::create("s_seq");
 
-    for (int i = 0; i<20; i++) begin
     fork
       begin
         if(!m_seq.randomize() with {
@@ -749,7 +748,6 @@ endclass
         s_seq.start(p_sequencer.s_seqr, this);
       end
     join
-    end
   endtask
 
 class i2c_virtual_other_bus extends i2c_virtual_base_sequence;
@@ -758,9 +756,9 @@ class i2c_virtual_other_bus extends i2c_virtual_base_sequence;
   i2c_master_write_sequence  m_seq;
   i2c_slave_read_sequence   s_seq;
 
-  bit[7:0] data[];
-  bit ack_nack[];
-  bit     stop_condition;
+  rand bit[7:0] data[];
+  rand bit ack_nack[];
+  rand bit     stop_condition;
 
   extern function new(string name = "i2c_virtual_other_bus");
   extern virtual task body();
