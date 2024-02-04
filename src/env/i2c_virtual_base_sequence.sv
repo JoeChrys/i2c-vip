@@ -23,7 +23,7 @@ class i2c_virtual_base_sequence extends uvm_sequence;
   constraint c_virtual_defaults {
     soft (transaction_type == WRITE);
     soft (start_condition == 0);
-    soft (stop_condition == 0);
+    // soft (stop_condition == 0);
     soft (delay == 0);
     soft (clock_stretch_ack == 0);
     foreach (clock_stretch_data[i]) {

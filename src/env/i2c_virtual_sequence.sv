@@ -866,7 +866,7 @@ endclass
       end
       begin
         if (!s_seq.randomize() with {
-          number_of_bytes == local::number_of_bytes+3;
+          number_of_bytes == local::number_of_bytes+1;
         })
         `uvm_fatal("RNDERR", "Failed to randomize slave sequence")
         s_seq.start(p_sequencer.s_seqr, this);

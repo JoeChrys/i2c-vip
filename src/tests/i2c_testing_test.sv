@@ -47,7 +47,8 @@ task i2c_testing_test:: run_phase (uvm_phase phase);
   for (int i=0; i<20; i++) begin
     if (!v_seq4.randomize() with {
       number_of_bytes == 5;
-      stop_condition dist {0:=1, 1:=1};
+      stop_condition dist {0:=1, 1:=5};
+      // stop_condition == 1;
     }) `uvm_fatal("RNDERR", "Virtual Sequence randomization failed")
     v_seq4.start(env.v_seqr);
   end
