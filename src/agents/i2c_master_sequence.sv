@@ -117,61 +117,52 @@ endclass // i2c_master_write_sequence
 
   //-------------------------------------------------------------------
   task i2c_master_write_sequence:: body();
-    int exit_flag;
+    int exit_flag = 0;
 
     seq = i2c_master_base_sequence::type_id::create("seq");
+    
+    // Send target address
+    if ( !seq.randomize() with { 
+        transaction_type == WRITE;
+        start_condition == 'b1;
+        data == { target_address, `W };
+        delay == local::delay[0];
+      }
+    ) `uvm_error(get_type_name(), "Write Sequence Randomization failed at Target Adress")
+    seq.start(p_sequencer, this);
+    `uvm_info(get_name(), "Sent target address (W)", UVM_MEDIUM)
+    exit_flag = seq.check_exit();
+    if (exit_flag == 2) return;
 
-    forever begin
-      exit_flag = 0;
-      
-      // Send target address
+    // Send register address
+    if (!ignore_register) begin
       if ( !seq.randomize() with { 
           transaction_type == WRITE;
-          start_condition == 'b1;
-          data == { target_address, `W };
-          delay == local::delay[0];
+          data == register_address;
+          delay == local::delay[1];
         }
-      ) `uvm_error(get_type_name(), "Write Sequence Randomization failed at Target Adress")
+      ) `uvm_error(get_type_name(), "Write Sequence Randomization failed at Register Address")
       seq.start(p_sequencer, this);
-      `uvm_info(get_name(), "Sent target address (W)", UVM_MEDIUM)
+      `uvm_info(get_name(), "Sent register address", UVM_MEDIUM)
       exit_flag = seq.check_exit();
-      if (exit_flag == 1) continue;
-      if (exit_flag == 2) return;
-
-      // Send register address
-      if (!ignore_register) begin
-        if ( !seq.randomize() with { 
-            transaction_type == WRITE;
-            data == register_address;
-            delay == local::delay[1];
-          }
-        ) `uvm_error(get_type_name(), "Write Sequence Randomization failed at Register Address")
-        seq.start(p_sequencer, this);
-        `uvm_info(get_name(), "Sent register address", UVM_MEDIUM)
-        exit_flag = seq.check_exit();
-        if (exit_flag) return;
-      end
-
-      for ( int i = 0; i < number_of_bytes; i++) begin
-        if ( !seq.randomize() with { 
-            transaction_type == WRITE;
-            data == local::data[i];
-            if (local::i == number_of_bytes-1)  {
-              stop_condition == local::stop_condition;
-            }
-            delay == local::delay[i+2];
-          }
-        ) `uvm_error(get_type_name(), $sformatf("Write Sequence Randomization failed at %3d", i))
-        seq.start(p_sequencer, this);
-        `uvm_info(get_name(), $sformatf("Sent Data Byte %03d", i), UVM_MEDIUM)
-        exit_flag = seq.check_exit();
-        if (exit_flag) return;
-      end
-
-      // SEQUENCE FINISHED
-      break; // or return;
+      if (exit_flag) return;
     end
 
+    for ( int i = 0; i < number_of_bytes; i++) begin
+      if ( !seq.randomize() with { 
+          transaction_type == WRITE;
+          data == local::data[i];
+          if (local::i == number_of_bytes-1)  {
+            stop_condition == local::stop_condition;
+          }
+          delay == local::delay[i+2];
+        }
+      ) `uvm_error(get_type_name(), $sformatf("Write Sequence Randomization failed at %3d", i))
+      seq.start(p_sequencer, this);
+      `uvm_info(get_name(), $sformatf("Sent Data Byte %03d", i), UVM_MEDIUM)
+      exit_flag = seq.check_exit();
+      if (exit_flag) return;
+    end
   endtask 
 
 class i2c_master_read_sequence extends i2c_master_base_sequence;
@@ -220,73 +211,65 @@ endclass // i2c_master_read_sequence
 
   //-------------------------------------------------------------------
   task i2c_master_read_sequence:: body();
-    int exit_flag;
+    int exit_flag = 0;
 
     seq = i2c_master_base_sequence::type_id::create("seq");
 
-    forever begin
-      exit_flag = 0;
+    // Send target address
+    if ( !seq.randomize() with { 
+        transaction_type == WRITE;
+        start_condition == 'b1;
+        data == { target_address, `W };
+        delay == local::delay[0];
+      }
+    ) `uvm_error(get_type_name(), "Read Sequence Randomization failed at Target Adress")
+    seq.start(p_sequencer, this);
+    `uvm_info(get_name(), "Sent target address (W)", UVM_MEDIUM)
+    exit_flag = seq.check_exit();
+    if (exit_flag == 2) return;
 
-      // Send target address
+    // Send register address
+    if (!ignore_register) begin
       if ( !seq.randomize() with { 
           transaction_type == WRITE;
-          start_condition == 'b1;
-          data == { target_address, `W };
-          delay == local::delay[0];
+          data == register_address;
+          delay == local::delay[1];
         }
-      ) `uvm_error(get_type_name(), "Read Sequence Randomization failed at Target Adress")
+      ) `uvm_error(get_type_name(), "Read Sequence Randomization failed at Register Address")
       seq.start(p_sequencer, this);
-      `uvm_info(get_name(), "Sent target address (W)", UVM_MEDIUM)
-      exit_flag = seq.check_exit();
-      if (exit_flag == 1) continue;
-      if (exit_flag == 2) return;
-
-      // Send register address
-      if (!ignore_register) begin
-        if ( !seq.randomize() with { 
-            transaction_type == WRITE;
-            data == register_address;
-            delay == local::delay[1];
-          }
-        ) `uvm_error(get_type_name(), "Read Sequence Randomization failed at Register Address")
-        seq.start(p_sequencer, this);
-        `uvm_info(get_name(), "Sent register address", UVM_MEDIUM)
-        exit_flag = seq.check_exit();
-        if (exit_flag) return;
-      end
-
-      // Send target address again (read)
-      if ( !seq.randomize() with { 
-          transaction_type == WRITE;
-          start_condition == 'b1;
-          data == { target_address, `R };
-          delay == local::delay[2];
-        }
-      )  `uvm_error(get_type_name(), "Read Sequence Randomization failed at Target Adress")
-      seq.start(p_sequencer, this);
-      `uvm_info(get_name(), "Sent target address (R)", UVM_MEDIUM)
+      `uvm_info(get_name(), "Sent register address", UVM_MEDIUM)
       exit_flag = seq.check_exit();
       if (exit_flag) return;
-      
+    end
 
-      for ( int i = 0; i < number_of_bytes; i++) begin
-        if ( !seq.randomize() with { 
-            transaction_type == READ;
-            if (local::i == number_of_bytes-1)  {
-              ack_nack == `NACK;
-              stop_condition == local::stop_condition;
-            }
-            delay == local::delay[i+3];
+    // Send target address again (read)
+    if ( !seq.randomize() with { 
+        transaction_type == WRITE;
+        start_condition == 'b1;
+        data == { target_address, `R };
+        delay == local::delay[2];
+      }
+    )  `uvm_error(get_type_name(), "Read Sequence Randomization failed at Target Adress")
+    seq.start(p_sequencer, this);
+    `uvm_info(get_name(), "Sent target address (R)", UVM_MEDIUM)
+    exit_flag = seq.check_exit();
+    if (exit_flag) return;
+    
+
+    for ( int i = 0; i < number_of_bytes; i++) begin
+      if ( !seq.randomize() with { 
+          transaction_type == READ;
+          if (local::i == number_of_bytes-1)  {
+            ack_nack == `NACK;
+            stop_condition == local::stop_condition;
           }
-        ) `uvm_error(get_type_name(), $sformatf("Read Sequence Randomization failed at %3d", i))
-        seq.start(p_sequencer, this);
-        `uvm_info(get_name(), $sformatf("Read Data Byte %03d", i), UVM_MEDIUM)
-        exit_flag = seq.check_exit();
-        if (exit_flag) return;
-      end
-
-      // SEQUENCE FINISHED
-      break; // or return;
+          delay == local::delay[i+3];
+        }
+      ) `uvm_error(get_type_name(), $sformatf("Read Sequence Randomization failed at %3d", i))
+      seq.start(p_sequencer, this);
+      `uvm_info(get_name(), $sformatf("Read Data Byte %03d", i), UVM_MEDIUM)
+      exit_flag = seq.check_exit();
+      if (exit_flag) return;
     end
   endtask 
 
@@ -425,25 +408,19 @@ endclass
   task i2c_master_general_call_command:: body();
     seq = i2c_master_base_sequence::type_id::create("seq");
 
-    forever begin
-      if(!seq.randomize() with {
-        start_condition == 'b1;
-        data == 8'h00;
-        delay == local::delay[0];
-      }) `uvm_error("RANDERR", "General Call Address Randomization failed")
-      seq.start(p_sequencer, this);
-      if (seq.check_exit()) continue;
+    if(!seq.randomize() with {
+      start_condition == 'b1;
+      data == 8'h00;
+      delay == local::delay[0];
+    }) `uvm_error("RANDERR", "General Call Address Randomization failed")
+    seq.start(p_sequencer, this);
 
-      if(!seq.randomize() with {
-        data == {command, 1'b0};
-        delay == local::delay[0];
-        stop_condition == local::stop_condition;
-      }) `uvm_error("RANDERR", "General Call Command Randomization failed")
-      seq.start(p_sequencer, this);
-      if (seq.check_exit()) continue;
-
-      break;
-    end
+    if(!seq.randomize() with {
+      data == {command, 1'b0};
+      delay == local::delay[0];
+      stop_condition == local::stop_condition;
+    }) `uvm_error("RANDERR", "General Call Command Randomization failed")
+    seq.start(p_sequencer, this);
   endtask
 
 class i2c_master_general_call_controller_address extends i2c_master_base_sequence;
@@ -470,25 +447,19 @@ endclass
   task i2c_master_general_call_controller_address:: body();
     seq = i2c_master_base_sequence::type_id::create("seq");
 
-    forever begin
-      if(!seq.randomize() with {
-        start_condition == 'b1;
-        data == 8'h00;
-        delay == local::delay[0];
-      }) `uvm_error("RANDERR", "General Call Address Randomization failed")
-      seq.start(p_sequencer, this);
-      if (seq.check_exit()) continue;
+    if(!seq.randomize() with {
+      start_condition == 'b1;
+      data == 8'h00;
+      delay == local::delay[0];
+    }) `uvm_error("RANDERR", "General Call Address Randomization failed")
+    seq.start(p_sequencer, this);
 
-      if(!seq.randomize() with {
-        data == {controller_address, 1'b1};
-        delay == local::delay[0];
-        stop_condition == local::stop_condition;
-      }) `uvm_error("RANDERR", "Controller Address Randomization failed")
-      seq.start(p_sequencer, this);
-      if (seq.check_exit()) continue;
-
-      break;
-    end
+    if(!seq.randomize() with {
+      data == {controller_address, 1'b1};
+      delay == local::delay[0];
+      stop_condition == local::stop_condition;
+    }) `uvm_error("RANDERR", "Controller Address Randomization failed")
+    seq.start(p_sequencer, this);
   endtask
 
 class i2c_master_start_byte extends i2c_master_base_sequence;
@@ -564,69 +535,62 @@ class i2c_master_10bit_addr_write extends i2c_master_write_sequence;
     int exit_flag = 0;
     seq = i2c_master_base_sequence::type_id::create("seq");
 
-    forever begin
-      exit_flag = 0;
-      
-      // Send target address (first 2 bits)
-      if (!seq.randomize() with { 
-          transaction_type == WRITE;
-          start_condition == 'b1;
-          data == { TEN_BIT_TARGET_ADDRESSING, target_address_10bit[9:8], `W };
-          delay == local::init_delay;
-        }
-      ) `uvm_error(get_type_name(), "Write Sequence Randomization failed at Target Adress")
-      seq.start(p_sequencer, this);
-      `uvm_info(get_name(), "Sent init 2 bits of 10 bit target address (W)", UVM_MEDIUM)
-      exit_flag = seq.check_exit();
-      if (exit_flag == 1) continue;
-      if (exit_flag == 2) return;
+    exit_flag = 0;
+    
+    // Send target address (first 2 bits)
+    if (!seq.randomize() with { 
+        transaction_type == WRITE;
+        start_condition == 'b1;
+        data == { TEN_BIT_TARGET_ADDRESSING, target_address_10bit[9:8], `W };
+        delay == local::init_delay;
+      }
+    ) `uvm_error(get_type_name(), "Write Sequence Randomization failed at Target Adress")
+    seq.start(p_sequencer, this);
+    `uvm_info(get_name(), "Sent init 2 bits of 10 bit target address (W)", UVM_MEDIUM)
+    exit_flag = seq.check_exit();
+    if (exit_flag == 2) return;
 
-      // Send target address (remaining 8 bits)
+    // Send target address (remaining 8 bits)
+    if ( !seq.randomize() with { 
+        transaction_type == WRITE;
+        start_condition == 'b0;
+        data == target_address_10bit[7:0];
+        delay == local::delay[0];
+      }
+    ) `uvm_error(get_type_name(), "Write Sequence Randomization failed at Target Adress")
+    seq.start(p_sequencer, this);
+    `uvm_info(get_name(), "Sent target address (W)", UVM_MEDIUM)
+    exit_flag = seq.check_exit();
+    if (exit_flag == 2) return;
+
+    // Send register address
+    if (!ignore_register) begin
       if ( !seq.randomize() with { 
           transaction_type == WRITE;
-          start_condition == 'b0;
-          data == target_address_10bit[7:0];
-          delay == local::delay[0];
+          data == register_address;
+          delay == local::delay[1];
         }
-      ) `uvm_error(get_type_name(), "Write Sequence Randomization failed at Target Adress")
+      ) `uvm_error(get_type_name(), "Write Sequence Randomization failed at Register Address")
       seq.start(p_sequencer, this);
-      `uvm_info(get_name(), "Sent target address (W)", UVM_MEDIUM)
+      `uvm_info(get_name(), "Sent register address", UVM_MEDIUM)
       exit_flag = seq.check_exit();
-      if (exit_flag == 1) continue;
-      if (exit_flag == 2) return;
+      if (exit_flag) return;
+    end
 
-      // Send register address
-      if (!ignore_register) begin
-        if ( !seq.randomize() with { 
-            transaction_type == WRITE;
-            data == register_address;
-            delay == local::delay[1];
+    for ( int i = 0; i < number_of_bytes; i++) begin
+      if ( !seq.randomize() with { 
+          transaction_type == WRITE;
+          data == local::data[i];
+          if (local::i == number_of_bytes-1)  {
+            stop_condition == local::stop_condition;
           }
-        ) `uvm_error(get_type_name(), "Write Sequence Randomization failed at Register Address")
-        seq.start(p_sequencer, this);
-        `uvm_info(get_name(), "Sent register address", UVM_MEDIUM)
-        exit_flag = seq.check_exit();
-        if (exit_flag) return;
-      end
-
-      for ( int i = 0; i < number_of_bytes; i++) begin
-        if ( !seq.randomize() with { 
-            transaction_type == WRITE;
-            data == local::data[i];
-            if (local::i == number_of_bytes-1)  {
-              stop_condition == local::stop_condition;
-            }
-            delay == local::delay[i+2];
-          }
-        ) `uvm_error(get_type_name(), $sformatf("Write Sequence Randomization failed at %3d", i))
-        seq.start(p_sequencer, this);
-        `uvm_info(get_name(), $sformatf("Sent Data Byte %03d", i), UVM_MEDIUM)
-        exit_flag = seq.check_exit();
-        if (exit_flag) return;
-      end
-
-      // SEQUENCE FINISHED
-      break; // or return;
+          delay == local::delay[i+2];
+        }
+      ) `uvm_error(get_type_name(), $sformatf("Write Sequence Randomization failed at %3d", i))
+      seq.start(p_sequencer, this);
+      `uvm_info(get_name(), $sformatf("Sent Data Byte %03d", i), UVM_MEDIUM)
+      exit_flag = seq.check_exit();
+      if (exit_flag) return;
     end
   endtask
 endclass
@@ -649,82 +613,73 @@ class i2c_master_10bit_addr_read extends i2c_master_read_sequence;
     int exit_flag = 0;
     seq = i2c_master_base_sequence::type_id::create("seq");
 
-    forever begin
-      exit_flag = 0;
+    // Send target address (first 2 bits)
+    if (!seq.randomize() with { 
+        transaction_type == WRITE;
+        start_condition == 'b1;
+        data == { TEN_BIT_TARGET_ADDRESSING, target_address_10bit[9:8], `W };
+        delay == local::init_delay;
+      }
+    ) `uvm_error(get_type_name(), "Write Sequence Randomization failed at Target Adress")
+    seq.start(p_sequencer, this);
+    `uvm_info(get_name(), "Sent init 2 bits of 10 bit target address (W)", UVM_MEDIUM)
+    exit_flag = seq.check_exit();
+    if (exit_flag == 2) return;
 
-      // Send target address (first 2 bits)
-      if (!seq.randomize() with { 
-          transaction_type == WRITE;
-          start_condition == 'b1;
-          data == { TEN_BIT_TARGET_ADDRESSING, target_address_10bit[9:8], `W };
-          delay == local::init_delay;
-        }
-      ) `uvm_error(get_type_name(), "Write Sequence Randomization failed at Target Adress")
-      seq.start(p_sequencer, this);
-      `uvm_info(get_name(), "Sent init 2 bits of 10 bit target address (W)", UVM_MEDIUM)
-      exit_flag = seq.check_exit();
-      if (exit_flag == 1) continue;
-      if (exit_flag == 2) return;
-
-      // Send target address (remaining 8 bits)
+    // Send target address (remaining 8 bits)
+    if ( !seq.randomize() with { 
+        transaction_type == WRITE;
+        start_condition == 'b0;
+        data == target_address_10bit[7:0];
+        delay == local::delay[0];
+      }
+    ) `uvm_error(get_type_name(), "Write Sequence Randomization failed at Target Adress")
+    seq.start(p_sequencer, this);
+    `uvm_info(get_name(), "Sent target address (W)", UVM_MEDIUM)
+    exit_flag = seq.check_exit();
+    if (exit_flag == 2) return;
+    // Send register address
+    if (!ignore_register) begin
       if ( !seq.randomize() with { 
           transaction_type == WRITE;
-          start_condition == 'b0;
-          data == target_address_10bit[7:0];
-          delay == local::delay[0];
+          data == register_address;
+          delay == local::delay[1];
         }
-      ) `uvm_error(get_type_name(), "Write Sequence Randomization failed at Target Adress")
+      ) `uvm_error(get_type_name(), "Read Sequence Randomization failed at Register Address")
       seq.start(p_sequencer, this);
-      `uvm_info(get_name(), "Sent target address (W)", UVM_MEDIUM)
-      exit_flag = seq.check_exit();
-      if (exit_flag == 1) continue;
-      if (exit_flag == 2) return;
-      // Send register address
-      if (!ignore_register) begin
-        if ( !seq.randomize() with { 
-            transaction_type == WRITE;
-            data == register_address;
-            delay == local::delay[1];
-          }
-        ) `uvm_error(get_type_name(), "Read Sequence Randomization failed at Register Address")
-        seq.start(p_sequencer, this);
-        `uvm_info(get_name(), "Sent register address", UVM_MEDIUM)
-        exit_flag = seq.check_exit();
-        if (exit_flag) return;
-      end
-
-      // Send target address again (read)
-      if ( !seq.randomize() with { 
-          transaction_type == WRITE;
-          start_condition == 'b1;
-          data == { TEN_BIT_TARGET_ADDRESSING, target_address_10bit[9:8], `R };
-          delay == local::delay[2];
-        }
-      )  `uvm_error(get_type_name(), "Read Sequence Randomization failed at Target Adress")
-      seq.start(p_sequencer, this);
-      `uvm_info(get_name(), "Sent target address (R)", UVM_MEDIUM)
+      `uvm_info(get_name(), "Sent register address", UVM_MEDIUM)
       exit_flag = seq.check_exit();
       if (exit_flag) return;
-      
+    end
 
-      for ( int i = 0; i < number_of_bytes; i++) begin
-        if ( !seq.randomize() with { 
-            transaction_type == READ;
-            if (local::i == number_of_bytes-1)  {
-              ack_nack == `NACK;
-              stop_condition == local::stop_condition;
-            }
-            delay == local::delay[i+3];
+    // Send target address again (read)
+    if ( !seq.randomize() with { 
+        transaction_type == WRITE;
+        start_condition == 'b1;
+        data == { TEN_BIT_TARGET_ADDRESSING, target_address_10bit[9:8], `R };
+        delay == local::delay[2];
+      }
+    )  `uvm_error(get_type_name(), "Read Sequence Randomization failed at Target Adress")
+    seq.start(p_sequencer, this);
+    `uvm_info(get_name(), "Sent target address (R)", UVM_MEDIUM)
+    exit_flag = seq.check_exit();
+    if (exit_flag) return;
+    
+
+    for ( int i = 0; i < number_of_bytes; i++) begin
+      if ( !seq.randomize() with { 
+          transaction_type == READ;
+          if (local::i == number_of_bytes-1)  {
+            ack_nack == `NACK;
+            stop_condition == local::stop_condition;
           }
-        ) `uvm_error(get_type_name(), $sformatf("Read Sequence Randomization failed at %3d", i))
-        seq.start(p_sequencer, this);
-        `uvm_info(get_name(), $sformatf("Read Data Byte %03d", i), UVM_MEDIUM)
-        exit_flag = seq.check_exit();
-        if (exit_flag) return;
-      end
-
-      // SEQUENCE FINISHED
-      break; // or return;
+          delay == local::delay[i+3];
+        }
+      ) `uvm_error(get_type_name(), $sformatf("Read Sequence Randomization failed at %3d", i))
+      seq.start(p_sequencer, this);
+      `uvm_info(get_name(), $sformatf("Read Data Byte %03d", i), UVM_MEDIUM)
+      exit_flag = seq.check_exit();
+      if (exit_flag) return;
     end
   endtask
 endclass
