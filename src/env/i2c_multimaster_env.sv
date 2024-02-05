@@ -24,6 +24,9 @@ endfunction // i2c_multimaster_env::build_phase
  
 function void i2c_multimaster_env:: connect_phase (uvm_phase phase);
   super.connect_phase(phase);
+
+  // Assign the sequencer of master agent 2
+  v_seqr.m_seqr_2 = master_agent_2.m_seqr;
 endfunction // i2c_multimaster_env::connect_phase
 
 function void i2c_multimaster_env:: start_of_simulation_phase(uvm_phase phase);

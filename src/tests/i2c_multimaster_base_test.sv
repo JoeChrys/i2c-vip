@@ -93,7 +93,7 @@ function void i2c_multimaster_base_test:: cfg_randomize();
  	if (!cfg.randomize() with {
     //add constraints
 
-    })
+  })
   `uvm_fatal("build_phase","Configuration randomization failed");
 endfunction // i2c_base_test::cfg_randomize
 
