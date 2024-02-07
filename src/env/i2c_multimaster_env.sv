@@ -18,7 +18,7 @@ endfunction // i2c_multimaster_env::new
 function void i2c_multimaster_env:: build_phase (uvm_phase phase);
   super.build_phase(phase);
   
-  master_agent_2 = i2c_agent :: type_id :: create ("master_agent", this);
+  master_agent_2 = i2c_agent :: type_id :: create ("master_agent_2", this);
   master_agent_2.cfg = cfg_env.master_config;
 endfunction // i2c_multimaster_env::build_phase 
  

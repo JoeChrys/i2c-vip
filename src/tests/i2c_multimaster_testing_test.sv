@@ -26,6 +26,11 @@ endfunction // i2c_multimaster_testing_test::build_phase
 
 //-------------------------------------------------------------------------------------------------------------
 task i2c_multimaster_testing_test:: run_phase(uvm_phase phase);
+  super.run_phase(phase);
+  phase.raise_objection(this);
+
+  #(cfg.get_delay(FULL)*10);
+
   fork
     begin
       if (!m1_seq.randomize() with { 
@@ -37,7 +42,7 @@ task i2c_multimaster_testing_test:: run_phase(uvm_phase phase);
           delay == 0; 
         }
       ) `uvm_error(get_type_name(), "Sequence Randomization failed")
-      m1_seq.start(v_seqr.m_seqr);
+      m1_seq.start(env.v_seqr.m_seqr);
     end
     begin
       if (!m2_seq.randomize() with { 
@@ -49,7 +54,19 @@ task i2c_multimaster_testing_test:: run_phase(uvm_phase phase);
           delay == 0; 
         }
       ) `uvm_error(get_type_name(), "Sequence Randomization failed")
-      m2_seq.start(v_seqr.m_seqr_2);
+      m2_seq.start(env.v_seqr.m_seqr_2);
+    end
+    begin
+      if (!s_seq.randomize() with {
+          //constr
+          transaction_type == READ;
+        }
+      ) `uvm_error(get_type_name(), "Sequence Randomization failed")
+      s_seq.start(env.v_seqr.s_seqr);
     end
   join
+
+  #(cfg.get_delay(FULL)*10);
+
+  phase.drop_objection(this);
 endtask // i2c_multimaster_testing_test::run_phase

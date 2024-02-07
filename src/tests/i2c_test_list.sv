@@ -1,3 +1,4 @@
+// Single Master
 `include "i2c_base_test.sv"
 `include "i2c_basic_test.sv"          
 // `include "i2c_random_test.sv"
@@ -5,3 +6,7 @@
 // `include "i2c_rst_test.sv"
 `include "i2c_testing_test.sv"
 `include "i2c_delay_and_clock_stretch_test.sv"
+
+// Multimaster
+`include "i2c_multimaster_base_test.sv"
+`include "i2c_multimaster_testing_test.sv"
