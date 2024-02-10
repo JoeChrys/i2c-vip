@@ -14,7 +14,7 @@ class i2c_master_driver extends uvm_driver #(i2c_item);
   extern virtual function void build_phase (uvm_phase phase);
   extern virtual task  run_phase (uvm_phase phase);
   extern virtual task  do_init ();
-  extern virtual task  do_drive(i2c_item req);
+  extern virtual task  do_drive(ref i2c_item req);
 
   extern virtual task  do_start_cond();
   extern virtual task  do_stop_cond();
@@ -63,6 +63,8 @@ task i2c_master_driver:: run_phase(uvm_phase phase);
     do_drive(req);
     //! event trigger
     cfg.master_finish.trigger();
+    //!
+    `uvm_info("I2C Master Driver", "FINISHED DO DRIVE", UVM_DEBUG)
   end
 endtask // i2c_master_driver::run_phase
 
@@ -76,7 +78,7 @@ endtask // i2c_master_driver::do_init
  * This task executes the given item
  * It is the main task of the driver
  */
-task i2c_master_driver:: do_drive(i2c_item req);
+task i2c_master_driver:: do_drive(ref i2c_item req);
   bus_busy = (transfer_aborted) ? 'b1 : 'b0;  // check it previous transfer was aborted to toggle bus_busy flag
   transfer_aborted = 'b0;
 
@@ -108,6 +110,8 @@ task i2c_master_driver:: do_drive(i2c_item req);
     end
     READ: read_data();
   endcase
+  //!
+  `uvm_info("I2C Master Driver", "RETURNED FROM WRITE/CHECK", UVM_DEBUG)
     
   if (req.stop_condition && !transfer_aborted) begin
     do_stop_cond();

@@ -1,3 +1,59 @@
+
+
+## Questions
+
+#### Xcelium
+- [ ] How to enable assertions for every pass, not just for the first.
+- [ ] How to continue the simulation even if assertion fails
+- [ ] In `/tools/cdnc/xcelium` what is each folder? UVM versions?
+- [x] Detailed xcelium documentation?
+- [ ] Βιβλιογραφία το xcelium manual?
+
+## Presentation / Thesis
+
+- Ενότητα για τη χρήση του I2C
+
+- ##### Explain all communication types
+    - Start Condition (S)
+        - Repeated Start (Sr)
+    - Stop Condition (P)
+    - Byte
+        - Reserved address
+        - Address WRITE
+        - Address Read
+        - Data
+
+- ##### Start Condition
+    - Resets address __KINDA__ (exceptions 10-bit, Device ID)
+    - Puts slave devices to read mode (listen for address)
+    - (Repeated) Does __not__ allow slave devices to edit their registers
+    - (Repeated) __Doesn't__ reset speed mode
+    - (Repeated) __Doesn't__ allow other drivers to take control
+
+- ##### Stop Condition
+    - Resets everything
+    - Makes slave devices check for Start Condition
+    - Lets devices process the values in their registers
+
+---
+
+#### Possible improvements
+
+  - auto STOP condition process after delay (disabled when `do_drive()` is called)
+
+---
+
+#### Glossary
+- UVM
+- UVC
+- VIP
+- S (start)
+- Sr (repeated)
+- P (stop)
+- W (write)
+- R (read)
+
+<!--
 ## Notes and Ideas
 
 #### Environment
@@ -84,30 +140,6 @@
     - `get_clock_duty()`
 
 
-
-### Presentation / Thesis
-- ##### Explain all communication types
-    - Start Condition (S)
-        - Repeated Start (Sr)
-    - Stop Condition (P)
-    - Byte
-        - Reserved address
-        - Address WRITE
-        - Address Read
-        - Data
-
-- ##### Start Condition
-    - Resets address __KINDA__ (exceptions 10-bit, Device ID)
-    - Puts slave devices to read mode (listen for address)
-    - (Repeated) Does __not__ allow slave devices to edit their registers
-    - (Repeated) __Doesn't__ reset speed mode
-    - (Repeated) __Doesn't__ allow other drivers to take control
-
-- ##### Stop Condition
-    - Resets everything
-    - Makes slave devices check for Start Condition
-    - Lets devices process the values in their registers
-
 - ##### Assertions
 (int counter = -1, counter % 9)
   - ##### Approach 1
@@ -152,7 +184,7 @@
 
   ---
 
-## Questions
+
 
 ##### General
 
@@ -197,12 +229,5 @@ __A: use seperate interface for each driver, each interface has 2 logic and 2 tr
 - ##### Ultra Fast Mode
     - [x] Should I implement it according to the following spec? It is __not__ widely used. [UFM](https://www.i2c-bus.org/ultra-fast-mode-ufm/) 
     Better no!?
+-->
 
-#### Xcelium
-- [ ] How to enable assertions for every pass, not just for the first.
-- [ ] How to continue the simulation even if assertion fails
-- [ ] In `/tools/cdnc/xcelium` what is each folder? UVM versions?
-- [ ] Detailed xcelium documentation?
-
-#### Possible improvements
-- auto STOP condition process after delay (disabled when do_drive() is called)
