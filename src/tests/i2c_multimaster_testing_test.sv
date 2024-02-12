@@ -51,7 +51,7 @@ task i2c_multimaster_testing_test:: run_phase(uvm_phase phase);
           ack_nack == `ACK; 
           start_condition == 1; 
           stop_condition == 0; 
-          delay == 0; 
+          delay == 10; 
         }
       ) `uvm_error(get_type_name(), "Sequence Randomization failed")
       m2_seq.start(env.v_seqr.m_seqr_2);

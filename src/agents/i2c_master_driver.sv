@@ -10,6 +10,8 @@ class i2c_master_driver extends uvm_driver #(i2c_item);
   bit               transfer_aborted;
   int               bit_index;
 
+  process           bg_task;
+
   extern function new (string name, uvm_component parent);
   extern virtual function void build_phase (uvm_phase phase);
   extern virtual task  run_phase (uvm_phase phase);
@@ -83,17 +85,18 @@ task i2c_master_driver:: do_drive(ref i2c_item req);
   transfer_aborted = 'b0;
 
   fork
-    do_delay();
     check_bus_busy();
     //bus_busy_timeout();
-  join_any
+  join_none
+
+  do_delay();
 
   if (bus_busy) begin
     `uvm_info("I2C Master Driver", "Waiting for bus to be released", UVM_LOW)
     wait (!bus_busy);
     //delay below could be moved here
   end
-  disable fork;
+  bg_task.kill();
 
   #(cfg.get_delay());
 
@@ -173,13 +176,19 @@ task i2c_master_driver:: write_data();
   `uvm_info("I2C Master Driver", "Master: Starting data transfer", UVM_HIGH)
   
   for (bit_index = 7; bit_index >= 0; bit_index--) begin
-    if (transfer_aborted) return;
-    send_bit(req.data[bit_index]);
-    pulse_clock();
+    if (transfer_aborted) begin
+      i2c_vif.uvc_scl = 'bz;
+      // #(cfg.get_delay(QUANTUM));
+      // i2c_vif.uvc_sda = 'bz;
+     return; 
+    end
+
     `uvm_info("I2C Master Driver", 
-      $sformatf("Sent bit[%1d] = %b", 
+      $sformatf("Sending bit[%1d] = %b", 
         bit_index, req.data[bit_index]), 
       UVM_HIGH)
+    send_bit(req.data[bit_index]);
+    pulse_clock();
   end
   `uvm_info("I2C Master Driver", 
     $sformatf("Sent byte = %2h",
@@ -222,9 +231,11 @@ task i2c_master_driver:: check_data();
       `uvm_warning("I2C Master Driver", 
         $sformatf("Bit sent (%1b) does NOT match SDA, aborting sequence...", rsp.data[i]))
       transfer_aborted = 'b1;
+      bus_busy = 1;
       rsp.transfer_failed = 'b1;
       rsp.set_id_info(req);
       seq_item_port.put(rsp);
+      // disable pulse_clock;
       return;
     end
     // else... (bit is correct)
@@ -330,13 +341,14 @@ endtask
  */
 task i2c_master_driver:: check_bus_busy();
   fork
-    forever begin : DETECT_START
+    begin
+      bg_task = process::self();
       @(negedge i2c_vif.sda iff i2c_vif.scl);
+      `uvm_info(get_type_name(), "NEGEDGE SDA IFF SCL", UVM_DEBUG)
       @(negedge i2c_vif.scl);
+      `uvm_info(get_type_name(), "NEGEDGE SCL", UVM_DEBUG)
       bus_busy = 1;
       `uvm_warning("I2C Master Driver", "External START condition detected, bus is busy, waiting...")
-    end
-    forever begin : DETECT_STOP
       @(posedge i2c_vif.sda iff i2c_vif.scl);
       bus_busy = 0;
       `uvm_info("I2C Master Driver", "External STOP condition detected, bus is now free", UVM_LOW)

@@ -40,6 +40,7 @@
 #### Possible improvements
 
   - auto STOP condition process after delay (disabled when `do_drive()` is called)
+  - Warning when master is about to send without Start Condition
 
 ---
 
