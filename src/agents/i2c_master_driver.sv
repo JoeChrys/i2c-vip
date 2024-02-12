@@ -90,15 +90,19 @@ task i2c_master_driver:: do_drive(ref i2c_item req);
   join_none
 
   do_delay();
+  `uvm_info(get_type_name(), $sformatf("after delay done: bus_busy: %1b", bus_busy), UVM_DEBUG)
 
   if (bus_busy) begin
     `uvm_info("I2C Master Driver", "Waiting for bus to be released", UVM_LOW)
     wait (!bus_busy);
+    #(cfg.get_delay());
     //delay below could be moved here
   end
-  bg_task.kill();
 
-  #(cfg.get_delay());
+
+  this.bg_task.kill();
+
+  `uvm_info(get_type_name(), $sformatf("after kill: bus_busy: %1b", bus_busy), UVM_DEBUG)
 
   if (req.start_condition) begin
     do_start_cond();
@@ -231,7 +235,7 @@ task i2c_master_driver:: check_data();
       `uvm_warning("I2C Master Driver", 
         $sformatf("Bit sent (%1b) does NOT match SDA, aborting sequence...", rsp.data[i]))
       transfer_aborted = 'b1;
-      bus_busy = 1;
+      // bus_busy = 1;
       rsp.transfer_failed = 'b1;
       rsp.set_id_info(req);
       seq_item_port.put(rsp);
@@ -340,15 +344,17 @@ endtask
  * It checks for START/STOP conditions and alters the bus_busy flag accordingly
  */
 task i2c_master_driver:: check_bus_busy();
+  bg_task = process::self();
   fork
-    begin
-      bg_task = process::self();
+    forever begin
       @(negedge i2c_vif.sda iff i2c_vif.scl);
       `uvm_info(get_type_name(), "NEGEDGE SDA IFF SCL", UVM_DEBUG)
       @(negedge i2c_vif.scl);
       `uvm_info(get_type_name(), "NEGEDGE SCL", UVM_DEBUG)
       bus_busy = 1;
       `uvm_warning("I2C Master Driver", "External START condition detected, bus is busy, waiting...")
+    end
+    forever begin
       @(posedge i2c_vif.sda iff i2c_vif.scl);
       bus_busy = 0;
       `uvm_info("I2C Master Driver", "External STOP condition detected, bus is now free", UVM_LOW)

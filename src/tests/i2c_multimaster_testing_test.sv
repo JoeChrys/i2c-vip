@@ -38,11 +38,13 @@ task i2c_multimaster_testing_test:: run_phase(uvm_phase phase);
           data == 8'h00; 
           ack_nack == `ACK; 
           start_condition == 1; 
-          stop_condition == 0; 
+          stop_condition == 1; 
           delay == 0; 
         }
       ) `uvm_error(get_type_name(), "Sequence Randomization failed")
+      do begin
       m1_seq.start(env.v_seqr.m_seqr);
+      end while (m1_seq.transfer_failed);
     end
     begin
       if (!m2_seq.randomize() with { 
@@ -51,10 +53,12 @@ task i2c_multimaster_testing_test:: run_phase(uvm_phase phase);
           ack_nack == `ACK; 
           start_condition == 1; 
           stop_condition == 0; 
-          delay == 10; 
+          delay == 1000; 
         }
       ) `uvm_error(get_type_name(), "Sequence Randomization failed")
+      do begin
       m2_seq.start(env.v_seqr.m_seqr_2);
+      end while (m2_seq.transfer_failed);
     end
     begin
       if (!s_seq.randomize() with {
@@ -62,7 +66,7 @@ task i2c_multimaster_testing_test:: run_phase(uvm_phase phase);
           transaction_type == READ;
         }
       ) `uvm_error(get_type_name(), "Sequence Randomization failed")
-      s_seq.start(env.v_seqr.s_seqr);
+      repeat(2) s_seq.start(env.v_seqr.s_seqr);
     end
   join
 
