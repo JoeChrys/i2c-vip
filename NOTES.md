@@ -41,6 +41,12 @@
 
   - auto STOP condition process after delay (disabled when `do_drive()` is called)
   - Warning when master is about to send without Start Condition
+  - Active driving for higher speed modes and clock stretch restrictions
+
+#### I2C limitiations
+
+  - no reset
+  
 
 ---
 

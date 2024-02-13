@@ -63,9 +63,7 @@ task i2c_master_driver:: run_phase(uvm_phase phase);
     rsp = i2c_item::type_id::create("rsp");
     rsp.transaction_type = req.transaction_type;
     do_drive(req);
-    //! event trigger
     cfg.master_finish.trigger();
-    //!
     `uvm_info("I2C Master Driver", "FINISHED DO DRIVE", UVM_DEBUG)
   end
 endtask // i2c_master_driver::run_phase
@@ -81,7 +79,7 @@ endtask // i2c_master_driver::do_init
  * It is the main task of the driver
  */
 task i2c_master_driver:: do_drive(ref i2c_item req);
-  bus_busy = (transfer_aborted) ? 'b1 : 'b0;  // check it previous transfer was aborted to toggle bus_busy flag
+  // bus_busy = (transfer_aborted) ? 'b1 : 'b0;  // check it previous transfer was aborted to toggle bus_busy flag
   transfer_aborted = 'b0;
 
   fork
@@ -96,13 +94,8 @@ task i2c_master_driver:: do_drive(ref i2c_item req);
     `uvm_info("I2C Master Driver", "Waiting for bus to be released", UVM_LOW)
     wait (!bus_busy);
     #(cfg.get_delay());
-    //delay below could be moved here
   end
-
-
-  this.bg_task.kill();
-
-  `uvm_info(get_type_name(), $sformatf("after kill: bus_busy: %1b", bus_busy), UVM_DEBUG)
+  disable fork;
 
   if (req.start_condition) begin
     do_start_cond();
@@ -141,9 +134,6 @@ task i2c_master_driver:: do_start_cond();
     if (i2c_vif.scl != 'b1) `uvm_error("I2C Master Driver", "Expected SCL High but is Low")
   end
 
-  // if (!uvm_config_db#(i2c_cfg)::get(this, "", "cfg", cfg)) begin
-  //   `uvm_fatal("run_phase", "cfg wasn't set through config db");
-  // end
   `uvm_info("I2C Master Driver", "Sending START", UVM_HIGH)
   i2c_vif.uvc_sda = 'b0;
   #(cfg.get_delay());
@@ -181,9 +171,9 @@ task i2c_master_driver:: write_data();
   
   for (bit_index = 7; bit_index >= 0; bit_index--) begin
     if (transfer_aborted) begin
+      i2c_vif.uvc_sda = 'bz;
+      #(cfg.get_delay(QUANTUM));
       i2c_vif.uvc_scl = 'bz;
-      // #(cfg.get_delay(QUANTUM));
-      // i2c_vif.uvc_sda = 'bz;
      return; 
     end
 
@@ -235,7 +225,7 @@ task i2c_master_driver:: check_data();
       `uvm_warning("I2C Master Driver", 
         $sformatf("Bit sent (%1b) does NOT match SDA, aborting sequence...", rsp.data[i]))
       transfer_aborted = 'b1;
-      // bus_busy = 1;
+      bus_busy = 'b1;
       rsp.transfer_failed = 'b1;
       rsp.set_id_info(req);
       seq_item_port.put(rsp);
