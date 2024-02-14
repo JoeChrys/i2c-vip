@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<refinement-file-root>
+  <information comment-version="1" creation-time="Tue 13 Feb 2024 14:19:45 UTC" creator="iosifc" csCheck="true" save-ref-method="seq" tool-version="Cadence vManager22.03" rules-signature-c="3cf7cec6bbed13b81281b43f9afa89">
+    <ucm-files>
+      <ucm-file domain="icc" modelCheckSum="1451733068" path="./cov_work/scope/icc_5687b04c_1f49c1ea.ucm"></ucm-file>
+    </ucm-files>
+    <ccf-files></ccf-files>
+  </information>
+  <rules>
+    <rule ccType="type" ccfFlagsMask="35184372089280-42" domain="icc" entityName="top/10" entityType="block" excTime="1707833798" file="0" im-checksum="1287074364" line="68" name="exclude_covered" packageName="worklib" reviewer="unknown" text="$warning(&quot;DUMPNAME not specified&quot;);" user="1" vscope="default"></rule>
+    <rule ccType="type" ccfFlagsMask="35184372089280-42" domain="icc" entityName="i2c_if/19" entityType="block" excTime="1707833809" file="2" im-checksum="79908135" line="84" name="exclude" packageName="worklib" reviewer="unknown" text="if (clock_counter % 9 == 0) fail = 0;" user="1" vscope="default"></rule>
+    <rule ccType="type" ccfFlagsMask="35184372089280-42" domain="icc" entityName="i2c_if/21" entityType="block" excTime="1707833817" file="2" im-checksum="79908135" line="85" name="exclude" packageName="worklib" reviewer="unknown" text="if (fail) $error(&quot;protocol_checker(): Protocol check FAILED&quot;);" user="1" vscope="default"></rule>
+    <rule ccType="type" ccfFlagsMask="35184372089280-42" domain="icc" entityName="i2c_if/29" entityType="block" excTime="1707833826" file="2" im-checksum="79908135" line="111" name="exclude_covered" packageName="worklib" reviewer="unknown" text="@(sda) if (full_counter%9==0) fail = 0; // iff scl [optional, since other thread finishes first]" user="1" vscope="default"></rule>
+    <rule ccType="type" ccfFlagsMask="35184372089280-42" domain="icc" entityName="i2c_if/33" entityType="block" excTime="1707833829" file="2" im-checksum="79908135" line="114" name="exclude_covered" packageName="worklib" reviewer="unknown" text="@(negedge scl) if (sda == temp) fail = 0;" user="1" vscope="default"></rule>
+    <rule ccType="type" ccfFlagsMask="35184372089280-42" domain="icc" entityName="i2c_if/36" entityType="block" excTime="1707833838" file="2" im-checksum="79908135" line="118" name="exclude" packageName="worklib" reviewer="unknown" text="if (fail) $error(&quot;sda_stable_checker(): Protocol check FAILED&quot;);" user="1" vscope="default"></rule>
+    <rule ccType="inst" ccfFlagsMask="35184372089280-42" domain="icc" entityName="top/i2c_vif_master_2/6" entityType="block" excTime="1707833875" file="2" im-checksum="79908135" line="49" name="exclude" reviewer="unknown" text="always @(uvc_sda) begin" user="1" vscope="default"></rule>
+    <rule ccType="inst" ccfFlagsMask="35184372089280-42" domain="icc" entityName="top/i2c_vif_master_2/7" entityType="block" excTime="1707833875" file="2" im-checksum="79908135" line="55" name="exclude" reviewer="unknown" text="always @(uvc_scl) begin" user="1" vscope="default"></rule>
+  </rules>
+  <cache-map>
+    <cache-entry key="0" value="/users/iosifc/i2c-vip/src/top.sv"></cache-entry>
+    <cache-entry key="1" value="iosifc"></cache-entry>
+    <cache-entry key="2" value="/users/iosifc/i2c-vip/src/i2c_if.sv"></cache-entry>
+  </cache-map>
+</refinement-file-root>

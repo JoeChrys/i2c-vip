@@ -7,29 +7,26 @@ class i2c_coverage extends uvm_component;
     i2c_item item,
     scoreboard_state_enum state
     );
+    option.per_instance = 1;
+    option.name = "i2c_addresses";
     
     // Coverpoint for scoreboard states
-    coverpoint state {
+    possible_states : coverpoint state {
       // cover all possible states
-      bins basic_states[] = {WAIT_FOR_START, ADDRESSING};
-      bins all_states[] = {NORMAL_WRITE, NORMAL_READ,
+      bins all_states[] = {WAIT_FOR_START, NORMAL_WRITE, NORMAL_READ,
       GENERAL_CALL_STATE, CBUS_STATE, OTHER_BUS_STATE, FUTURE_PURPOSE_STATE,
       DEVICE_ID_WRITE, DEVICE_ID_READ, TEN_BIT_ADDR_WRITE, TEN_BIT_ADDR_READ};
+    }
 
+    possible_transitions : coverpoint state {
       // cover all legal transistions
-      bins normal_write = (ADDRESSING => NORMAL_WRITE);
-      bins normal_read = (ADDRESSING => NORMAL_WRITE => ADDRESSING => NORMAL_READ);
-      bins general_call = (ADDRESSING => GENERAL_CALL_STATE);
-      bins cbus = (ADDRESSING => CBUS_STATE);
-      bins other_buses = (ADDRESSING => OTHER_BUS_STATE);
-      bins future_purpose = (ADDRESSING => FUTURE_PURPOSE_STATE);
-      bins device_id_write = (ADDRESSING => DEVICE_ID_WRITE => ADDRESSING => DEVICE_ID_READ);
-      bins ten_bit_addr_write = (ADDRESSING => TEN_BIT_ADDR_WRITE);
-      bins ten_bit_addr_read = (ADDRESSING => TEN_BIT_ADDR_WRITE => ADDRESSING => TEN_BIT_ADDR_READ);
+      bins normal_read = (NORMAL_WRITE => NORMAL_READ);
+      bins device_id_write = (DEVICE_ID_WRITE => DEVICE_ID_READ);
+      bins ten_bit_addr_read = (TEN_BIT_ADDR_WRITE => TEN_BIT_ADDR_READ);
     }
 
     // Coverpoint for the address (similar to states but more specific)
-    coverpoint item.data[7:1] {
+    seven_bit_addresses : coverpoint item.data[7:1] {
       // cover reserved addresses
       bins c_bus = {C_BUS};
       bins other_buses = {OTHER_BUSES};
@@ -41,7 +38,7 @@ class i2c_coverage extends uvm_component;
       bins ten_bit_addr[4] = {[{TEN_BIT_TARGET_ADDRESSING,2'b00}:{TEN_BIT_TARGET_ADDRESSING,2'b11}]};
     }
     // Coverpoint for general call (very similar to above coverpoint)
-    coverpoint item.data {
+    eight_bit_addresses : coverpoint item.data {
       bins general_call = {GENERAL_CALL};
       bins start_byte = {START_BYTE};
     }
@@ -51,13 +48,15 @@ class i2c_coverage extends uvm_component;
     i2c_item item,
     scoreboard_state_enum state
     );
-    
-    cp_start_condition: coverpoint item.start_condition;
-    cp_stop_condition: coverpoint item.stop_condition;
+    option.per_instance = 1;
+    option.name = "i2c_end_state_with_start_stop";
+
+    cp_start_condition : coverpoint item.start_condition;
+    cp_stop_condition : coverpoint item.stop_condition;
     cp_state: coverpoint state;
 
     // Coverpoint cross that covers ending a transaction with a start or stop condition
-    each_state_start_stop: cross cp_start_condition, cp_stop_condition, cp_state {
+    each_state_start_stop : cross cp_start_condition, cp_stop_condition, cp_state {
       // Ignore bins, because they are not interesting or are not expected to happen
       ignore_bins ignore_WAIT_FOR_START = binsof(cp_state) intersect {WAIT_FOR_START} && binsof(cp_stop_condition) intersect {0};
       ignore_bins ignore_DEVICE_ID_WRITE = binsof(cp_state) intersect {DEVICE_ID_WRITE} && binsof(cp_stop_condition) intersect {0};

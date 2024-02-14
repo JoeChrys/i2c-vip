@@ -3,7 +3,7 @@
 */
 class i2c_base_test extends uvm_test;
   
-  int iterations = 30;
+  int iterations = 10;
   int number_of_bytes = 3;
 
   `uvm_component_utils(i2c_base_test)

@@ -4,6 +4,7 @@ waves.shm/
 .simvision/
 xmsim*
 .bpad/
+imc.key
 
 # Output Files
 *.history
@@ -14,6 +15,11 @@ xrun.key
 *.nfs*
 *.dump
 *.err
+html*
 
 # Other files
 *.txt
+
+# Coverage
+
+cov_work/*
