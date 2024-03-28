@@ -1,7 +1,5 @@
 # I<sup>2</sup>C Protocol Verification Project
 
-[toc]
-
 ## Introduction
 
 This project aims to verify the functionality of the I<sup>2</sup>C (Inter-Integrated Circuit) protocol. The I<sup>2</sup>C protocol is a popular method for microcontrollers to communicate with various peripherals.
